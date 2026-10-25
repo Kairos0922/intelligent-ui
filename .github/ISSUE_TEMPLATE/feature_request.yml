@@ -1,0 +1,53 @@
+name: Feature request
+description: Propose a new task or a new capability.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the user task first. A component idea can come later.
+  - type: textarea
+    id: task
+    attributes:
+      label: User task
+      description: What task must the user complete?
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Current problem
+      description: What can the user not do today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed result
+      description: Describe the result that you need. Add a small example if possible.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Describe other methods that you tried.
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Core runtime
+        - Block catalog
+        - Agent contract
+        - React adapter
+        - AI SDK adapter
+        - MCP Apps adapter
+        - DSH adapter
+        - Documentation
+        - Benchmark
+    validations:
+      required: true

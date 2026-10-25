@@ -1,0 +1,155 @@
+/* =========================================================================
+   Intelligent UI design tokens + surface base (no global preflight)
+   -------------------------------------------------------------------------
+   Imported by the embeddable SDK through sdk.css. Everything here is either
+   a custom-property definition or scoped to `.iui-theme`.
+   ========================================================================= */
+
+/* =========================================================================
+   Design tokens
+   ========================================================================= */
+
+:root {
+  /* --- Intelligent UI tokens (light) --- */
+  /* Surface typography. Hosts can override the font tokens. */
+  --iui-font: Arial, Helvetica, sans-serif;
+  --iui-font-size: 15px;
+  --iui-line-height: 1.65;
+  --iui-tracking: -0.17px;
+  --iui-bg: #fff;
+  --iui-text: #171717;
+  --iui-muted: #666;
+  --iui-subtle: #888;
+  --iui-border: #e5e5e5;
+  --iui-border-soft: #eee;
+  --iui-border-strong: #ddd;
+  --iui-control-border: #ccc;
+  --iui-check-border: #d2d2d2;
+  --iui-control-bg: #fff;
+  --iui-surface: #f5f5f5;
+  --iui-elevated: #fff;
+  --iui-hover: #f5f5f5;
+  --iui-solid: #171717;
+  --iui-on-solid: #fff;
+  --iui-prompt: #f4f4f4;
+  --iui-prompt-after: #eaf2ff;
+  --iui-switcher: #f1f1f1;
+  --iui-switcher-shadow: 0 1px 4px #00000012;
+  --iui-focus: #0285ff;
+  --iui-success: #008f35;
+  --iui-warning: #a45b00;
+  --iui-danger: #b42318;
+  --iui-series-1: #2563eb;
+  --iui-series-2: #0f766e;
+  --iui-series-3: #b45309;
+  --iui-series-4: #7e22ce;
+  --iui-series-5: #be123c;
+  --iui-progress: #5b806d;
+  --iui-progress-track: #f5f5f5;
+  --iui-chip: #f4f4f4;
+  --iui-completed: #777;
+  --iui-overlay: #000000b3;
+
+  color-scheme: light;
+}
+
+/* Dark tokens apply when the page is dark (`<html class="dark">`) or when the
+   SDK root itself is switched to dark (`data-theme="dark"`). */
+:root.dark,
+.iui-theme[data-theme="dark"] {
+  /* --- Intelligent UI tokens (dark) --- */
+  --iui-bg: #0e0e0e;
+  --iui-text: #ededed;
+  --iui-muted: #cdcdcd;
+  --iui-subtle: #afafaf;
+  --iui-border: #ffffff26;
+  --iui-border-soft: #ffffff0d;
+  --iui-border-strong: #fff3;
+  --iui-control-border: #fff3;
+  --iui-check-border: #fff3;
+  --iui-control-bg: #303030;
+  --iui-surface: #303030;
+  --iui-elevated: #212121;
+  --iui-hover: #ffffff1a;
+  --iui-solid: #ededed;
+  --iui-on-solid: #0d0d0d;
+  --iui-prompt: #323232d9;
+  --iui-prompt-after: #133463;
+  --iui-switcher: #1b1b1b;
+  --iui-switcher-shadow: none;
+  --iui-focus: #3a83f7;
+  --iui-success: #40c977;
+  --iui-warning: #fbbf24;
+  --iui-danger: #ff8a80;
+  --iui-series-1: #93b4ff;
+  --iui-series-2: #5eead4;
+  --iui-series-3: #fbbf24;
+  --iui-series-4: #d8b4fe;
+  --iui-series-5: #fda4af;
+  --iui-progress: #40c977;
+  --iui-progress-track: #303030;
+  --iui-chip: #303030;
+  --iui-completed: #afafaf;
+
+  color-scheme: dark;
+}
+
+/* Intelligent UI surface root. */
+.iui-theme {
+  color: var(--iui-text);
+  font-family: var(--iui-font);
+  font-size: var(--iui-font-size);
+  line-height: var(--iui-line-height);
+  letter-spacing: var(--iui-tracking);
+  font-feature-settings: "calt", "liga";
+}
+
+/* UA form-control resets (select/button/input/textarea) drop inherited
+   letter-spacing and font features. Restore inheritance at zero specificity
+   so component-level declarations still win. */
+.iui-theme :where(button, select, input, textarea) {
+  letter-spacing: inherit;
+  font-feature-settings: inherit;
+  line-height: inherit;
+}
+
+/* Zero the UA control margins and padding at zero specificity. */
+:where(.iui-theme) :where(button, input, optgroup, select, textarea) {
+  margin: 0;
+  padding: 0;
+}
+
+/* Prose base.
+   Bare prose elements carry a flow rhythm even when the component CSS says
+   nothing about them. Selectors use :where() so the specificity stays at
+   zero and every component rule keeps winning. */
+:where(.iui-theme) :where(p) {
+  margin: 0 0 16px;
+}
+:where(.iui-theme) :where(h3) {
+  margin: 28px 0 12px;
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+:where(.iui-theme) :where(h4) {
+  margin: 28px 0 12px;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+:where(.iui-theme) :where(ul) {
+  margin: 12px 0 20px;
+  padding-left: 22px;
+}
+:where(.iui-theme) :where(li + li) {
+  margin-top: 6px;
+}
+:where(.iui-theme) :where(strong) {
+  font-weight: 600;
+}
+/* Zero the UA fieldset margin and padding so card layouts are stable. */
+:where(.iui-theme) :where(fieldset) {
+  margin: 0;
+  padding: 0;
+}

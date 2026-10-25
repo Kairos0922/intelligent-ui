@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Intelligent UI SDK — self-test</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 32px;
+        font: 14px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+        color: #171717;
+        background: #fff;
+      }
+      h1 { font-size: 20px; margin: 0 0 4px; }
+      p.sub { color: #666; margin: 0 0 20px; }
+      #summary { font-weight: 600; margin: 14px 0 18px; }
+      table { border-collapse: collapse; width: 100%; max-width: 900px; }
+      td, th { text-align: left; border-bottom: 1px solid #e7e7e7; padding: 8px 10px; vertical-align: top; }
+      th { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: #777; }
+      .pass { color: #0a7c42; font-weight: 600; }
+      .fail { color: #c02626; font-weight: 600; }
+      code { background: #f4f4f5; border-radius: 4px; padding: 1px 4px; font-size: 12px; }
+      #stage { position: absolute; left: -9999px; top: 0; width: 456px; }
+    </style>
+  </head>
+  <body>
+    <h1>Intelligent UI SDK — self-test</h1>
+    <p class="sub">Transport, buffering, validation, agent extractor, block events, lifecycle.</p>
+    <div id="summary">Running…</div>
+    <table>
+      <thead><tr><th style="width:46px">Result</th><th style="width:230px">Test</th><th>Detail</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="stage" aria-hidden="true"></div>
+    <script type="module" src="/src/sdk-selftest.ts"></script>
+  </body>
+</html>

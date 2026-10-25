@@ -1,0 +1,35 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+body {
+  font-family: var(--iui-font, ui-sans-serif, system-ui, sans-serif);
+  overflow-x: hidden;
+}
+
+#root {
+  padding: 2px 0;
+}
+
+#root > .iui-root {
+  margin: 0;
+}
+
+.iui-app-status {
+  box-sizing: border-box;
+  border: 1px solid var(--iui-border, #e5e5e5);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--iui-muted, #666);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.iui-app-status[data-tone="error"] {
+  border-color: var(--iui-border-strong, #ddd);
+  color: var(--iui-text, #171717);
+  background: var(--iui-surface, #f5f5f5);
+}

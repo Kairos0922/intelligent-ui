@@ -1,0 +1,60 @@
+{
+  "name": "@intelligent-ui/core",
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Host-neutral runtime for agent apps: IUI-1 NDJSON compiler, 30 UI blocks, agent prompt and tool schema, validation, extractors, and action envelope.",
+  "license": "MIT",
+  "author": "Intelligent UI contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kairos0922/intelligent-ui.git",
+    "directory": "clone"
+  },
+  "homepage": "https://github.com/Kairos0922/intelligent-ui#readme",
+  "bugs": {
+    "url": "https://github.com/Kairos0922/intelligent-ui/issues"
+  },
+  "keywords": [
+    "intelligent-ui",
+    "agent",
+    "generative-ui",
+    "ui-blocks",
+    "runtime"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "module": "./dist-lib/index.js",
+  "types": "./dist-lib/types/sdk/index.d.ts",
+  "files": [
+    "dist-lib",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist-lib/types/sdk/index.d.ts",
+      "import": "./dist-lib/index.js"
+    },
+    "./agent": {
+      "types": "./dist-lib/types/sdk/agent.d.ts",
+      "import": "./dist-lib/agent.js"
+    },
+    "./styles.css": "./dist-lib/intelligent-ui.css",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "dev": "vite --port 5173 --strictPort --host 127.0.0.1",
+    "build": "npm run build:lib",
+    "build:lib": "vite build -c vite.lib.config.ts && tsc -p tsconfig.lib.json && node scripts/postbuild-lib.mjs",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview --port 4173 --strictPort",
+    "prepack": "npm run build:lib"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

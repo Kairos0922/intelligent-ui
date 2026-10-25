@@ -1,0 +1,35 @@
+/* =========================================================================
+   Intelligent UI SDK — stylesheet entry
+   -------------------------------------------------------------------------
+   Ship this file with the package:
+
+     import "@intelligent-ui/core/styles.css";
+
+   Contains the theme tokens (scoped to `.iui-theme`) and the general-purpose
+   component vocabulary. App-shell styles are not included. The host owns the
+   page.
+
+   The only preflight the SDK applies is scoped to the surface, so embedding
+   does not change the host's box model.
+   ========================================================================= */
+
+@import "./tokens-core.css";
+@import "./components.css";
+
+:where(.iui-theme) *,
+:where(.iui-theme) *::before,
+:where(.iui-theme) *::after {
+  box-sizing: border-box;
+}
+
+:where(.iui-theme) .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

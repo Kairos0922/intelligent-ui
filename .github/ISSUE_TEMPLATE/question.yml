@@ -1,0 +1,31 @@
+name: Question
+description: Ask a question about install, configuration, or use.
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read `README.md`, `SDK.md`, and `ADAPTERS.md` first.
+        For a security problem, read `SECURITY.md` and use GitHub Security Advisories.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Give the question and the result that you need.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Give the package version or the commit hash.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Describe the host, the code, and the steps that you tried.
+    validations:
+      required: false

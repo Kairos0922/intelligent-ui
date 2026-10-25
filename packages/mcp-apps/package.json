@@ -1,0 +1,65 @@
+{
+  "name": "@intelligent-ui/mcp-apps",
+  "version": "0.2.0",
+  "type": "module",
+  "description": "MCP Apps adapter for Intelligent UI: one server helper, one self-contained iframe, standard MCP Apps actions.",
+  "license": "MIT",
+  "author": "Intelligent UI contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kairos0922/intelligent-ui.git",
+    "directory": "packages/mcp-apps"
+  },
+  "homepage": "https://github.com/Kairos0922/intelligent-ui#readme",
+  "bugs": {
+    "url": "https://github.com/Kairos0922/intelligent-ui/issues"
+  },
+  "keywords": [
+    "intelligent-ui",
+    "mcp",
+    "mcp-apps",
+    "agent",
+    "ui"
+  ],
+  "main": "./dist/server.js",
+  "types": "./dist/server.d.ts",
+  "bin": {
+    "intelligent-ui-mcp": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./app.html": "./dist/app.html",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "npm run build:server && npm run build:app",
+    "build:server": "vite build -c vite.server.config.ts && tsc -p tsconfig.build.json",
+    "build:app": "vite build -c vite.app.config.ts && node scripts/inline-app.mjs",
+    "typecheck": "tsc --noEmit",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@intelligent-ui/adapter": "0.2.0",
+    "@intelligent-ui/core": "0.2.0",
+    "@modelcontextprotocol/ext-apps": "^2.0.3",
+    "@modelcontextprotocol/server": "^2.3.1",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.3.1",
+    "@modelcontextprotocol/core": "^2.3.1",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

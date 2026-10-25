@@ -1,0 +1,64 @@
+name: Bug report
+description: Report a defect in Intelligent UI.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include secrets, private data, or `recon/` content in this report.
+        For a security problem, use GitHub Security Advisories. Read `SECURITY.md`.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Give a short description of the defect.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Give the package version or the commit hash.
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: Host and browser
+      description: For example, React 19 and Chrome 140.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Give one step on each line.
+      placeholder: |
+        1. Install the package.
+        2. Render an answer.
+        3. Select the second tab.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: Describe the result that you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: Describe the result that you got.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or code
+      description: Add a small code sample or a console message.
+      render: shell
+    validations:
+      required: false

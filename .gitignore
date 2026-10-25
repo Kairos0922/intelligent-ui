@@ -1,0 +1,36 @@
+.DS_Store
+node_modules/
+**/node_modules/
+
+# build output
+dist/
+**/dist/
+**/dist-lib/
+**/dist-pkg/
+packages/dsh/lib/
+*.tgz
+*.tsbuildinfo
+
+# local tools / evidence (large, may contain session data)
+rea/
+recon/
+report/
+
+# local demo assets (third-party media, never shipped)
+clone/public/
+
+# benchmark reports (may contain model responses)
+bench/results/*
+!bench/results/.gitkeep
+
+# tests
+playwright-report/
+test-results/
+blob-report/
+coverage/
+
+# editors / env
+.vscode/
+.idea/
+.env
+.env.*
