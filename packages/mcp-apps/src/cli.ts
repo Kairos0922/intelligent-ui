@@ -2,5 +2,5 @@
 import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import { createIuiServer } from "./server.js";
 
-const server = createIuiServer({ name: "intelligent-ui", version: "0.2.0" });
+const server = createIuiServer({ name: "intelligent-ui", version: "0.2.1" });
 await server.connect(new StdioServerTransport());

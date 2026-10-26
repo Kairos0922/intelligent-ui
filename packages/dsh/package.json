@@ -1,6 +1,6 @@
 {
   "name": "@intelligent-ui/dsh",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "DeepSeek Harness adapter for Intelligent UI: render_iui tool, keyed toolview, host theme bridge, and action round-trip.",
   "license": "MIT",
@@ -55,12 +55,12 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@intelligent-ui/adapter": "0.2.0",
-    "@intelligent-ui/core": "0.2.0"
+    "@intelligent-ui/adapter": "0.2.1",
+    "@intelligent-ui/core": "0.2.1"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.0.5",
-    "@deepseek-ai/dsh-tools": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-tools": ">=0.2.1-rc.2 <0.3.0",
     "react": ">=18"
   },
   "devDependencies": {

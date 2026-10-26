@@ -1,6 +1,6 @@
 {
   "name": "@intelligent-ui/ai-sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Vercel AI SDK tool-part renderer for Intelligent UI.",
   "license": "MIT",
@@ -40,9 +40,9 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@intelligent-ui/adapter": "0.2.0",
-    "@intelligent-ui/core": "0.2.0",
-    "@intelligent-ui/react": "0.2.0"
+    "@intelligent-ui/adapter": "0.2.1",
+    "@intelligent-ui/core": "0.2.1",
+    "@intelligent-ui/react": "0.2.1"
   },
   "peerDependencies": {
     "ai": ">=5",

@@ -4,7 +4,7 @@ The middle layer between `@intelligent-ui/core` and an agent host. It mounts the
 
 A host adapter should not use a core event name or a block implementation directly.
 
-**Status:** Version 0.2.0 is a source release. The package is not on npm.
+**Status:** Version 0.2.1 is a source release. The package is not on npm.
 
 ## Install from GitHub
 
@@ -21,8 +21,8 @@ npm run pack:all
 Then install the core and adapter packages in your application:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.0.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.1.tgz
 ```
 
 Read [README.md](https://github.com/Kairos0922/intelligent-ui/blob/main/README.md) for the full source install.

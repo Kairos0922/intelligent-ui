@@ -6,7 +6,7 @@ Intelligent UI is a host-neutral SDK for interactive answer surfaces in agent ch
 
 The name separates two responsibilities. The model supplies the intelligence. The SDK supplies the UI. The host keeps its own shell and brand.
 
-**Status:** Version 0.2.0 is a source release. The packages are not on npm. Install them from GitHub with the steps below.
+**Status:** Version 0.2.1 is a source release. The packages are not on npm. Install them from GitHub with the steps below.
 
 ## What it does
 
@@ -29,7 +29,7 @@ The core does not depend on DSH or on a browser chat shell. The agent entry poin
 | `@intelligent-ui/react` | React component and imperative handle | Ready |
 | `@intelligent-ui/ai-sdk` | Vercel AI SDK tool-part renderer | Ready |
 | `@intelligent-ui/mcp-apps` | MCP server helper and self-contained MCP App | Ready |
-| `@intelligent-ui/dsh` | DSH tool and web client adapter | Synthetic replay pass for DSH `0.2.1-rc.2` |
+| `@intelligent-ui/dsh` | DSH tool and web client adapter | Live model and action pass on DSH `0.2.1-rc.2` and `0.2.1-rc.3` |
 
 The root package is private. Do not install the root package from a Git URL. Build the six package tarballs and install the packages that your host needs.
 
@@ -56,32 +56,32 @@ Run the command for your host in your application directory. Replace `/absolute/
 Core runtime only:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.0.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz
 ```
 
 React:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.0.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.1.tgz
 ```
 
 MCP Apps:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-mcp-apps-0.2.0.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-mcp-apps-0.2.1.tgz
 ```
 
 Vercel AI SDK:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-ai-sdk-0.2.0.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-ai-sdk-0.2.1.tgz
 ```
 
 Then install the `ai` package and the React packages in your application, if they are not installed.
@@ -177,10 +177,10 @@ The default action policy is `agent`. It sends prompts and meaningful block even
 | SDK browser self-test | 16 of 16 pass |
 | Benchmark harness self-check | 25 of 25 tasks pass with the mock provider |
 | DSH web smoke test | Pass with a synthetic replay |
-| Live DSH model update | Not tested. The profile was signed out. |
+| Live DSH model update | Pass on DSH `0.2.1-rc.2` and `0.2.1-rc.3` with a signed-in profile |
 | Real model benchmark | Not run. No provider credentials were available. |
 
-The mock benchmark result is not a model result. The DSH synthetic replay checks the client, the styles, and the theme bridge. It does not check a live model call.
+The mock benchmark result is not a model result. The DSH live test checks a signed-in model call, a keyed tool row, and a same-block action update in both host versions. The DSH synthetic replay also checks the client, the styles, and the theme bridge.
 
 ## Repository layout
 

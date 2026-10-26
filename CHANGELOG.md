@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.2.1] - 2026-10-26
+
+This is a source release. The packages are not published on npm.
+
+### Changed
+
+- The DSH adapter supports DSH `0.2.1-rc.2` and `0.2.1-rc.3`.
+- The DSH peer range is now `@deepseek-ai/dsh-tools` `>=0.2.1-rc.2 <0.3.0`.
+- The DSH install steps set Work details to Verbose. This setting keeps the keyed tool row open after a turn.
+
+### Fixed
+
+- DSH `0.2.1-rc.3` accepts the adapter without an exact-version exemption.
+
+### Tested
+
+- A signed-in DSH web profile passed a live model call and an action update on `0.2.1-rc.2`.
+- A signed-in DSH web profile passed the same case on `0.2.1-rc.3`.
+- Both tests used DeepSeek-V4.1-Flash and one real tab click.
+- The model called `render_iui` again with the same block IDs and the stats block changed.
+
 ## [0.2.0] - 2026-10-25
 
 This is a source release. The packages are not published on npm.

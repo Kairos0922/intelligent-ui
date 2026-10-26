@@ -163,7 +163,7 @@ export function createIuiServer(options: IuiMcpOptions = {}): McpServer {
     });
 
   const server = new McpServer(
-    { name, version: options.version ?? "0.2.0" },
+    { name, version: options.version ?? "0.2.1" },
     { instructions, maxToolInputElements: 100_000 },
   );
   registerIui(server, options);

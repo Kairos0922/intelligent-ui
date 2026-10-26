@@ -1,6 +1,6 @@
 {
   "name": "@intelligent-ui/react",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "React wrapper for the Intelligent UI runtime with StrictMode-safe mounting.",
   "license": "MIT",
@@ -39,8 +39,8 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@intelligent-ui/adapter": "0.2.0",
-    "@intelligent-ui/core": "0.2.0"
+    "@intelligent-ui/adapter": "0.2.1",
+    "@intelligent-ui/core": "0.2.1"
   },
   "peerDependencies": {
     "react": ">=18",

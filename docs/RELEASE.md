@@ -16,6 +16,7 @@ This procedure prepares a source release. It does not publish packages to npm.
 10. Run `npm run bench:selfcheck`.
 11. Run `npm run pack:all`.
 12. Run `npm run audit:pack`.
+13. For a DSH release, run the live DSH smoke test in a signed-in web profile.
 
 The audit must show these results:
 
@@ -44,12 +45,12 @@ npm run audit:pack
 
 The package files are in `dist-pkg/`:
 
-- `intelligent-ui-core-0.2.0.tgz`
-- `intelligent-ui-adapter-0.2.0.tgz`
-- `intelligent-ui-react-0.2.0.tgz`
-- `intelligent-ui-ai-sdk-0.2.0.tgz`
-- `intelligent-ui-mcp-apps-0.2.0.tgz`
-- `intelligent-ui-dsh-0.2.0.tgz`
+- `intelligent-ui-core-0.2.1.tgz`
+- `intelligent-ui-adapter-0.2.1.tgz`
+- `intelligent-ui-react-0.2.1.tgz`
+- `intelligent-ui-ai-sdk-0.2.1.tgz`
+- `intelligent-ui-mcp-apps-0.2.1.tgz`
+- `intelligent-ui-dsh-0.2.1.tgz`
 
 ## Create the GitHub release
 
@@ -61,15 +62,15 @@ The release workflow in `.github/workflows/release.yml` runs the checks and atta
 4. Open the release page and check the six assets.
 
 ```bash
-git tag -a v0.2.0 -m "Intelligent UI 0.2.0"
-git push origin v0.2.0
+git tag -a v0.2.1 -m "Intelligent UI 0.2.1"
+git push origin v0.2.1
 ```
 
 The workflow uses `gh release create` with `--generate-notes`. If the workflow fails, run the same command on your machine after `npm run pack:all`:
 
 ```bash
-gh release create v0.2.0 dist-pkg/*.tgz \
-  --title "Intelligent UI 0.2.0" \
+gh release create v0.2.1 dist-pkg/*.tgz \
+  --title "Intelligent UI 0.2.1" \
   --notes-file CHANGELOG.md
 ```
 
@@ -83,7 +84,7 @@ Use a clean directory. Download the six tarballs and install them:
 mkdir iui-release-test
 cd iui-release-test
 npm init -y
-gh release download v0.2.0 --repo Kairos0922/intelligent-ui --pattern "*.tgz"
+gh release download v0.2.1 --repo Kairos0922/intelligent-ui --pattern "*.tgz"
 npm install ./*.tgz
 ```
 

@@ -9,7 +9,7 @@ MCP Apps adapter for Intelligent UI. The package supplies one server helper and 
 
 The server `instructions` and the tool description contain the protocol, the block catalog, and the rules. A tool-only host works without a system prompt channel.
 
-**Status:** Version 0.2.0 is a source release. The package is not on npm.
+**Status:** Version 0.2.1 is a source release. The package is not on npm.
 
 ## Install from GitHub
 
@@ -26,9 +26,9 @@ npm run pack:all
 Then install the core, adapter, and MCP Apps packages:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-mcp-apps-0.2.0.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-mcp-apps-0.2.1.tgz
 ```
 
 After the first npm release, use `npm install @intelligent-ui/mcp-apps`.

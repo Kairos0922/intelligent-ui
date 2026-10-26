@@ -4,7 +4,7 @@ Renderer for a Vercel AI SDK tool part from the `render_iui` tool.
 
 The package does not import the `ai` package. `IuiToolPart` accepts the minimal structural shape of a tool part. This design supports compatible AI SDK versions without a hard dependency.
 
-**Status:** Version 0.2.0 is a source release. The package is not on npm.
+**Status:** Version 0.2.1 is a source release. The package is not on npm.
 
 ## Install from GitHub
 
@@ -21,10 +21,10 @@ npm run pack:all
 Then install the Intelligent UI packages and the AI SDK peer:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-ai-sdk-0.2.0.tgz \
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-ai-sdk-0.2.1.tgz \
   ai react react-dom
 ```
 

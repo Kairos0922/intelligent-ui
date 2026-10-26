@@ -4,7 +4,7 @@ Intelligent UI changes model output into an interactive answer surface. The core
 
 This document uses ASD-STE100 Simplified Technical English. Read [docs/STE.md](docs/STE.md) for the rules.
 
-**Status:** Version 0.2.0 is a source release. The packages are not on npm. Read [README.md](README.md) for the GitHub install steps.
+**Status:** Version 0.2.1 is a source release. The packages are not on npm. Read [README.md](README.md) for the GitHub install steps.
 
 ## 1. Scope
 
@@ -33,15 +33,15 @@ npm run pack:all
 Install the core package in your application:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.0.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz
 ```
 
 For React, install the core, adapter, and React packages:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.0.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.0.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.1.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.1.tgz
 ```
 
 Read the package README for the MCP Apps, AI SDK, and DSH install steps. After the first npm release, you can use `npm install @intelligent-ui/core`.
@@ -569,8 +569,10 @@ The `exports` map supplies the type declarations for `.` and `./agent`. Keep the
 | MCP App HTML external URL scan | Pass |
 | Tarball audit | Pass |
 | DSH synthetic replay | Pass in light and dark themes |
-| DSH live model update | Not tested. The profile was signed out. |
+| DSH live model update | Pass on DSH `0.2.1-rc.2` and `0.2.1-rc.3` with a signed-in profile |
 | Real model benchmark | Not run. No provider credentials were available. |
+
+The DSH live test used DeepSeek-V4.1-Flash and one real tab click for each host. Read [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md) for the details.
 
 ## 15. Host adapters
 
@@ -581,7 +583,7 @@ The core package has no host dependency. Read [ADAPTERS.md](ADAPTERS.md) for the
 | MCP Apps | `@intelligent-ui/mcp-apps` | Local integration test pass |
 | React | `@intelligent-ui/react` | Ready |
 | Vercel AI SDK | `@intelligent-ui/ai-sdk` | Ready |
-| DSH | `@intelligent-ui/dsh` | Synthetic replay pass |
+| DSH | `@intelligent-ui/dsh` | Live model and action pass |
 | Plain text host | Core `opsToMarkdown()` | Ready |
 | AG-UI or CopilotKit | None | Roadmap |
 | Open WebUI | None | Roadmap |
@@ -597,4 +599,4 @@ An adapter combines four core primitives: `connect()` or `ingest()` for data, `c
 - Auto-scroll uses the nearest scrollable ancestor. Use `scroll: "window"` for the page.
 - The three demo blocks are not general-purpose blocks.
 - The MCP App makes no network request by default. A remote image needs an explicit CSP origin.
-- DSH `0.2.1-rc.2` is a release candidate. Test the adapter after each DSH upgrade.
+- DSH `0.2.1-rc.2` and `0.2.1-rc.3` are release candidates. Test the adapter after each DSH upgrade.

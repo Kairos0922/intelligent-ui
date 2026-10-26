@@ -1,7 +1,7 @@
 {
   "name": "intelligent-ui",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Core runtime, host adapter layer, and agent adapters for Intelligent UI.",
   "license": "MIT",

@@ -8,7 +8,7 @@ An adapter connects the host-neutral core to one host application. The adapter d
 
 The core does not contain a host DOM selector, a host event name, or a host theme variable.
 
-**Status:** Version 0.2.0 is a source release. The packages are not on npm. Read [README.md](README.md) for the GitHub install steps.
+**Status:** Version 0.2.1 is a source release. The packages are not on npm. Read [README.md](README.md) for the GitHub install steps.
 
 ## 1. Layers
 
@@ -37,7 +37,7 @@ A host adapter must not change the core protocol. It can select a data path, map
 | MCP Apps | `render_iui` tool and `ui://` resource | `@intelligent-ui/mcp-apps` | Local MCP stdio test pass |
 | React web application | `ops`, `wire`, or `source` prop | `@intelligent-ui/react` | Ready |
 | Vercel AI SDK | Tool part from `render_iui` | `@intelligent-ui/ai-sdk` | Ready |
-| DeepSeek Harness (DSH) | Keyed tool row | `@intelligent-ui/dsh` | Synthetic replay pass |
+| DeepSeek Harness (DSH) | Keyed tool row | `@intelligent-ui/dsh` | Live model and action pass |
 | Custom web host | Core runtime and adapter | `@intelligent-ui/adapter` | Ready |
 | Plain text host | Markdown fallback | Core `opsToMarkdown()` | Ready |
 | AG-UI or CopilotKit | Custom event or tool call | None | Roadmap |
@@ -237,7 +237,7 @@ The package does not import the `ai` package. It accepts the structural tool-par
 
 ## 7. DeepSeek Harness
 
-The DSH adapter is for the DSH web profile. It uses DSH `0.2.1-rc.2`.
+The DSH adapter is for the DSH web profile. It is tested with DSH `0.2.1-rc.2` and `0.2.1-rc.3`.
 
 The package is not on npm. Use a link to the local source:
 
@@ -253,15 +253,21 @@ npm ci
 npm run build
 ```
 
-Then add one entry to `$DSH_HOME/profiles/web/cordis.patch.yml`:
+Then add these items to `$DSH_HOME/profiles/web/cordis.patch.yml`:
 
 ```yaml
 - insert:
     - id: intelligent-ui
       name: "@intelligent-ui/dsh"
+- id: ui-chat
+  name: "@deepseek-ai/dsh-client-ui-chat"
+  config:
+    transcriptView: verbose
 ```
 
 Keep the other entries in the file. Use the package name, not an absolute path. DSH finds the client module in the profile `node_modules`.
+
+The `ui-chat` item keeps completed tool rows open. If the file already has a `ui-chat` item, add `transcriptView: verbose` to that item.
 
 Restart DSH:
 
@@ -275,7 +281,9 @@ Ask for an interactive card, for example a laptop comparison with tabs. DSH must
 
 The synthetic replay test passes in light and dark themes. The test covers keyed toolview replay, the no-meta fallback, block actions, suggestion chips, and hot module replacement cleanup.
 
-A live model update is not tested. The isolated profile was signed out. Test this case in a signed-in DSH profile before you call the adapter production-ready.
+A live signed-in test passed on both host versions. It covers a real model call, a keyed toolview with tabs and stats, and a real tab click. It also covers a second model call with the same block IDs. The test used DeepSeek-V4.1-Flash and Work details set to Verbose.
+
+Each live run made one click. The test does not cover every block or model. The validator keeps the valid ops if a model makes a malformed op.
 
 Read [packages/dsh/README.md](packages/dsh/README.md) and [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md).
 

@@ -1,6 +1,6 @@
 {
   "name": "@intelligent-ui/core",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Host-neutral runtime for agent apps: IUI-1 NDJSON compiler, 30 UI blocks, agent prompt and tool schema, validation, extractors, and action envelope.",
   "license": "MIT",

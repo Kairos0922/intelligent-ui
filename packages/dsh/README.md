@@ -2,11 +2,11 @@
 
 DeepSeek Harness (DSH) adapter for Intelligent UI. It registers the `render_iui` tool, gives the model the IUI-1 rules, and renders the result as a keyed tool row in the DSH web client.
 
-- Host: DSH `0.2.1-rc.2`, web profile.
+- Host: DSH `0.2.1-rc.2` and `0.2.1-rc.3`, web profile.
 - Runtime: DSH supplies React.
 - Package entries: `.` for the server and `./client` for the browser. The `dsh.client` field declares the client entry.
 
-**Status:** Version 0.2.0 is a source release. The package is not on npm.
+**Status:** Version 0.2.1 is a source release. The package is not on npm.
 
 ## Function
 
@@ -50,17 +50,23 @@ dsh plugin --profile web add @intelligent-ui/dsh
 
 ### 2. Add the plugin to the profile patch
 
-Open `$DSH_HOME/profiles/web/cordis.patch.yml`. Add one item to the existing list:
+Open `$DSH_HOME/profiles/web/cordis.patch.yml`. Add these items to the existing list:
 
 ```yaml
 - insert:
     - id: intelligent-ui
       name: "@intelligent-ui/dsh"
+- id: ui-chat
+  name: "@deepseek-ai/dsh-client-ui-chat"
+  config:
+    transcriptView: verbose
 ```
 
-Keep the other items in the file. The `- insert:` wrapper is necessary. Use the package name, not an absolute path. DSH finds the client entry in the profile `node_modules`.
+The `- insert:` wrapper is necessary. Use the package name, not an absolute path. DSH finds the client entry in the profile `node_modules`.
 
-If you use a separate overlay, start DSH with `--patch` and put the same item in that file.
+The `ui-chat` item sets Work details to Verbose. This setting keeps the tool row open after a turn completes. If the file already has a `ui-chat` item, add `transcriptView: verbose` to that item. Do not add a second item with the same id.
+
+If you use a separate overlay, start DSH with `--patch` and put the same items in that file.
 
 ### 3. Restart DSH
 
@@ -72,7 +78,7 @@ Ask for an interface, for example:
 
 > Compare MCP and the AI SDK for local agents in an interactive card with tabs.
 
-The model must call `render_iui`. DSH shows one keyed tool row. Expand the row if DSH groups it under "Called tools".
+The model must call `render_iui`. DSH shows one keyed tool row. With Work details set to Verbose, the interface stays visible after the turn. In other modes, DSH can fold completed tool rows.
 
 ## Action format
 
@@ -92,16 +98,17 @@ The next user message contains one line with the `[iui-action]` prefix. The mode
 
 ## Test status
 
-The synthetic replay test passes in light and dark themes. It covers:
+A live signed-in test passed on both host versions. It covers:
 
-- Keyed toolview replay.
-- The no-meta fallback.
-- The matrix, code, formula, and flashcard blocks.
-- Tab and chip actions.
-- Theme changes.
-- Hot module replacement cleanup.
+- A real model call that used `render_iui`.
+- The keyed toolview with tabs and stats.
+- A real tab click that sent `[iui-action]`.
+- A second model call with the same block IDs.
+- The updated stats block and no console error.
 
-The profile was signed out. A live model call and a live action update are not tested. Test both cases in a signed-in profile before you call the adapter production-ready.
+The test used DeepSeek-V4.1-Flash. Each run made one click. A model can make a malformed op. The validator keeps the valid ops and reports the issue.
+
+The synthetic replay test also passes in light and dark themes. It covers keyed toolview replay and the no-meta fallback. It also covers the matrix, code, formula, and flashcard blocks, tab and chip actions, theme changes, and hot module replacement cleanup.
 
 Read [SMOKE.md](https://github.com/Kairos0922/intelligent-ui/blob/main/packages/dsh/SMOKE.md) for the test record.
 
@@ -115,9 +122,10 @@ An old session uses the generic DSH tool row. The adapter removes its stylesheet
 
 ## Compatibility
 
-- DSH `0.2.1-rc.2` is a release candidate.
+- The package is tested with DSH `0.2.1-rc.2` and `0.2.1-rc.3`.
+- The peer range is `>=0.2.1-rc.2 <0.3.0`.
+- DSH 0.2.1 is a release candidate. Test the adapter after each DSH upgrade.
 - The package uses the DSH `tools`, `systemPrompt`, `slots`, and `sessions` services.
-- Test the adapter after each DSH upgrade.
 - The client uses the DSH `window.__ModuleLoader__` format and keeps React external.
 - The `exports["./client"]` map must use the `default` condition.
 

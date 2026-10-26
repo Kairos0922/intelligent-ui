@@ -1,40 +1,67 @@
-# DSH 0.2.1-rc.2 smoke test
+# DSH live smoke test
 
-Date: 2026-10-25
+Date: 2026-10-26
 
-Host: DeepSeek Harness Web `0.2.1-rc.2`
+Hosts: DeepSeek Harness Web `0.2.1-rc.2` and `0.2.1-rc.3`
 
 Runtime: Node `v26.11.1`, Chromium through Playwright
 
-Environment: Isolated `DSH_HOME`, web profile, plugin installed by package name through `cordis.patch.yml`, no model credentials in the profile.
+Environment: One temporary web profile for each host, a signed-in DeepSeek account, DeepSeek-V4.1-Flash, and Work details set to Verbose. The repository contains no credential, token, screenshot, or session data.
+
+The rc.2 run used the DSH npm runtime. The rc.3 run used the installed application. Each run used a new session and one real tab click.
 
 ## Result
 
-| Case | Result |
-|---|---|
-| `render_iui` tool description contains 9,596 characters, includes `dayList` and `matrix`, and excludes the demo blocks | Pass |
-| Tool result carries `presentationMeta { ops, issues }` | Pass |
-| Replay reads ops from `presentationMeta` | Pass |
-| Replay without metadata reads `block.args.value("ops")` | Pass |
-| A tool call without a result renders from the arguments and DSH stops the turn after restart | Pass with a limit |
-| Keyed toolview replaces the generic row and renders a card, tabs, form, and chips | Pass |
-| Replay renders `matrix`, `code`, `formula`, and `flashcards` in light and dark themes with scoped CSS | Pass with synthetic data |
-| A tab selection sends `[iui-action] {"action":"select",...}` | Pass |
-| A suggestion chip sends `[iui-action] {"action":"prompt",...}` | Pass |
-| The light and dark host markers update `.iui-theme[data-theme]`, text, border, and `color-scheme` | Pass |
-| Hot module replacement removal drops `#iui-dsh-styles`, `.iui-theme`, and `.iui-dsh-tool` to 0 | Pass |
-| Hot module replacement restore gives one style element and one toolview with no console error | Pass |
+| Case | rc.2 | rc.3 |
+|---|---|---|
+| Final `@intelligent-ui/dsh@0.2.1` installs without an exact-version exemption | Pass | Pass |
+| The model calls `render_iui` | Pass | Pass |
+| The keyed toolview renders tabs and stats | Pass | Pass |
+| The initial stats value is `Option A` | Pass | Pass |
+| A real tab click sends one `[iui-action]` message | Pass | Pass |
+| The action uses `blockId` `final-tabs` | Pass | Pass |
+| The model calls `render_iui` again with the same block IDs | Pass | Pass |
+| The stats value changes to `Option B` | Pass | Pass |
+| Browser console errors | None | None |
+
+The tab click sent this message:
+
+```json
+{"action":"select","blockId":"final-tabs","blockType":"tabs","answerId":"a1","payload":{"value":"Option B"}}
+```
+
+The initial and final tool calls reported six valid IUI ops in both runs. The model used `final-tabs` and `final-stats` in the initial call and the update call.
+
+The rc.3 update had one malformed markdown op. The validator returned one issue and kept the other five ops. The model corrected the op in a second call. The final view was correct. The model made no malformed op in the rc.2 run.
+
+## Visibility
+
+DSH folds completed work steps in its default Work details mode. An earlier live run rendered the interface, but the tool row had zero height after the turn completed.
+
+The final runs set `transcriptView: verbose` in the profile patch. The keyed tool row stayed visible, and the real tab click worked. The install steps in [README.md](README.md) include this setting.
+
+## Synthetic replay
+
+The synthetic replay test from version 0.2.0 still passes in light and dark themes. It covers:
+
+- Keyed toolview replay.
+- The no-meta fallback.
+- A tool call without a result.
+- The matrix, code, formula, and flashcard blocks.
+- Tab and chip actions.
+- Theme changes.
+- Hot module replacement removal and restore.
 
 ## Limits
 
-- The unresolved-call replay is an approximation of the live `start` phase. After restart, DSH stops the open turn and the client receives a synthetic result. The view still reads the ops from the arguments.
-- A live model call and a live "model updates the same block after an action" case need a signed-in profile. The isolated profile returned `ACCOUNT_SIGN_IN_REQUIRED`.
-- The test used a synthetic replay with six components. It checks the client build, the scoped CSS, and the theme bridge. It does not check a live model call.
-- The test removed and added the `intelligent-ui` item in `cordis.patch.yml` while the page stayed open. The page load count stayed at 1.
-- The test kept screenshots in a local temporary directory. The repository contains no screenshot or session data.
+- The live test used one model and one click for each host version. It does not cover every block or model.
+- The rc.3 model made one malformed op and corrected it. Another model can make a different error.
+- The test checks the DSH web profile only. It does not check the DSH desktop profile.
+- DSH `0.2.1-rc.2` and `0.2.1-rc.3` are release candidates. Run the live test after each DSH upgrade.
+- The test kept screenshots and session records in a local temporary directory. The repository contains no screenshot or session data.
 
 ## Test files
 
 - The DSH package is in `packages/dsh/`.
-- The smoke procedure is in [README.md](https://github.com/Kairos0922/intelligent-ui/blob/main/packages/dsh/README.md).
+- The install steps are in [README.md](README.md).
 - The core test record is in [SDK.md](https://github.com/Kairos0922/intelligent-ui/blob/main/SDK.md).
