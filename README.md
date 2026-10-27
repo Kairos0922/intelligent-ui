@@ -86,15 +86,43 @@ npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.2.
 
 Then install the `ai` package and the React packages in your application, if they are not installed.
 
-DSH uses the self-contained tarball from the release, or the built source tree:
+### 3. Install in DSH
+
+The DSH adapter supports DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4`. It uses a self-contained tarball. It is not an npm dependency of your application.
+
+Download `intelligent-ui-dsh-0.2.2.tgz` from the [v0.2.2 release](https://github.com/Kairos0922/intelligent-ui/releases/tag/v0.2.2). You can also use the tarball in `dist-pkg/` after step 1.
+
+Install the tarball in the DSH web profile:
 
 ```bash
 dsh plugin --profile web add /absolute/path/to/intelligent-ui-dsh-0.2.2.tgz
 ```
 
-The tarball includes the core and the adapter in the server and client bundles. Read [packages/dsh/README.md](packages/dsh/README.md) for the profile patch.
+Open `$DSH_HOME/profiles/web/cordis.patch.yml`. Add these items to the existing list:
 
-### 3. Add the runtime to the host
+```yaml
+- insert:
+    - id: intelligent-ui
+      name: "@intelligent-ui/dsh"
+- id: ui-chat
+  name: "@deepseek-ai/dsh-client-ui-chat"
+  config:
+    transcriptView: verbose
+```
+
+Keep the other items in the file. The `- insert:` wrapper is necessary. The `transcriptView: verbose` setting keeps the keyed tool row open after a turn.
+
+Restart the DSH web app:
+
+```bash
+dsh web
+```
+
+Ask for an interactive card, for example a laptop comparison with tabs. DSH must show one keyed tool row. A tab click must return to the session as one `[iui-action]` message.
+
+Read [packages/dsh/README.md](packages/dsh/README.md) for the full DSH guide and the source link option.
+
+### 4. Add the runtime to the host
 
 React example:
 
