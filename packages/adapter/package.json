@@ -1,6 +1,6 @@
 {
   "name": "@intelligent-ui/adapter",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "description": "Host-neutral bridge between the Intelligent UI core runtime and an agent adapter.",
   "license": "MIT",
@@ -39,7 +39,7 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@intelligent-ui/core": "0.2.1"
+    "@intelligent-ui/core": "0.2.2"
   },
   "devDependencies": {
     "typescript": "^5.6.0",

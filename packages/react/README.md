@@ -7,7 +7,7 @@ React wrapper for `@intelligent-ui/core` and `@intelligent-ui/adapter`.
 - React 18 or later. Safe with StrictMode.
 - No style injection. Import `@intelligent-ui/core/styles.css` yourself.
 
-**Status:** Version 0.2.1 is a source release. The package is not on npm.
+**Status:** Version 0.2.2 is a source release. The package is not on npm.
 
 ## Install from GitHub
 
@@ -24,9 +24,9 @@ npm run pack:all
 Then install the core, adapter, and React packages:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.1.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.1.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.2.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.2.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.2.tgz
 ```
 
 After the first npm release, use `npm install @intelligent-ui/core @intelligent-ui/react`.

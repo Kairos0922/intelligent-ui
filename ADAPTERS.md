@@ -8,7 +8,7 @@ An adapter connects the host-neutral core to one host application. The adapter d
 
 The core does not contain a host DOM selector, a host event name, or a host theme variable.
 
-**Status:** Version 0.2.1 is a source release. The packages are not on npm. Read [README.md](README.md) for the GitHub install steps.
+**Status:** Version 0.2.2 is a source release. The packages are not on npm. Read [README.md](README.md) for the GitHub install steps.
 
 ## 1. Layers
 
@@ -237,20 +237,21 @@ The package does not import the `ai` package. It accepts the structural tool-par
 
 ## 7. DeepSeek Harness
 
-The DSH adapter is for the DSH web profile. It is tested with DSH `0.2.1-rc.2` and `0.2.1-rc.3`.
+The DSH adapter is for the DSH web profile. It is tested with DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4`.
 
-The package is not on npm. Use a link to the local source:
+The package is not on npm. Use the self-contained DSH tarball from the GitHub release:
 
 ```bash
-dsh plugin --profile web add link:/absolute/path/to/intelligent-ui/packages/dsh
+dsh plugin --profile web add /absolute/path/to/intelligent-ui-dsh-0.2.2.tgz
 ```
 
-The repository must have its dependencies and build output:
+Or use a link to the local source. The repository must have the build output:
 
 ```bash
 cd /absolute/path/to/intelligent-ui
 npm ci
 npm run build
+dsh plugin --profile web add link:/absolute/path/to/intelligent-ui/packages/dsh
 ```
 
 Then add these items to `$DSH_HOME/profiles/web/cordis.patch.yml`:
@@ -281,9 +282,11 @@ Ask for an interactive card, for example a laptop comparison with tabs. DSH must
 
 The synthetic replay test passes in light and dark themes. The test covers keyed toolview replay, the no-meta fallback, block actions, suggestion chips, and hot module replacement cleanup.
 
-A live signed-in test passed on both host versions. It covers a real model call, a keyed toolview with tabs and stats, and a real tab click. It also covers a second model call with the same block IDs. The test used DeepSeek-V4.1-Flash and Work details set to Verbose.
+A live signed-in test passed on DSH `0.2.1-rc.2` and `0.2.1-rc.3`. It covers a real model call, a keyed toolview with tabs and stats, and a real tab click. It also covers a second model call with the same block IDs. The test used DeepSeek-V4.1-Flash and Work details set to Verbose.
 
-Each live run made one click. The test does not cover every block or model. The validator keeps the valid ops if a model makes a malformed op.
+A deterministic web test passed on DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` with a local DeepSeek Messages server and the self-contained `0.2.2` tarball. It covers the same toolview and action path. It does not use an account and does not measure model compliance.
+
+Each live run made one click. The tests do not cover every block or model. The validator keeps the valid ops if a model makes a malformed op.
 
 Read [packages/dsh/README.md](packages/dsh/README.md) and [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md).
 

@@ -13,7 +13,7 @@ import { createIuiServer } from "@intelligent-ui/mcp-apps";
 
 const server = createIuiServer({
   name: "intelligent-ui-example",
-  version: "0.2.1",
+  version: "0.2.2",
 });
 
 await server.connect(new StdioServerTransport());

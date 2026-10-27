@@ -62,6 +62,6 @@ A problem in a third-party dependency can also affect this project. Report the p
 
 ## Known dependency finding
 
-The DSH `0.2.1-rc.2` peer tree pins `zod` 4.4.3. That version has advisory [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5). The MCP Apps package uses a corrected version. The core package does not use `zod`.
+The DSH `0.2.1-rc.2` and `0.2.1-rc.4` peer trees pin `zod` 4.4.3 in some packages. That version has advisory [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5). The MCP Apps package uses a corrected version. The core package does not use `zod`.
 
 DSH is an optional release-candidate adapter. Use a corrected DSH release when it is available. Do not expose a DSH server to untrusted input until then.

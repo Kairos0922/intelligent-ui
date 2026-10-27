@@ -6,7 +6,7 @@ Intelligent UI is a host-neutral SDK for interactive answer surfaces in agent ch
 
 The name separates two responsibilities. The model supplies the intelligence. The SDK supplies the UI. The host keeps its own shell and brand.
 
-**Status:** Version 0.2.1 is a source release. The packages are not on npm. Install them from GitHub with the steps below.
+**Status:** Version 0.2.2 is a source release. The packages are not on npm. Install them from GitHub with the steps below.
 
 ## What it does
 
@@ -29,7 +29,7 @@ The core does not depend on DSH or on a browser chat shell. The agent entry poin
 | `@intelligent-ui/react` | React component and imperative handle | Ready |
 | `@intelligent-ui/ai-sdk` | Vercel AI SDK tool-part renderer | Ready |
 | `@intelligent-ui/mcp-apps` | MCP server helper and self-contained MCP App | Ready |
-| `@intelligent-ui/dsh` | DSH tool and web client adapter | Live model and action pass on DSH `0.2.1-rc.2` and `0.2.1-rc.3` |
+| `@intelligent-ui/dsh` | DSH tool and web client adapter | Live model and action pass on DSH `0.2.1-rc.2` and `0.2.1-rc.3`. Deterministic pass on `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4`. |
 
 The root package is private. Do not install the root package from a Git URL. Build the six package tarballs and install the packages that your host needs.
 
@@ -56,37 +56,43 @@ Run the command for your host in your application directory. Replace `/absolute/
 Core runtime only:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.2.tgz
 ```
 
 React:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.1.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.1.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.2.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.2.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.2.tgz
 ```
 
 MCP Apps:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.1.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-mcp-apps-0.2.1.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.2.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.2.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-mcp-apps-0.2.2.tgz
 ```
 
 Vercel AI SDK:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.1.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.1.tgz \
-  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-ai-sdk-0.2.1.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.2.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-adapter-0.2.2.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-react-0.2.2.tgz \
+  /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-ai-sdk-0.2.2.tgz
 ```
 
 Then install the `ai` package and the React packages in your application, if they are not installed.
 
-DSH uses the built source tree directly. Read [packages/dsh/README.md](packages/dsh/README.md) for the link command and the profile patch.
+DSH uses the self-contained tarball from the release, or the built source tree:
+
+```bash
+dsh plugin --profile web add /absolute/path/to/intelligent-ui-dsh-0.2.2.tgz
+```
+
+The tarball includes the core and the adapter in the server and client bundles. Read [packages/dsh/README.md](packages/dsh/README.md) for the profile patch.
 
 ### 3. Add the runtime to the host
 
@@ -178,9 +184,10 @@ The default action policy is `agent`. It sends prompts and meaningful block even
 | Benchmark harness self-check | 25 of 25 tasks pass with the mock provider |
 | DSH web smoke test | Pass with a synthetic replay |
 | Live DSH model update | Pass on DSH `0.2.1-rc.2` and `0.2.1-rc.3` with a signed-in profile |
+| DSH deterministic update | Pass on DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` with a local Messages server and the self-contained tarball |
 | Real model benchmark | Not run. No provider credentials were available. |
 
-The mock benchmark result is not a model result. The DSH live test checks a signed-in model call, a keyed tool row, and a same-block action update in both host versions. The DSH synthetic replay also checks the client, the styles, and the theme bridge.
+The mock benchmark result is not a model result. The DSH live test checks a signed-in model call, a keyed tool row, and a same-block action update in both host versions. The deterministic test checks the same toolview and action path on all three host versions without an account. The DSH synthetic replay also checks the client, the styles, and the theme bridge.
 
 ## Repository layout
 

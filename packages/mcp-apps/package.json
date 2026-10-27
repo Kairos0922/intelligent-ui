@@ -1,6 +1,6 @@
 {
   "name": "@intelligent-ui/mcp-apps",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "description": "MCP Apps adapter for Intelligent UI: one server helper, one self-contained iframe, standard MCP Apps actions.",
   "license": "MIT",
@@ -46,8 +46,8 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@intelligent-ui/adapter": "0.2.1",
-    "@intelligent-ui/core": "0.2.1",
+    "@intelligent-ui/adapter": "0.2.2",
+    "@intelligent-ui/core": "0.2.2",
     "@modelcontextprotocol/ext-apps": "^2.0.3",
     "@modelcontextprotocol/server": "^2.3.1",
     "zod": "^4.2.0"

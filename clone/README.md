@@ -4,7 +4,7 @@ Host-neutral runtime for Intelligent UI. The package supplies the IUI-1 compiler
 
 No code touches the DOM outside the mount container. The `@intelligent-ui/core/agent` entry point operates on a server.
 
-**Status:** Version 0.2.1 is a source release. The package is not on npm.
+**Status:** Version 0.2.2 is a source release. The package is not on npm.
 
 ## Install from GitHub
 
@@ -21,7 +21,7 @@ npm run pack:all
 Then install the tarball in your application:
 
 ```bash
-npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.1.tgz
+npm install /absolute/path/to/intelligent-ui/dist-pkg/intelligent-ui-core-0.2.2.tgz
 ```
 
 Read [README.md](https://github.com/Kairos0922/intelligent-ui/blob/main/README.md) for the full source install.

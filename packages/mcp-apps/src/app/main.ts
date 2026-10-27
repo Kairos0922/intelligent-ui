@@ -6,7 +6,7 @@ import "@intelligent-ui/core/styles.css";
 import "./app.css";
 
 const app = new App(
-  { name: "Intelligent UI", version: "0.2.1" },
+  { name: "Intelligent UI", version: "0.2.2" },
   {},
   { autoResize: true },
 );

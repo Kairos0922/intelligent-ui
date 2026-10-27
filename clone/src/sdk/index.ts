@@ -32,7 +32,7 @@ import { BLOCK_CATALOG, registerBlockSpec } from "./catalog";
 import { connectSource, type ConnectOptions, type StreamSource } from "./transport";
 import { validateOp, type ValidationIssue } from "./validate";
 
-export const VERSION = "0.2.1";
+export const VERSION = "0.2.2";
 
 export type ThemeMode = "light" | "dark" | "auto" | "inherit";
 

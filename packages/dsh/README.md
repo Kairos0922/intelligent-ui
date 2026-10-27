@@ -2,11 +2,12 @@
 
 DeepSeek Harness (DSH) adapter for Intelligent UI. It registers the `render_iui` tool, gives the model the IUI-1 rules, and renders the result as a keyed tool row in the DSH web client.
 
-- Host: DSH `0.2.1-rc.2` and `0.2.1-rc.3`, web profile.
+- Host: DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4`, web profile.
 - Runtime: DSH supplies React.
 - Package entries: `.` for the server and `./client` for the browser. The `dsh.client` field declares the client entry.
+- Package contents: one self-contained tarball. The server bundle includes the core validator. The client bundle includes the core and the adapter. The package has no npm runtime dependency on `@intelligent-ui/*`.
 
-**Status:** Version 0.2.1 is a source release. The package is not on npm.
+**Status:** Version 0.2.2 is a source release. The package is not on npm.
 
 ## Function
 
@@ -19,28 +20,31 @@ DeepSeek Harness (DSH) adapter for Intelligent UI. It registers the `render_iui`
 
 The adapter sets no global CSS reset and makes no network request at render time.
 
-## Install from source
+## Install
 
 Use the DSH web profile. The adapter does not support another DSH profile.
 
-### 1. Build and link the package
+### 1. Install the package
 
-Build the repository:
+Use the DSH tarball from the GitHub release:
+
+```bash
+dsh plugin --profile web add /absolute/path/to/intelligent-ui-dsh-0.2.2.tgz
+```
+
+The tarball is self-contained. It installs without a registry copy of `@intelligent-ui/core` or `@intelligent-ui/adapter`.
+
+Or build the repository and link the source package:
 
 ```bash
 git clone https://github.com/Kairos0922/intelligent-ui.git
 cd intelligent-ui
 npm ci
 npm run build
-```
-
-Link the package in the web profile:
-
-```bash
 dsh plugin --profile web add link:/absolute/path/to/intelligent-ui/packages/dsh
 ```
 
-`dsh plugin` uses pnpm inside `$DSH_HOME/profiles/web`. The link uses the dependencies in the repository `node_modules` directory.
+`dsh plugin` uses pnpm inside `$DSH_HOME/profiles/web`. The link uses the built `lib` directory.
 
 The package name command works after npm publication:
 
@@ -98,15 +102,17 @@ The next user message contains one line with the `[iui-action]` prefix. The mode
 
 ## Test status
 
-A live signed-in test passed on both host versions. It covers:
+A live signed-in test passed on DSH `0.2.1-rc.2` and `0.2.1-rc.3` with adapter `0.2.1`. A deterministic web test passed on DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` with the self-contained `0.2.2` tarball and a local DeepSeek Messages server. The tests cover:
 
-- A real model call that used `render_iui`.
-- The keyed toolview with tabs and stats.
+- A `render_iui` call that returned tabs and stats.
+- The keyed toolview.
 - A real tab click that sent `[iui-action]`.
-- A second model call with the same block IDs.
+- A second call with the same block IDs.
 - The updated stats block and no console error.
 
-The test used DeepSeek-V4.1-Flash. Each run made one click. A model can make a malformed op. The validator keeps the valid ops and reports the issue.
+The live tests used DeepSeek-V4.1-Flash. Each run made one click. A model can make a malformed op. The validator keeps the valid ops and reports the issue.
+
+The deterministic tests used the self-contained tarball in a clean profile. They did not use an account. They check the DSH protocol, tool registration, toolview, and action path. They do not measure model compliance.
 
 The synthetic replay test also passes in light and dark themes. It covers keyed toolview replay and the no-meta fallback. It also covers the matrix, code, formula, and flashcard blocks, tab and chip actions, theme changes, and hot module replacement cleanup.
 
@@ -122,8 +128,9 @@ An old session uses the generic DSH tool row. The adapter removes its stylesheet
 
 ## Compatibility
 
-- The package is tested with DSH `0.2.1-rc.2` and `0.2.1-rc.3`.
-- The peer range is `>=0.2.1-rc.2 <0.3.0`.
+- The package is tested with DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4`.
+- The peer range is `@deepseek-ai/dsh-tools` `>=0.2.1-rc.2 <0.3.0`.
+- DSH compares the runtime version with each `@deepseek-ai/dsh*` peer range and includes prerelease versions. Version 0.2.0 declared `0.2.1-rc.2` exactly. DSH rejected `0.2.1-rc.3` before it loaded the plugin. Version 0.2.1 and later use the range above. No exact-version exemption is necessary.
 - DSH 0.2.1 is a release candidate. Test the adapter after each DSH upgrade.
 - The package uses the DSH `tools`, `systemPrompt`, `slots`, and `sessions` services.
 - The client uses the DSH `window.__ModuleLoader__` format and keeps React external.

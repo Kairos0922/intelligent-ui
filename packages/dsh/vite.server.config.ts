@@ -3,9 +3,9 @@ import { defineConfig } from "vite";
 /**
  * Node half: the cordis plugin that registers `render_iui`.
  *
- * DSH supplies the host packages; keep `@deepseek-ai/*` and the
- * `@intelligent-ui/*` dependencies external so one profile shares one copy of
- * the protocol and the plugin can be hot-reloaded without duplicating core.
+ * DSH supplies the host packages; keep `@deepseek-ai/*` external. Bundle the
+ * IUI packages so one tarball installs into a clean profile without a registry
+ * copy of core or adapter.
  */
 export default defineConfig({
   build: {
@@ -20,7 +20,7 @@ export default defineConfig({
       fileName: () => "index.js",
     },
     rollupOptions: {
-      external: (id) => id.startsWith("@deepseek-ai/") || id.startsWith("@intelligent-ui/"),
+      external: (id) => id.startsWith("@deepseek-ai/"),
     },
   },
 });

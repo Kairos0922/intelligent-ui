@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.2.2] - 2026-10-28
+
+This is a source release. The packages are not published on npm.
+
+### Changed
+
+- The DSH adapter keeps support for DSH `0.2.1-rc.2` and `0.2.1-rc.3` and adds validated support for `0.2.1-rc.4`.
+- The DSH package is self-contained. The server bundle includes the core validator. The client bundle includes the core and the adapter. A clean profile installs the tarball without a registry copy of `@intelligent-ui/core` or `@intelligent-ui/adapter`.
+- The DSH peer range stays `@deepseek-ai/dsh-tools` `>=0.2.1-rc.2 <0.3.0`.
+
+### Fixed
+
+- DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` accept the adapter without an exact-version exemption. DSH compares the runtime version with the peer range and includes prerelease versions. Version 0.2.0 declared `0.2.1-rc.2` exactly. Version 0.2.1 and later use a range.
+
+### Tested
+
+- DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` passed a deterministic web test with a local DeepSeek Messages server and the self-contained tarball.
+- Each test rendered tabs and stats, sent one `[iui-action]`, and called `render_iui` again with the same block IDs. The stats value changed from `Option A` to `Option B`.
+- The browser console and the network log had no error.
+- The tests did not use a signed-in account.
+
 ## [0.2.1] - 2026-10-26
 
 This is a source release. The packages are not published on npm.

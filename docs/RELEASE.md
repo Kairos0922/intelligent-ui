@@ -16,7 +16,7 @@ This procedure prepares a source release. It does not publish packages to npm.
 10. Run `npm run bench:selfcheck`.
 11. Run `npm run pack:all`.
 12. Run `npm run audit:pack`.
-13. For a DSH release, run the live DSH smoke test in a signed-in web profile.
+13. For a DSH release, run the live DSH smoke test in a signed-in web profile. If an account is not available, run the deterministic test with a local Messages server.
 
 The audit must show these results:
 
@@ -26,7 +26,7 @@ The audit must show these results:
 - No source map is in a tarball.
 - Each tarball has the MIT License.
 - The MCP App HTML file has no external script or link tag. The iframe makes no network request by default.
-- The DSH package has the server and client entries.
+- The DSH package has the server and client entries. It has no `@intelligent-ui/*` runtime dependency.
 
 Do not attach `bench/results/`, `recon/`, `rea/`, or `report/` to a release.
 
@@ -45,12 +45,12 @@ npm run audit:pack
 
 The package files are in `dist-pkg/`:
 
-- `intelligent-ui-core-0.2.1.tgz`
-- `intelligent-ui-adapter-0.2.1.tgz`
-- `intelligent-ui-react-0.2.1.tgz`
-- `intelligent-ui-ai-sdk-0.2.1.tgz`
-- `intelligent-ui-mcp-apps-0.2.1.tgz`
-- `intelligent-ui-dsh-0.2.1.tgz`
+- `intelligent-ui-core-0.2.2.tgz`
+- `intelligent-ui-adapter-0.2.2.tgz`
+- `intelligent-ui-react-0.2.2.tgz`
+- `intelligent-ui-ai-sdk-0.2.2.tgz`
+- `intelligent-ui-mcp-apps-0.2.2.tgz`
+- `intelligent-ui-dsh-0.2.2.tgz`
 
 ## Create the GitHub release
 
@@ -62,15 +62,15 @@ The release workflow in `.github/workflows/release.yml` runs the checks and atta
 4. Open the release page and check the six assets.
 
 ```bash
-git tag -a v0.2.1 -m "Intelligent UI 0.2.1"
-git push origin v0.2.1
+git tag -a v0.2.2 -m "Intelligent UI 0.2.2"
+git push origin v0.2.2
 ```
 
 The workflow uses `gh release create` with `--generate-notes`. If the workflow fails, run the same command on your machine after `npm run pack:all`:
 
 ```bash
-gh release create v0.2.1 dist-pkg/*.tgz \
-  --title "Intelligent UI 0.2.1" \
+gh release create v0.2.2 dist-pkg/*.tgz \
+  --title "Intelligent UI 0.2.2" \
   --notes-file CHANGELOG.md
 ```
 
@@ -84,11 +84,20 @@ Use a clean directory. Download the six tarballs and install them:
 mkdir iui-release-test
 cd iui-release-test
 npm init -y
-gh release download v0.2.1 --repo Kairos0922/intelligent-ui --pattern "*.tgz"
+gh release download v0.2.2 --repo Kairos0922/intelligent-ui --pattern "*.tgz"
 npm install ./*.tgz
 ```
 
 Then import the core package and run a small render test.
+
+Test the DSH tarball in a clean DSH home:
+
+```bash
+export DSH_HOME=/absolute/path/to/empty-dsh-home
+dsh plugin --profile web add /absolute/path/to/intelligent-ui-dsh-0.2.2.tgz
+```
+
+Add the profile patch from [packages/dsh/README.md](../packages/dsh/README.md), then start DSH. The install must not request an exact-version exemption. The package must not request `@intelligent-ui/core` or `@intelligent-ui/adapter` from the npm registry.
 
 ## npm release gate
 
@@ -99,6 +108,7 @@ Do not publish to npm until these items are true:
 - The six tarballs pass the release audit.
 - A clean install from the tarballs passes.
 - A clean install from the GitHub release passes.
+- A clean DSH profile installs the DSH tarball without an exemption or a registry dependency.
 - The README has the registry install steps.
 - The version and changelog agree.
 
