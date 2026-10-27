@@ -62,7 +62,7 @@
   "devDependencies": {
     "@intelligent-ui/adapter": "0.2.2",
     "@intelligent-ui/core": "0.2.2",
-    "typescript": "^5.6.0",
+    "typescript": "^7.0.2",
     "vite": "^6.0.0"
   },
   "publishConfig": {
