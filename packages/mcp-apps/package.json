@@ -49,7 +49,7 @@
     "@intelligent-ui/adapter": "0.2.2",
     "@intelligent-ui/core": "0.2.2",
     "@modelcontextprotocol/ext-apps": "^2.0.3",
-    "@modelcontextprotocol/server": "^2.3.1",
+    "@modelcontextprotocol/server": "^2.4.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
