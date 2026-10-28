@@ -1,21 +1,3 @@
-/* =========================================================================
-   Intelligent UI wire protocol ("IUI-1")
-   -------------------------------------------------------------------------
-   The assistant's answer is streamed as NDJSON: one JSON op per line.
-   The compiler consumes raw text chunks, buffers partial lines and applies
-   each op incrementally — the same shape a real streaming UI protocol has.
-
-   Ops:
-     {"t":"model","v":"Assistant"}              answer header
-     {"t":"p","lvl":2|3|4}                      start paragraph / heading
-     {"t":"md","v":"...markdown..."}            append markdown to the open block
-     {"t":"table","head":[...],"rows":[[...]]}  insert a table
-     {"t":"comp","id":"c1","type":"...","props":{}}   mount a component
-     {"t":"set","id":"c1","path":"value","v":3}       patch component state
-     {"t":"ask","v":["...","..."]}              follow-up suggestion chips
-     {"t":"done"}                               end of answer
-   ========================================================================= */
-
 export type Op =
   | { t: "model"; v: string }
   | { t: "p"; lvl?: 0 | 2 | 3 | 4 }
@@ -37,8 +19,6 @@ export function decode(line: string): Op | null {
     return null;
   }
 }
-
-/* --- scenario builders (typed sugar over the raw ops) ------------------- */
 
 export const P = (lvl: 0 | 2 | 3 | 4 = 0): Op => ({ t: "p", lvl });
 export const MD = (v: string): Op => ({ t: "md", v });

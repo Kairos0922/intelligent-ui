@@ -1,12 +1,8 @@
-/* Bicycle diagrams — an original side-view illustration and a matching
-   assembly walkthrough. Both views are built from the same SVG helpers. */
-
 import { h, svg, setText } from "../dom";
 import { defineBlock, Ctx } from "../registry";
 
 let bikeSeq = 0;
 
-/* Part groups used by the system tabs. */
 const BIKE_SYSTEMS: Record<string, string[]> = {
   frame: ["frame"],
   wheels: ["wheels"],
@@ -15,18 +11,12 @@ const BIKE_SYSTEMS: Record<string, string[]> = {
   cockpit: ["cockpit"],
 };
 
-/** Highlight the selected system. Other groups drop to 30% opacity. */
 function applyBikeSystem(art: Element, system: string) {
   const parts = BIKE_SYSTEMS[system];
   art.setAttribute("data-uniform", String(!parts));
   for (const g of Array.from(art.querySelectorAll("[data-part]")))
     g.setAttribute("data-highlighted", String(!parts || parts.includes(g.getAttribute("data-part")!)));
 }
-
-/* -------------------------------------------------------------------------
-   Bike side-view illustration.
-   Every part carries a `data-part` group name so a system can be highlighted.
-   ------------------------------------------------------------------------- */
 
 export function bikeSvg(opts: { callouts?: boolean; view?: "assembled" | "exploded" } = {}) {
   const uid = `bike-${++bikeSeq}`;
@@ -67,25 +57,22 @@ export function bikeSvg(opts: { callouts?: boolean; view?: "assembled" | "explod
     "aria-label": "Side view of a bicycle",
   });
 
-  // ---- wheels
   const rear = g("wheels", wheel(168, 296, 84, "wheel rear"));
   const front = g("wheels", wheel(548, 296, 84, "wheel front"));
 
-  // ---- frame (two triangles + fork)
   const frame = g(
     "frame",
     svg("path", {
       d: "M168 296 L330 296 L296 186 L430 172 L456 212 L330 296 Z",
       class: "tube",
     }),
-    svg("path", { d: "M296 186 L282 168 L312 168", class: "tube" }), // seat cluster
+    svg("path", { d: "M296 186 L282 168 L312 168", class: "tube" }),
     svg("path", { d: "M430 172 L448 176 L456 212 L438 214 Z", class: "tube head" }),
     svg("path", { d: "M456 212 L548 296", class: "tube fork" }),
-    svg("path", { d: "M168 296 L296 186", class: "tube stay" }), // seat stay
-    svg("path", { d: "M168 296 L330 296", class: "tube stay" }), // chain stay
+    svg("path", { d: "M168 296 L296 186", class: "tube stay" }),
+    svg("path", { d: "M168 296 L330 296", class: "tube stay" }),
   );
 
-  // ---- drivetrain
   const drive = g(
     "drivetrain",
     svg("circle", { cx: 330, cy: 296, r: 26, class: "ring" }),
@@ -95,7 +82,6 @@ export function bikeSvg(opts: { callouts?: boolean; view?: "assembled" | "explod
     svg("circle", { cx: 168, cy: 296, r: 13, class: "cog" }),
   );
 
-  // ---- brakes
   const brakes = g(
     "brakes",
     svg("path", { d: "M548 296 L536 258 M548 296 L560 258 M530 258 L566 258", class: "caliper" }),
@@ -103,7 +89,6 @@ export function bikeSvg(opts: { callouts?: boolean; view?: "assembled" | "explod
     svg("path", { d: "M436 206 C470 240 510 268 538 282", class: "cable" }),
   );
 
-  // ---- cockpit
   const cockpit = g(
     "cockpit",
     svg("path", { d: "M438 170 L452 142", class: "stem" }),
@@ -131,7 +116,6 @@ export function bikeSvg(opts: { callouts?: boolean; view?: "assembled" | "explod
   return s;
 }
 
-/** Exploded-view offsets, applied to part groups. */
 export function applyBikeView(root: HTMLElement, view: "assembled" | "exploded") {
   const svgEl = root.querySelector("svg.iui-bike");
   if (!svgEl) return;
@@ -154,10 +138,6 @@ export function applyBikeView(root: HTMLElement, view: "assembled" | "exploded")
     set(drive, "");
   }
 }
-
-/* -------------------------------------------------------------------------
-   Hero explainer block: bike + system tabs + copy per system.
-   ------------------------------------------------------------------------- */
 
 defineBlock(
   "bike",
@@ -218,10 +198,6 @@ defineBlock(
     select(props.select ?? props.tabs[0]);
   },
 );
-
-/* -------------------------------------------------------------------------
-   Assembly walkthrough.
-   ------------------------------------------------------------------------- */
 
 interface StepSpec {
   title: string;

@@ -1,16 +1,3 @@
-/* =========================================================================
-   Agent-side contract for Intelligent UI
-   -------------------------------------------------------------------------
-   Everything a model/host needs to produce IUI:
-     - IUI_SYSTEM_PROMPT   instructions + compact block catalog
-     - iuiTool()           function/tool definition
-     - parseAgentText()    extract an ```iui block from a finished answer
-     - createIuiExtractor() incrementally extract ops from a streaming answer
-     - validateOps()       repair/sanitize/drop model output before rendering
-
-   No DOM or component imports here: this module is safe to use on a server.
-   ========================================================================= */
-
 import type { Op } from "../iui/protocol";
 import {
   BLOCK_CATALOG,
@@ -94,8 +81,6 @@ export function parseIuiAction(text: string): IuiActionEnvelope | null {
   }
 }
 
-/* ------------------------------------------------------------------ text */
-
 export interface ParseOptions extends ValidateOptions {
   /** parse a bare NDJSON answer when no fenced block is present */
   bare?: boolean;
@@ -127,9 +112,7 @@ function parseOpsPayload(payload: string, issues: ValidationIssue[]): unknown[] 
       if (value && typeof value === "object" && typeof (value as { t?: unknown }).t === "string") {
         return [value];
       }
-    } catch {
-      // not a single JSON document — treat as NDJSON below
-    }
+    } catch {}
   }
 
   const out: unknown[] = [];
@@ -250,8 +233,6 @@ export function opsToMarkdown(ops: Op[], options: { components?: boolean } = {})
   return out.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
-/* --------------------------------------------------------------- extract */
-
 export interface ExtractorHandlers {
   /** a validated op, in stream order */
   onOp(op: Op): void;
@@ -319,14 +300,11 @@ export function createIuiExtractor(
     const t = line.trim();
     if (!t || t.startsWith("//")) return;
 
-    // Fast path: a complete NDJSON op on its own line.
     if (!pendingOp) {
       try {
         emitOp(JSON.parse(t));
         return;
-      } catch {
-        // might be the first line of a pretty-printed op
-      }
+      } catch {}
       if (!t.startsWith("{")) {
         emitIssue({ path: "op", message: `ignored non-JSON line: ${t.slice(0, 60)}` });
         return;
@@ -342,9 +320,7 @@ export function createIuiExtractor(
     try {
       emitOp(JSON.parse(pendingOp));
       pendingOp = "";
-    } catch {
-      // keep buffering (pretty-printed JSON) — a complete object will parse
-    }
+    } catch {}
   };
 
   const handleLine = (line: string) => {
@@ -389,8 +365,6 @@ export function createIuiExtractor(
     },
   };
 }
-
-/* ---------------------------------------------------------------- prompt */
 
 export type IuiPromptMode = "fence" | "tool" | "both";
 

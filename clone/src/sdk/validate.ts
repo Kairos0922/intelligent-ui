@@ -1,15 +1,6 @@
-/* =========================================================================
-   Op validation / sanitization
-   -------------------------------------------------------------------------
-   The renderer is also used with model-generated streams, so every op is
-   treated as untrusted input. Validation is deliberately *repairing* where
-   the intent is unambiguous (missing ids, ragged table rows, unsafe image
-   URLs) and drops only what cannot be rendered safely.
-   ========================================================================= */
-
 import type { Op } from "../iui/protocol";
-import { hasBlock } from "../iui/registry";
-import { safeColor, safeText, safeUrl } from "../iui/security";
+import { BLOCK_TYPES } from "./catalog";
+import { safeColor, safeUrl } from "../iui/security";
 
 export interface ValidationIssue {
   path: string;
@@ -17,7 +8,7 @@ export interface ValidationIssue {
 }
 
 export interface ValidateOptions {
-  /** known block types; defaults to the imported component registry */
+  /** known block types; defaults to the host-neutral catalog */
   blocks?: ReadonlySet<string> | Iterable<string>;
   /** accept unknown block types (they render nothing) instead of dropping */
   allowUnknownBlocks?: boolean;
@@ -45,16 +36,30 @@ export interface ValidateResult {
   bytes: number;
 }
 
-const DEFAULTS = {
+export const VALIDATION_LIMITS = {
   maxOps: 512,
   maxTotalBytes: 1_500_000,
   maxPropsBytes: 192_000,
   maxString: 40_000,
 } as const;
 
+const DEFAULTS = VALIDATION_LIMITS;
 const DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 const TABLE_MAX_COLS = 10;
 const TABLE_MAX_ROWS = 300;
+const URL_KEYS = /^(src|img|photo|poster|thumb|href|url)$/i;
+const LINK_KEYS = /^(href|url)$/i;
+const utf8 = new TextEncoder();
+
+function jsonBytes(value: unknown): number {
+  return utf8.encode(JSON.stringify(value) ?? "").byteLength;
+}
+
+function stateKey(path: string): string {
+  const clean = path.replace(/^props\./, "");
+  const last = clean.split(".").at(-1) ?? "";
+  return last.replace(/\[[^\]]*\]/g, "");
+}
 
 function issue(list: ValidationIssue[], path: string, message: string) {
   if (list.length < 100) list.push({ path, message });
@@ -70,8 +75,6 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
   const proto = Object.getPrototypeOf(v);
   return proto === Object.prototype || proto === null;
 }
-
-/* --------------------------------------------------------------- values */
 
 function sanitizeValue(
   value: unknown,
@@ -100,8 +103,8 @@ function sanitizeValue(
       text = text.slice(0, opts.maxString);
     }
     if (opts.sanitize) {
-      if (/^(src|img|photo|poster|thumb|href|url)$/i.test(key)) {
-        const safe = safeUrl(text, /^(href|url)$/i.test(key) ? "link" : "image");
+      if (URL_KEYS.test(key)) {
+        const safe = safeUrl(text, LINK_KEYS.test(key) ? "link" : "image");
         if (!safe) {
           issue(issues, path, `unsafe ${key} URL removed`);
           return null;
@@ -136,8 +139,6 @@ function sanitizeValue(
   issue(issues, path, `unsupported value (${typeof value})`);
   return null;
 }
-
-/* ------------------------------------------------------------------ ops */
 
 function str(v: unknown, max: number): string | null {
   if (typeof v !== "string") return null;
@@ -219,7 +220,7 @@ export function validateOp(input: unknown, options: ValidateOptions = {}): Valid
         issue(issues, "type", "component type is required");
         break;
       }
-      const known = blockSet ? blockSet.has(type) : hasBlock(type);
+      const known = blockSet ? blockSet.has(type) : BLOCK_TYPES.has(type);
       if (!known && !options.allowUnknownBlocks) {
         issue(issues, "type", `unknown block type "${type}"`);
         break;
@@ -235,7 +236,7 @@ export function validateOp(input: unknown, options: ValidateOptions = {}): Valid
         break;
       }
       const props = sanitizeValue(input.props, opts, "props", issues) as Record<string, unknown>;
-      const size = JSON.stringify(props).length;
+      const size = jsonBytes(props);
       if (size > opts.maxPropsBytes) {
         issue(issues, "props", `props exceed ${opts.maxPropsBytes} bytes`);
         break;
@@ -254,7 +255,15 @@ export function validateOp(input: unknown, options: ValidateOptions = {}): Valid
         issue(issues, "path", "set path contains unsupported characters");
         break;
       }
-      const v = sanitizeValue(input.v, opts, "v", issues);
+      const key = stateKey(path);
+      const v = sanitizeValue(input.v, opts, "v", issues, key);
+      if (v === null && input.v !== null && URL_KEYS.test(key)) {
+        break;
+      }
+      if (jsonBytes(v) > opts.maxPropsBytes) {
+        issue(issues, "v", `set value exceeds ${opts.maxPropsBytes} bytes`);
+        break;
+      }
       op = { t: "set", id, path, v };
       break;
     }
@@ -274,7 +283,7 @@ export function validateOp(input: unknown, options: ValidateOptions = {}): Valid
       issue(issues, "t", `unknown op type "${String(t)}"`);
   }
 
-  const bytes = op ? JSON.stringify(op).length : 0;
+  const bytes = op ? jsonBytes(op) : 0;
   return { op, issues, bytes };
 }
 
@@ -288,6 +297,7 @@ export function validateOps(input: unknown, options: ValidateOptions = {}): Vali
   const blockSet = toSet(options.blocks);
 
   const ops: Op[] = [];
+  const ids = new Set<string>();
   let bytes = 0;
   for (let i = 0; i < input.length; i++) {
     if (ops.length >= maxOps) {
@@ -297,6 +307,13 @@ export function validateOps(input: unknown, options: ValidateOptions = {}): Vali
     const result = validateOp(input[i], { ...options, blocks: blockSet ?? undefined });
     for (const it of result.issues) issue(issues, `$[${i}].${it.path}`, it.message);
     if (!result.op) continue;
+    if (result.op.t === "comp") {
+      if (ids.has(result.op.id)) {
+        issue(issues, `$[${i}].id`, `duplicate component id "${result.op.id}"`);
+        continue;
+      }
+      ids.add(result.op.id);
+    }
     if (bytes + result.bytes > maxTotalBytes) {
       issue(issues, `$[${i}]`, `answer exceeds ${maxTotalBytes} bytes`);
       break;

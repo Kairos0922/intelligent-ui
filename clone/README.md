@@ -106,8 +106,8 @@ Read [SDK.md](https://github.com/Kairos0922/intelligent-ui/blob/main/SDK.md#81-a
 | Check | Result |
 |---|---|
 | TypeScript type check | Pass |
-| Browser self-test | 16 of 16 pass |
-| Node tests | 14 of 14 pass |
+| Browser self-test | 25 of 25 pass |
+| Node tests | 21 of 21 pass |
 | Playwright tests | 2 of 2 pass |
 | MCP App HTML external URL scan | Pass |
 

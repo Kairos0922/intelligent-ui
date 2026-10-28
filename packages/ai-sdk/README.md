@@ -67,7 +67,7 @@ message.parts.map((part, index) =>
 | Export | Function |
 |---|---|
 | `IuiToolPart` | Render ops from a tool part. |
-| `isIuiToolPart(part, toolName?)` | Return true for `tool-render_iui` or `dynamic-tool`. |
+| `isIuiToolPart(part, toolName?)` | Return true for `tool-render_iui` or a `dynamic-tool` with the same tool name. |
 | `opsFromToolPart(part)` | Read ops from `output` or `input`. |
 
 `opsFromToolPart()` also reads a nested `ops` array, a `structuredContent.ops` value, an `output.ops` value, or a `result.ops` value.

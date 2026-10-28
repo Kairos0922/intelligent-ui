@@ -86,9 +86,9 @@ The component uses the first source that has a value. The priority is `ops`, the
 | `className` | `string` | Container class. |
 | `style` | `CSSProperties` | Container style. |
 
-The `darkSelector`, `scroll`, `animate`, and `sanitize` options are read at mount. A change to one of these options makes a new runtime and removes the current answer.
+The `darkSelector`, `scroll`, `animate`, and `sanitize` options are read at mount. A change to one of these options does not affect the mounted runtime. Remount the component to apply a new value.
 
-The `theme`, `tokens`, `actionPolicy`, and callback options update without a remount.
+The `theme`, `tokens`, `actionPolicy`, and callback options update without a remount. A new `tokens` object replaces the previous custom token set.
 
 ## Imperative handle
 

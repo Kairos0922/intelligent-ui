@@ -6,6 +6,7 @@ import { IntelligentUI } from "@intelligent-ui/react";
 /** The subset of an AI SDK tool part this renderer needs. */
 export interface IuiToolPartLike {
   type?: string;
+  toolName?: string;
   state?: string;
   input?: unknown;
   output?: unknown;
@@ -57,7 +58,8 @@ function opsFromUnknown(value: unknown): Op[] | null {
 
 /** True when this part is the `render_iui` tool in any AI SDK state. */
 export function isIuiToolPart(part: IuiToolPartLike, toolName = "render_iui"): boolean {
-  return part.type === `tool-${toolName}` || part.type === "dynamic-tool";
+  if (part.type === `tool-${toolName}`) return true;
+  return part.type === "dynamic-tool" && part.toolName === toolName;
 }
 
 function FallbackRow({ children }: { children: ReactNode }) {

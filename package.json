@@ -25,6 +25,7 @@
     "bench": "npm run build:core && node bench/run.mjs",
     "bench:selfcheck": "npm run build:core && node bench/run.mjs --provider mock --mode fence --out bench/results/selfcheck.json",
     "check:docs": "node scripts/check-docs.mjs",
+    "check:release": "node scripts/check-release.mjs",
     "audit:content": "node scripts/audit-content.mjs",
     "pack:all": "node scripts/pack-all.mjs",
     "audit:pack": "node scripts/audit-pack.mjs",

@@ -109,8 +109,6 @@ export const IntelligentUI = forwardRef<IntelligentUIHandle, IntelligentUIProps>
         host.destroy();
         hostRef.current = null;
       };
-      // Structural options are intentionally mount-time: changing them
-      // recreates the runtime and would drop the current answer.
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -119,7 +117,7 @@ export const IntelligentUI = forwardRef<IntelligentUIHandle, IntelligentUIProps>
     }, [theme]);
 
     useEffect(() => {
-      if (tokens) hostRef.current?.setTokens(tokens);
+      hostRef.current?.setTokens(tokens ?? {}, true);
     }, [tokens]);
 
     useEffect(() => {

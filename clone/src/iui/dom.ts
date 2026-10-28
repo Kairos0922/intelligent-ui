@@ -1,5 +1,3 @@
-/* Tiny DOM helpers used across the Intelligent UI runtime. */
-
 type Attrs = Record<string, unknown> | null | undefined;
 
 function applyAttrs(el: Element, attrs: Attrs) {

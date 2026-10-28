@@ -1,7 +1,3 @@
-/* Markdown-lite renderer for streaming prose.
-   Supports: **bold**, *italic*, `code`, [link](url), line breaks, and
-   "- " / "1. " line lists. */
-
 import { frag } from "./dom";
 import { safeUrl } from "./security";
 

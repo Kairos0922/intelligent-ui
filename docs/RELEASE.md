@@ -16,7 +16,8 @@ This procedure prepares a source release. It does not publish packages to npm.
 10. Run `npm run bench:selfcheck`.
 11. Run `npm run pack:all`.
 12. Run `npm run audit:pack`.
-13. For a DSH release, run the live DSH smoke test in a signed-in web profile. If an account is not available, run the deterministic test with a local Messages server.
+13. Run `npm run check:release -- --tarballs`.
+14. For a DSH release, run the live DSH smoke test in a signed-in web profile. If an account is not available, run the deterministic test with a local Messages server.
 
 The audit must show these results:
 
@@ -41,6 +42,7 @@ npm run build
 npm test
 npm run pack:all
 npm run audit:pack
+npm run check:release -- --tarballs
 ```
 
 The package files are in `dist-pkg/`:

@@ -1,18 +1,3 @@
-/* =========================================================================
-   Intelligent UI SDK — stylesheet entry
-   -------------------------------------------------------------------------
-   Ship this file with the package:
-
-     import "@intelligent-ui/core/styles.css";
-
-   Contains the theme tokens (scoped to `.iui-theme`) and the general-purpose
-   component vocabulary. App-shell styles are not included. The host owns the
-   page.
-
-   The only preflight the SDK applies is scoped to the surface, so embedding
-   does not change the host's box model.
-   ========================================================================= */
-
 @import "./tokens-core.css";
 @import "./components.css";
 

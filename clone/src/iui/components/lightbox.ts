@@ -1,48 +1,58 @@
-/* =========================================================================
-   Click-to-enlarge dialog.
-
-   A thumbnail can open a modal with the full-size image: centred image on a
-   dimmed backdrop, close button, ESC / backdrop-click to dismiss, and focus
-   restored to the trigger.
-   ========================================================================= */
-
 import { h } from "../dom";
 
-let dialog: HTMLDialogElement | null = null;
-let dialogImg: HTMLImageElement | null = null;
-let opener: HTMLButtonElement | null = null;
+interface Lightbox {
+  dialog: HTMLDialogElement;
+  img: HTMLImageElement;
+  opener: HTMLButtonElement | null;
+}
 
-function ensureDialog(): HTMLDialogElement {
-  if (dialog) return dialog;
-  dialogImg = h("img", { alt: "" }) as HTMLImageElement;
+const boxes = new WeakMap<HTMLElement, Lightbox>();
+
+function rootFor(trigger: HTMLButtonElement | null): HTMLElement {
+  return trigger?.closest<HTMLElement>(".iui-theme") ?? document.body;
+}
+
+function ensureDialog(root: HTMLElement): Lightbox {
+  const existing = boxes.get(root);
+  if (existing) return existing;
+
+  const img = h("img", { alt: "" }) as HTMLImageElement;
   const close = h("button", { class: "iui-lightbox-x", type: "button", "aria-label": "Close" });
   close.append(h("span", { text: "\u00d7" }));
-  dialog = h("dialog", { class: "iui-lightbox" }) as HTMLDialogElement;
-  dialog.append(dialogImg, close);
-  close.addEventListener("click", () => dialog?.close());
-  // a click on the dialog element itself is a click outside the image
-  dialog.addEventListener("click", (e) => {
-    if (e.target === dialog) dialog?.close();
+  const dialog = h("dialog", { class: "iui-lightbox" }) as HTMLDialogElement;
+  const box: Lightbox = { dialog, img, opener: null };
+  dialog.append(img, close);
+  close.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
   });
   dialog.addEventListener("close", () => {
-    if (opener) opener.setAttribute("aria-expanded", "false");
-    opener = null;
+    if (box.opener) {
+      box.opener.setAttribute("aria-expanded", "false");
+      box.opener.dataset.state = "closed";
+    }
+    box.opener = null;
   });
-  document.body.append(dialog);
-  return dialog;
+  root.append(dialog);
+  boxes.set(root, box);
+  return box;
 }
 
 export function openLightbox(src: string, alt: string, trigger: HTMLButtonElement | null): void {
-  const d = ensureDialog();
-  dialogImg!.src = src;
-  dialogImg!.alt = alt;
-  opener = trigger;
+  const root = rootFor(trigger);
+  const box = ensureDialog(root);
+  if (box.opener && box.opener !== trigger) {
+    box.opener.setAttribute("aria-expanded", "false");
+    box.opener.dataset.state = "closed";
+  }
+  box.img.src = src;
+  box.img.alt = alt;
+  box.opener = trigger;
   if (trigger) trigger.setAttribute("aria-expanded", "true");
-  if (!d.open) d.showModal();
+  if (!box.dialog.open) box.dialog.showModal();
 }
 
-/** Wrap an image in a button that opens the lightbox. The rounded clip lives
- *  on the button, not on the image itself. */
+/** Wrap an image in a button that opens the lightbox. */
 export function enlargeButton(img: HTMLImageElement, alt: string): HTMLButtonElement {
   const btn = h("button", {
     class: "iui-enlarge",
@@ -58,4 +68,12 @@ export function enlargeButton(img: HTMLImageElement, alt: string): HTMLButtonEle
     openLightbox(img.currentSrc || img.src, alt, btn);
   });
   return btn;
+}
+
+export function disposeLightboxes(root: HTMLElement): void {
+  for (const dialog of root.querySelectorAll<HTMLDialogElement>("dialog.iui-lightbox")) {
+    if (dialog.open) dialog.close();
+    dialog.remove();
+  }
+  boxes.delete(root);
 }

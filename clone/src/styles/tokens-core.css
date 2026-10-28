@@ -1,17 +1,4 @@
-/* =========================================================================
-   Intelligent UI design tokens + surface base (no global preflight)
-   -------------------------------------------------------------------------
-   Imported by the embeddable SDK through sdk.css. Everything here is either
-   a custom-property definition or scoped to `.iui-theme`.
-   ========================================================================= */
-
-/* =========================================================================
-   Design tokens
-   ========================================================================= */
-
 :root {
-  /* --- Intelligent UI tokens (light) --- */
-  /* Surface typography. Hosts can override the font tokens. */
   --iui-font: Arial, Helvetica, sans-serif;
   --iui-font-size: 15px;
   --iui-line-height: 1.65;
@@ -49,15 +36,9 @@
   --iui-chip: #f4f4f4;
   --iui-completed: #777;
   --iui-overlay: #000000b3;
-
-  color-scheme: light;
 }
-
-/* Dark tokens apply when the page is dark (`<html class="dark">`) or when the
-   SDK root itself is switched to dark (`data-theme="dark"`). */
 :root.dark,
 .iui-theme[data-theme="dark"] {
-  /* --- Intelligent UI tokens (dark) --- */
   --iui-bg: #0e0e0e;
   --iui-text: #ededed;
   --iui-muted: #cdcdcd;
@@ -90,11 +71,7 @@
   --iui-progress-track: #303030;
   --iui-chip: #303030;
   --iui-completed: #afafaf;
-
-  color-scheme: dark;
 }
-
-/* Intelligent UI surface root. */
 .iui-theme {
   color: var(--iui-text);
   font-family: var(--iui-font);
@@ -102,27 +79,21 @@
   line-height: var(--iui-line-height);
   letter-spacing: var(--iui-tracking);
   font-feature-settings: "calt", "liga";
+  color-scheme: light;
 }
 
-/* UA form-control resets (select/button/input/textarea) drop inherited
-   letter-spacing and font features. Restore inheritance at zero specificity
-   so component-level declarations still win. */
+.iui-theme[data-theme="dark"] {
+  color-scheme: dark;
+}
 .iui-theme :where(button, select, input, textarea) {
   letter-spacing: inherit;
   font-feature-settings: inherit;
   line-height: inherit;
 }
-
-/* Zero the UA control margins and padding at zero specificity. */
 :where(.iui-theme) :where(button, input, optgroup, select, textarea) {
   margin: 0;
   padding: 0;
 }
-
-/* Prose base.
-   Bare prose elements carry a flow rhythm even when the component CSS says
-   nothing about them. Selectors use :where() so the specificity stays at
-   zero and every component rule keeps winning. */
 :where(.iui-theme) :where(p) {
   margin: 0 0 16px;
 }
@@ -148,7 +119,6 @@
 :where(.iui-theme) :where(strong) {
   font-weight: 600;
 }
-/* Zero the UA fieldset margin and padding so card layouts are stable. */
 :where(.iui-theme) :where(fieldset) {
   margin: 0;
   padding: 0;

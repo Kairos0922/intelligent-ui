@@ -29,5 +29,5 @@ test("core SDK browser self-test passes", async ({ page }) => {
   }
 
   expect(result.fail).toBe(0);
-  expect(result.total).toBe(16);
+  expect(result.total).toBe(25);
 });

@@ -1,16 +1,3 @@
-/* =========================================================================
-   Block catalog
-   -------------------------------------------------------------------------
-   A machine-readable description of every block the renderer understands.
-   It is the single source of truth for:
-     - the agent system prompt (compact prop summary),
-     - the tool/function schema offered to a model,
-     - validation (known block types),
-     - documentation.
-
-   Props are written as JSON-Schema fragments (the subset needed by models).
-   ========================================================================= */
-
 export type PropKind = "string" | "number" | "boolean" | "array" | "object";
 
 export interface PropSpec {
@@ -870,8 +857,6 @@ export function registerBlockSpec(spec: BlockSpec): () => void {
 export function findBlock(type: string): BlockSpec | undefined {
   return BLOCK_CATALOG.find((b) => b.type === type);
 }
-
-/* ------------------------------------------------------- prompt helpers */
 
 function typeLabel(spec: PropSpec, depth = 0): string {
   if (spec.enum) return spec.enum.map((v) => JSON.stringify(v)).join("|");

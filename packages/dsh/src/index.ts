@@ -1,11 +1,3 @@
-/**
- * DeepSeek Harness host half.
- *
- * Registers the model-facing `render_iui` tool and a short system-prompt
- * section. The tool validates and sanitizes every op with the same core
- * validator used by the MCP and AI SDK adapters. The validated list is carried
- * in presentation metadata so replay can recover it without parsing prose.
- */
 import { defineTool } from "@deepseek-ai/dsh-tools";
 import type { Context } from "@deepseek-ai/cordis";
 import {

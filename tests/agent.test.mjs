@@ -13,6 +13,8 @@ import {
   parseIuiAction,
   registerBlockSpec,
   selectPromptBlocks,
+  validateNdjson,
+  validateOps,
 } from "../clone/dist-lib/agent.js";
 
 test("core catalog contains only general-purpose blocks", () => {
@@ -112,6 +114,69 @@ test("action envelope round-trips", () => {
     payload: { value: "Option B" },
   });
   assert.equal(parseIuiAction("ordinary message"), null);
+});
+
+test("server-side validation accepts catalog blocks without a DOM registry", () => {
+  const result = validateOps([
+    { t: "comp", id: "card1", type: "card", props: { title: "Server safe" } },
+    { t: "done" },
+  ]);
+  assert.equal(result.ops.length, 2);
+  assert.equal(result.ops[0].t, "comp");
+  assert.equal(result.ops[0].type, "card");
+  assert.deepEqual(result.issues, []);
+});
+
+test("validation limits and set URL sanitization", () => {
+  const limited = validateOps(
+    [
+      { t: "p" },
+      { t: "p" },
+      { t: "done" },
+    ],
+    { maxOps: 1 },
+  );
+  assert.equal(limited.ops.length, 1);
+  assert.ok(limited.issues.some((issue) => issue.message.includes("op limit")));
+
+  const bytes = validateOps(
+    [{ t: "comp", id: "c1", type: "card", props: { title: "x" } }],
+    { maxTotalBytes: 5 },
+  );
+  assert.equal(bytes.ops.length, 0);
+  assert.ok(bytes.issues.some((issue) => issue.message.includes("answer exceeds")));
+
+  const unsafe = validateOps([{ t: "set", id: "c1", path: "img", v: "javascript:alert(1)" }]);
+  assert.equal(unsafe.ops.length, 0);
+  assert.ok(unsafe.issues.some((issue) => issue.message.includes("unsafe img URL")));
+
+  const safe = validateOps([{ t: "set", id: "c1", path: "img", v: "https://example.com/a.png" }]);
+  assert.equal(safe.ops.length, 1);
+
+  const large = validateOps(
+    [{ t: "set", id: "c1", path: "title", v: "x".repeat(100) }],
+    { maxPropsBytes: 20 },
+  );
+  assert.equal(large.ops.length, 0);
+  assert.ok(large.issues.some((issue) => issue.message.includes("set value exceeds")));
+});
+
+test("duplicate component ids are dropped in a batch", () => {
+  const result = validateOps([
+    { t: "comp", id: "same", type: "card", props: { title: "One" } },
+    { t: "comp", id: "same", type: "card", props: { title: "Two" } },
+    { t: "done" },
+  ]);
+  assert.equal(result.ops.filter((op) => op.t === "comp").length, 1);
+  assert.ok(result.issues.some((issue) => issue.message.includes("duplicate component id")));
+});
+
+test("NDJSON validation uses the catalog default", () => {
+  const result = validateNdjson(
+    '{"t":"comp","id":"c1","type":"card","props":{"title":"NDJSON"}}\n{"t":"done"}\n',
+  );
+  assert.equal(result.ops.length, 2);
+  assert.equal(result.ops[0].t, "comp");
 });
 
 test("markdown fallback preserves prose and tables", () => {

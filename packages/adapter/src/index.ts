@@ -1,11 +1,3 @@
-/* =========================================================================
-   @intelligent-ui/adapter — the middle layer.
-
-   Host adapters (MCP Apps, React, AI SDK, DSH, …) should only need this file:
-   it owns the DOM surface, normalises block/prompt events into one action
-   shape, formats the `[iui-action]` envelope, and handles lifecycle.
-   ========================================================================= */
-
 import {
   createIntelligentUI,
   type Answer,
@@ -94,7 +86,7 @@ export interface IuiHost {
   connect(source: StreamSource, options?: ConnectOptions): Promise<Answer>;
   reset(): void;
   setTheme(mode: ThemeMode): void;
-  setTokens(tokens: Record<string, string>): void;
+  setTokens(tokens: Record<string, string>, replace?: boolean): void;
   destroy(): void;
 }
 
@@ -157,7 +149,7 @@ export function createIuiHost(options: IuiHostOptions): IuiHost {
     connect: (source, connectOptions) => ui.connect(source, connectOptions),
     reset: () => ui.reset(),
     setTheme: (mode) => ui.setTheme(mode),
-    setTokens: (tokens) => ui.setTokens(tokens),
+    setTokens: (tokens, replace) => ui.setTokens(tokens, replace),
     destroy: () => ui.destroy(),
   };
 }

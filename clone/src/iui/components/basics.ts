@@ -1,12 +1,15 @@
-/* Base Intelligent UI blocks. */
-
 import { h, frag, setText, fmtInt, svg } from "../dom";
 import { renderInline } from "../md";
 import { defineBlock, Ctx } from "../registry";
 import { safeColor, sanitizeSvgIcon } from "../security";
 import { enlargeButton } from "./lightbox";
 
-/* ---- media ------------------------------------------------------------- */
+let blockSeq = 0;
+
+function blockKey(el: HTMLElement): string {
+  if (!el.dataset.blockId) el.dataset.blockId = `b${++blockSeq}`;
+  return el.dataset.blockId;
+}
 
 defineBlock("collage", (el, props: { images: { src: string; alt?: string }[] }) => {
   const wrap = h("div", { class: "iui-hero-collage" });
@@ -82,7 +85,6 @@ defineBlock(
       const row = h("div", { class: "iui-day" });
       const media = h("div", { class: "m" });
       const im = h("img", { src: d.img, alt: d.title, loading: "lazy" });
-      // Tall rows open the lightbox; square rows keep the image bare.
       media.append(
         props.variant === "square" ? im : enlargeButton(im as HTMLImageElement, d.title),
       );
@@ -98,16 +100,12 @@ defineBlock(
   },
 );
 
-/* ---- chips row ---------------------------------------------------------- */
-
 defineBlock("chips", (el, props: { items: string[] }) => {
   el.classList.add("iui-chips-row");
   const row = h("div", { class: "iui-chips" });
   for (const t of props.items) row.append(h("span", { class: "iui-chip", text: t }));
   el.append(row);
 });
-
-/* ---- feature image (fixed-ratio single hero) ---------------------------- */
 
 defineBlock(
   "figure",
@@ -121,8 +119,6 @@ defineBlock(
   },
 );
 
-/* ---- 3fr / 2fr mosaic hero ---------------------------------------------- */
-
 defineBlock("rtHero", (el, props: { images: { src: string; alt?: string }[] }) => {
   const wrap = h("div", { class: "iui-rt-hero" });
   props.images.slice(0, 3).forEach((im) =>
@@ -130,8 +126,6 @@ defineBlock("rtHero", (el, props: { images: { src: string; alt?: string }[] }) =
   );
   el.append(wrap);
 });
-
-/* ---- two-column image mosaic -------------------------------------------- */
 
 defineBlock(
   "pair",
@@ -147,8 +141,6 @@ defineBlock(
     el.append(wrap);
   },
 );
-
-/* ---- menu -------------------------------------------------------------- */
 
 defineBlock(
   "menu",
@@ -167,8 +159,6 @@ defineBlock(
     el.append(menu);
   },
 );
-
-/* ---- generic card ------------------------------------------------------ */
 
 defineBlock(
   "card",
@@ -189,8 +179,6 @@ defineBlock(
     el.append(card);
   },
 );
-
-/* ---- timed checklist --------------------------------------------------- */
 
 interface CheckItem {
   time: string;
@@ -241,8 +229,6 @@ defineBlock(
     refresh();
   },
 );
-
-/* ---- packing checklist -------------------------------------------------- */
 
 defineBlock(
   "packing",
@@ -303,8 +289,6 @@ defineBlock(
   },
 );
 
-/* ---- preference form --------------------------------------------------- */
-
 defineBlock(
   "form",
   (
@@ -324,7 +308,10 @@ defineBlock(
       values[i] = fs.options[fs.checked ?? 0];
       fs.options.forEach((opt, j) => {
         const label = h("label");
-        const input = h("input", { type: "radio", name: `iui-form-${el.dataset.block}-${i}` }) as HTMLInputElement;
+        const input = h("input", {
+          type: "radio",
+          name: `iui-form-${blockKey(el)}-${i}`,
+        }) as HTMLInputElement;
         input.checked = j === (fs.checked ?? 0);
         input.value = opt;
         input.addEventListener("change", () => {
@@ -337,7 +324,6 @@ defineBlock(
       form.append(fieldset);
     });
     const cta = h("button", { class: "iui-cta", type: "button" });
-    // A compact arrow signals that the button submits the form.
     const arrow = svg(
       "svg",
       {
@@ -372,8 +358,6 @@ defineBlock(
     refresh();
   },
 );
-
-/* ---- quantity stepper --------------------------------------------------- */
 
 interface QtyRow {
   name: string;
@@ -477,50 +461,72 @@ defineBlock(
   },
 );
 
-/* ---- tabs --------------------------------------------------------------- */
-
 defineBlock(
   "tabs",
   (el, props: { items: string[]; panels: Record<string, string>; select?: string }, ctx: Ctx) => {
+    const items = Array.isArray(props.items) ? props.items : [];
+    const panels = props.panels && typeof props.panels === "object" ? props.panels : {};
+    const key = blockKey(el);
+    const panelId = `iui-tabs-${key}-panel`;
     const wrap = h("div", { class: "iui-tabpanel" });
     const bar = h("div", { class: "iui-tabs", role: "tablist" });
-    const body = h("div", { class: "iui-tab-body" });
-    const buttons = new Map<string, HTMLButtonElement>();
+    const body = h("div", {
+      class: "iui-tab-body",
+      id: panelId,
+      role: "tabpanel",
+      tabindex: "0",
+    });
+    const buttons: HTMLButtonElement[] = [];
 
-    const select = (name: string) => {
-      for (const [key, btn] of buttons) {
-        btn.setAttribute("aria-pressed", String(key === name));
-      }
-      const md = props.panels[name] ?? "";
+    function selectIndex(index: number, focus = false, notify = true) {
+      const name = items[index];
+      if (name === undefined) return;
+      buttons.forEach((btn, i) => {
+        const on = i === index;
+        btn.setAttribute("aria-selected", String(on));
+        btn.tabIndex = on ? 0 : -1;
+      });
+      const selected = buttons[index];
+      body.setAttribute("aria-labelledby", selected.id);
       const para = h("p");
-      para.append(renderInline(md));
+      para.append(renderInline(typeof panels[name] === "string" ? panels[name] : ""));
       body.replaceChildren(para);
-    };
+      if (focus) selected.focus();
+      if (notify) ctx.emit?.("select", { value: name });
+    }
 
-    props.items.forEach((name, i) => {
+    items.forEach((name, i) => {
       const btn = h("button", {
         class: "iui-tab",
         type: "button",
         role: "tab",
+        id: `iui-tabs-${key}-tab-${i}`,
         text: name,
-        "aria-pressed": "false",
+        "aria-selected": "false",
+        "aria-controls": panelId,
+        tabindex: "-1",
+      }) as HTMLButtonElement;
+      btn.addEventListener("click", () => selectIndex(i));
+      btn.addEventListener("keydown", (event) => {
+        let next = i;
+        if (event.key === "ArrowRight") next = (i + 1) % items.length;
+        else if (event.key === "ArrowLeft") next = (i - 1 + items.length) % items.length;
+        else if (event.key === "Home") next = 0;
+        else if (event.key === "End") next = items.length - 1;
+        else return;
+        event.preventDefault();
+        selectIndex(next, true);
       });
-      btn.addEventListener("click", () => {
-        select(name);
-        ctx.emit?.("select", { value: name });
-      });
-      buttons.set(name, btn);
+      buttons.push(btn);
       bar.append(btn);
-      if (i === 0 && !props.select) props.select = name;
     });
 
     wrap.append(bar, body);
     el.append(wrap);
-    select(props.select ?? props.items[0]);
+    const initial = props.select && items.includes(props.select) ? items.indexOf(props.select) : 0;
+    selectIndex(initial, false, false);
   },
 );
-
-/* ---- plan tiles --------------------------------------------------------- */
 
 defineBlock(
   "tiles",

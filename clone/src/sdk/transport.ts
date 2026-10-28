@@ -1,18 +1,3 @@
-/* =========================================================================
-   Stream transport
-   -------------------------------------------------------------------------
-   `connect()` accepts the shapes a host is likely to have:
-
-     await ui.connect("/api/chat/stream")          // NDJSON or SSE endpoint
-     await ui.connect(await fetch(...))            // Response
-     await ui.connect(res.body!)                   // ReadableStream
-     await ui.connect(chatStream())                // AsyncIterable<string>
-
-   NDJSON bytes are forwarded to the compiler untouched (it owns line
-   buffering). SSE `data:` payloads are unwrapped: raw NDJSON lines,
-   `[DONE]`, or common `{delta|text|content}` JSON envelopes.
-   ========================================================================= */
-
 export type StreamChunk = string | Uint8Array;
 export type StreamSource =
   | string
@@ -118,7 +103,7 @@ function unwrapSseData(data: string, mode: NonNullable<ConnectOptions["sse"]>): 
     const value: unknown = JSON.parse(data);
     if (value && typeof value === "object") {
       const record = value as Record<string, unknown>;
-      if (typeof record.t === "string") return data + "\n"; // already an IUI op
+      if (typeof record.t === "string") return data + "\n";
       if (record.error) throw new Error(String(record.error));
       const pick = (v: unknown): string | null =>
         typeof v === "string" ? v : null;
@@ -133,11 +118,7 @@ function unwrapSseData(data: string, mode: NonNullable<ConnectOptions["sse"]>): 
       if (delta !== null) return delta;
     }
   } catch (err) {
-    if (err instanceof SyntaxError) {
-      // not JSON — assume it is already NDJSON text
-    } else {
-      throw err;
-    }
+    if (!(err instanceof SyntaxError)) throw err;
   }
   return data + "\n";
 }

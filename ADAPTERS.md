@@ -88,7 +88,7 @@ interface IuiHost {
   connect(source: StreamSource, options?: ConnectOptions): Promise<Answer>;
   reset(): void;
   setTheme(mode: ThemeMode): void;
-  setTokens(tokens: Record<string, string>): void;
+  setTokens(tokens: Record<string, string>, replace?: boolean): void;
   destroy(): void;
 }
 ```
@@ -353,10 +353,11 @@ Use `formatIuiAction()` and `parseIuiAction()` from `@intelligent-ui/core/agent`
 
 ## 10. Theme rules
 
-- Use `inherit` when the host has a complete theme system.
+- Use `inherit` to follow the host dark marker when the host has a complete theme system.
 - Use `auto` when the host follows the system color scheme.
 - Set `darkSelector` when the host uses a dark marker other than `.dark` or `[data-theme="dark"]`.
 - Map host tokens to `--iui-*` variables. Do not edit block CSS in a host adapter.
+- Call `setTokens(tokens, true)` when the host sends a complete token map.
 - Keep the answer background transparent when the host already supplies a card surface.
 
 ## 11. Security rules

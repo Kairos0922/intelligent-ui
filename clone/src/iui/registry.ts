@@ -1,5 +1,3 @@
-/* Component registry: block "types" the wire protocol can mount. */
-
 export interface Ctx {
   /** keep the conversation pinned to the newest content */
   scrollToBottom(): void;
@@ -7,7 +5,7 @@ export interface Ctx {
   onPrompt(prompt: string): void;
   /** chat surface is in dark mode */
   isDark(): boolean;
-  /** register a controller so the player can abort pending work */
+  /** register a cleanup for pending work */
   registerCleanup(fn: () => void): void;
   /** mount blocks with the fade/rise entry animation (off for instant replay) */
   animate?: boolean;
@@ -37,6 +35,10 @@ export function defineBlock(type: string, mount: Mount) {
 
 export function hasBlock(type: string): boolean {
   return registry.has(type);
+}
+
+export function blockTypes(): ReadonlySet<string> {
+  return new Set(registry.keys());
 }
 
 const UNSAFE_PATH = new Set(["__proto__", "constructor", "prototype"]);
@@ -101,8 +103,6 @@ export function mountBlock(
   el.className = "iui-block";
   el.dataset.block = type;
   if (id) el.dataset.blockId = id;
-  // Blocks report interactions by name; the id/type are added here so a block
-  // never has to know which stream op created it.
   const scoped: Ctx = ctx.emit
     ? {
         ...ctx,
@@ -111,9 +111,6 @@ export function mountBlock(
       }
     : ctx;
 
-  // Generic state binding: if a block does not implement its own `set`, patch
-  // the top-level prop path and remount it in place. Components that do expose
-  // local state (calendar selection, steppers) keep their specialized setter.
   let currentProps = (clonePlain(props ?? {}) ?? {}) as Record<string, unknown>;
   let current = mount(el, currentProps, scoped) || {};
   const api: BlockApi = {

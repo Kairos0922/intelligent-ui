@@ -1,36 +1,23 @@
-/* =========================================================================
-   Intelligent UI SDK — embeddable runtime
-   -------------------------------------------------------------------------
-   Framework-free: mount the assistant-answer surface into any element, then
-   feed it IUI-1 NDJSON from a stream, an async iterable, an SSE endpoint, or
-   a model answer. The host owns the chat shell; this module owns the answer
-   content (prose, tables, interactive blocks, suggestion chips).
-
-     import { createIntelligentUI } from "@intelligent-ui/core";
-     import "@intelligent-ui/core/styles.css";
-
-     const ui = createIntelligentUI({
-       container: document.querySelector("#answer"),
-       theme: "auto",
-       onPrompt: (prompt) => send(prompt),
-       onEvent: (event) => console.log(event),
-     });
-
-     await ui.connect("/api/chat/stream");
-
-   The `agent` entry point has the model-facing half (prompt, tool schema,
-   parser, streaming extractor, validator).
-   ========================================================================= */
-
 import "../styles/sdk.css";
 import "../iui/components/index";
 
+import { disposeLightboxes } from "../iui/components/lightbox";
 import { Compiler } from "../iui/compiler";
 import type { Op } from "../iui/protocol";
-import { defineBlock, hasBlock, type Ctx, type Mount } from "../iui/registry";
-import { BLOCK_CATALOG, registerBlockSpec } from "./catalog";
+import {
+  blockTypes,
+  defineBlock,
+  hasBlock,
+  type Ctx,
+  type Mount,
+} from "../iui/registry";
+import { BLOCK_CATALOG, BLOCK_TYPES, registerBlockSpec } from "./catalog";
 import { connectSource, type ConnectOptions, type StreamSource } from "./transport";
-import { validateOp, type ValidationIssue } from "./validate";
+import {
+  VALIDATION_LIMITS,
+  validateOp,
+  type ValidationIssue,
+} from "./validate";
 
 export const VERSION = "0.2.2";
 
@@ -90,6 +77,12 @@ export interface Answer {
   end(): void;
 }
 
+interface Budget {
+  ops: number;
+  bytes: number;
+  blocked: boolean;
+}
+
 export interface IntelligentUI {
   readonly el: HTMLElement;
   readonly answers: readonly Answer[];
@@ -107,7 +100,8 @@ export interface IntelligentUI {
   abort(): void;
   reset(): void;
   setTheme(mode: ThemeMode): void;
-  setTokens(tokens: Record<string, string>): void;
+  /** replace all custom tokens when `replace` is true */
+  setTokens(tokens: Record<string, string>, replace?: boolean): void;
   /** register a custom block type for this page (global registry) */
   registerBlock(type: string, mount: Mount): IntelligentUI;
   readonly catalog: typeof BLOCK_CATALOG;
@@ -122,6 +116,7 @@ class AnswerImpl implements Answer {
   readonly startedAt = performance.now();
   private compiler: Compiler;
   private cleanups: Array<() => void> = [];
+  private budget: Budget = { ops: 0, bytes: 0, blocked: false };
   private _done = false;
   private decoder = new TextDecoder();
 
@@ -134,8 +129,11 @@ class AnswerImpl implements Answer {
     this.el = host;
     const ctx = ui.makeCtx(id, this.cleanups);
     this.compiler = new Compiler(ctx, host, {
-      beforeApply: (op) => ui.validate(op, id),
+      beforeApply: (op) => ui.validate(op, id, this.budget),
       onUnknown: (opId, type) => ui.emit({ type: "unknown-block", answerId: id, id: opId, blockType: type }),
+      onIssue: (path, message) =>
+        ui.emit({ type: "validation", answerId: id, issues: [{ path, message }] }),
+      onError: (error, phase) => ui.reportError(id, phase, error),
     });
     ui.emit({ type: "answer-start", answerId: id });
   }
@@ -153,7 +151,6 @@ class AnswerImpl implements Answer {
     const text = typeof chunk === "string" ? chunk : this.decoder.decode(chunk, { stream: true });
     if (!text) return;
     this.compiler.feed(text);
-    // a `{"t":"done"}` op closes the compiler from inside feed()
     if (this.compiler.done) this.finish();
   }
 
@@ -189,6 +186,9 @@ class AnswerImpl implements Answer {
       }
     }
     this.cleanups = [];
+    for (const dialog of this.el.querySelectorAll("dialog")) {
+      if (dialog.open) dialog.close();
+    }
     this.el.remove();
   }
 }
@@ -231,8 +231,6 @@ class IntelligentUIInternal implements IntelligentUI {
   get catalog() {
     return BLOCK_CATALOG;
   }
-
-  /* --------------------------------------------------------- lifecycle */
 
   begin(): Answer {
     if (this.destroyed) throw new Error("[iui] cannot begin an answer on a destroyed instance");
@@ -299,6 +297,7 @@ class IntelligentUIInternal implements IntelligentUI {
   reset(): void {
     this.abort();
     for (const answer of this._answers) answer.dispose();
+    disposeLightboxes(this.el);
     this._answers = [];
     this.current = null;
     this.pinNext = false;
@@ -317,24 +316,16 @@ class IntelligentUIInternal implements IntelligentUI {
     this.el.remove();
   }
 
-  /* ------------------------------------------------------------- theme */
-
   setTheme(mode: ThemeMode): void {
     this.themeMode = mode;
     this.applyTheme(mode);
   }
 
   private applyTheme(mode: ThemeMode) {
-    if (mode === "inherit") {
-      this.el.removeAttribute("data-theme");
-      // inherit means: take the colour scheme from the host's dark marker,
-      // not from the OS. The marker is configurable for hosts that do not
-      // use the common `.dark` / `[data-theme="dark"]` convention.
-      this.dark = this.hostIsDark();
-    } else {
-      this.dark = mode === "dark" || (mode === "auto" && this.detectDark());
-      this.el.dataset.theme = this.dark ? "dark" : "light";
-    }
+    this.dark = mode === "inherit"
+      ? this.hostIsDark()
+      : mode === "dark" || (mode === "auto" && this.detectDark());
+    this.el.dataset.theme = this.dark ? "dark" : "light";
 
     if (mode === "auto") {
       if (!this.mql) {
@@ -357,7 +348,6 @@ class IntelligentUIInternal implements IntelligentUI {
     try {
       return !!this.el.parentElement?.closest(selector);
     } catch {
-      // a bad selector must not take down the whole surface
       console.warn(`[iui] invalid darkSelector: ${selector}`);
       return false;
     }
@@ -368,7 +358,11 @@ class IntelligentUIInternal implements IntelligentUI {
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
   }
 
-  setTokens(tokens: Record<string, string>): void {
+  setTokens(tokens: Record<string, string>, replace = false): void {
+    if (replace) {
+      for (const key of this.tokenKeys) this.el.style.removeProperty(key);
+      this.tokenKeys.clear();
+    }
     for (const [rawKey, value] of Object.entries(tokens)) {
       const key = rawKey.startsWith("--") ? rawKey : `--iui-${rawKey}`;
       this.el.style.setProperty(key, value);
@@ -381,8 +375,6 @@ class IntelligentUIInternal implements IntelligentUI {
     return this;
   }
 
-  /* ------------------------------------------------------------ events */
-
   /** @internal */
   emit(event: IuiEvent) {
     try {
@@ -392,17 +384,53 @@ class IntelligentUIInternal implements IntelligentUI {
     }
   }
 
+  /** @internal */
+  reportError(answerId: string | null, phase: "stream" | "mount" | "render", error: Error) {
+    const event = { type: "error" as const, answerId, phase, error };
+    this.emit(event);
+    this.opts.onError?.(error, event);
+  }
+
   /** @internal compiler gate */
-  validate(op: Op, answerId: string): Op | null {
+  validate(op: Op, answerId: string, budget?: Budget): Op | null {
     if (this.opts.sanitize === false) return op;
-    if (op.t === "comp" && !hasBlock(op.type)) {
+    if (op.t === "comp" && !hasBlock(op.type) && !BLOCK_TYPES.has(op.type)) {
       this.emit({ type: "unknown-block", answerId, id: op.id, blockType: op.type });
       return null;
     }
-    const result = validateOp(op, { sanitize: true });
+    const blocks = new Set([...BLOCK_TYPES, ...blockTypes()]);
+    const result = validateOp(op, { sanitize: true, blocks });
     if (result.issues.length) {
       this.emit({ type: "validation", answerId, issues: result.issues });
     }
+    if (!result.op || !budget) return result.op;
+    if (budget.ops >= VALIDATION_LIMITS.maxOps) {
+      if (!budget.blocked) {
+        budget.blocked = true;
+        this.emit({
+          type: "validation",
+          answerId,
+          issues: [{ path: "$", message: `op limit (${VALIDATION_LIMITS.maxOps}) reached` }],
+        });
+      }
+      return null;
+    }
+    if (budget.bytes + result.bytes > VALIDATION_LIMITS.maxTotalBytes) {
+      if (!budget.blocked) {
+        budget.blocked = true;
+        this.emit({
+          type: "validation",
+          answerId,
+          issues: [{
+            path: "$",
+            message: `answer exceeds ${VALIDATION_LIMITS.maxTotalBytes} bytes`,
+          }],
+        });
+      }
+      return null;
+    }
+    budget.ops += 1;
+    budget.bytes += result.bytes;
     return result.op;
   }
 

@@ -93,7 +93,7 @@ async function onAction(action: IuiHostAction) {
 function applyHostContext() {
   const context = app.getHostContext();
   host.setTheme(iuiThemeFromHost(context));
-  host.setTokens(iuiTokensFromHost(context));
+  host.setTokens(iuiTokensFromHost(context), true);
   document.documentElement.style.colorScheme = context?.theme === "dark" ? "dark" : "light";
 }
 

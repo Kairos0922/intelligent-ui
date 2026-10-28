@@ -1,7 +1,3 @@
-/* =========================================================================
-   SDK self-test — runs in the browser, independent of the host demo.
-   ========================================================================= */
-
 import {
   createIntelligentUI,
   encodeOps,
@@ -59,8 +55,6 @@ function mount(options: Partial<Omit<IntelligentUIOptions, "container">> = {}) {
   });
   return { host, ui };
 }
-
-/* ----------------------------------------------------------------- tests */
 
 await test("NDJSON buffering (7-byte chunks)", () => {
   const { host, ui } = mount();
@@ -541,12 +535,242 @@ await test("theme + lifecycle", () => {
   assert(ui.el.getAttribute("data-theme") === "light", "light theme not applied");
   ui.setTokens({ font: "Georgia, serif", "--iui-text": "#123456" });
   assert(ui.el.style.getPropertyValue("--iui-font").includes("Georgia"), "token override missed");
+  ui.setTokens({ font: "Georgia, serif" }, true);
+  assert(ui.el.style.getPropertyValue("--iui-text") === "", "replaced tokens were not removed");
   ui.destroy();
   assert(!host.querySelector(".iui-root"), "root not removed on destroy");
-  return "theme, tokens, destroy";
+  return "theme, token replace, destroy";
 });
 
-/* --------------------------------------------------------------- report */
+await test("theme inherit follows the host dark marker", () => {
+  const host = document.createElement("div");
+  host.className = "dark";
+  stage.append(host);
+  const ui = createIntelligentUI({ container: host, theme: "inherit", scroll: "none" });
+  assert(ui.el.getAttribute("data-theme") === "dark", "host dark marker not applied");
+  assert(
+    getComputedStyle(ui.el).getPropertyValue("color-scheme").includes("dark"),
+    "dark color-scheme missing",
+  );
+  host.classList.remove("dark");
+  ui.setTheme("inherit");
+  assert(ui.el.getAttribute("data-theme") === "light", "host light marker not applied");
+  assert(
+    getComputedStyle(ui.el).getPropertyValue("color-scheme").includes("light"),
+    "light color-scheme missing",
+  );
+  ui.destroy();
+  return "inherit -> dark/light without a host workaround";
+});
+
+await test("set op rejects unsafe URLs", () => {
+  const events: IuiEvent[] = [];
+  const { host, ui } = mount({ onEvent: (event) => events.push(event) });
+  ui.ingest(
+    encodeOps([
+      {
+        t: "comp",
+        id: "f1",
+        type: "figure",
+        props: { img: "https://example.com/safe.png", alt: "Before" },
+      },
+    ]),
+  );
+  const image = host.querySelector<HTMLImageElement>(".iui-figure img");
+  assert(image, "figure image missing");
+  const before = image.getAttribute("src");
+  ui.ingest(encodeOps([{ t: "set", id: "f1", path: "img", v: "javascript:alert(1)" }]));
+  ui.end();
+  assert(image.getAttribute("src") === before, "unsafe set URL replaced the image");
+  assert(
+    events.some((event) => event.type === "validation"),
+    "unsafe set URL did not emit a validation event",
+  );
+  ui.destroy();
+  return "javascript URL dropped, safe src unchanged";
+});
+
+await test("runtime enforces the op budget", () => {
+  const events: IuiEvent[] = [];
+  const { ui } = mount({ onEvent: (event) => events.push(event) });
+  ui.ingest(encodeOps(Array.from({ length: 520 }, () => ({ t: "p" }))));
+  ui.end();
+  assert(ui.answers[0].opCount === 512, `expected 512 ops, got ${ui.answers[0].opCount}`);
+  assert(
+    events.some(
+      (event) =>
+        event.type === "validation" &&
+        event.issues.some((issue) => issue.message.includes("op limit")),
+    ),
+    "op limit event missing",
+  );
+  ui.destroy();
+  return "520 input ops -> 512 applied";
+});
+
+await test("duplicate ids and unknown set targets are reported", () => {
+  const events: IuiEvent[] = [];
+  const { host, ui } = mount({ onEvent: (event) => events.push(event) });
+  ui.ingest(
+    encodeOps([
+      { t: "comp", id: "same", type: "card", props: { title: "First" } },
+      { t: "comp", id: "same", type: "card", props: { title: "Second" } },
+      { t: "set", id: "missing", path: "title", v: "Nope" },
+      { t: "done" },
+    ]),
+  );
+  assert(host.querySelectorAll('[data-block="card"]').length === 1, "duplicate block mounted");
+  assert(
+    events.some(
+      (event) =>
+        event.type === "validation" &&
+        event.issues.some((issue) => issue.message.includes("duplicate component id")),
+    ),
+    "duplicate id event missing",
+  );
+  assert(
+    events.some(
+      (event) =>
+        event.type === "validation" &&
+        event.issues.some((issue) => issue.message.includes("set targets unknown")),
+    ),
+    "unknown set event missing",
+  );
+  ui.destroy();
+  return "duplicate and orphan ops rejected";
+});
+
+await test("tabs expose selected state and keyboard navigation", () => {
+  const { host, ui } = mount();
+  ui.ingest(
+    encodeOps([
+      {
+        t: "comp",
+        id: "tabs1",
+        type: "tabs",
+        props: { items: ["One", "Two"], panels: { One: "First", Two: "Second" } },
+      },
+      { t: "done" },
+    ]),
+  );
+  const tabs = [...host.querySelectorAll<HTMLButtonElement>(".iui-tab")];
+  assert(tabs.length === 2, "expected two tabs");
+  assert(tabs[0].getAttribute("aria-selected") === "true", "first tab not selected");
+  assert(tabs[1].getAttribute("aria-selected") === "false", "second tab selected early");
+  assert(tabs[0].tabIndex === 0 && tabs[1].tabIndex === -1, "roving tabindex missing");
+  assert(host.querySelector('[role="tabpanel"]')?.getAttribute("aria-labelledby") === tabs[0].id, "tabpanel label missing");
+  tabs[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+  assert(tabs[1].getAttribute("aria-selected") === "true", "ArrowRight did not select the next tab");
+  assert(host.querySelector(".iui-tab-body")?.textContent?.includes("Second"), "panel did not change");
+  ui.destroy();
+  return "aria-selected, tabpanel, roving tabindex, ArrowRight";
+});
+
+await test("forms keep radio groups separate", () => {
+  const { host, ui } = mount();
+  ui.ingest(
+    encodeOps([
+      {
+        t: "comp",
+        id: "form1",
+        type: "form",
+        props: {
+          fieldsets: [{ legend: "First", options: ["A", "B"] }],
+          cta: "Send",
+        },
+      },
+      {
+        t: "comp",
+        id: "form2",
+        type: "form",
+        props: {
+          fieldsets: [{ legend: "Second", options: ["A", "B"] }],
+          cta: "Send",
+        },
+      },
+      { t: "done" },
+    ]),
+  );
+  const names = [...new Set([...host.querySelectorAll<HTMLInputElement>('input[type="radio"]')].map((input) => input.name))];
+  assert(names.length === 2, `expected two radio groups, got ${names.length}`);
+  ui.destroy();
+  return names.join(" / ");
+});
+
+await test("map expand mirrors aria-expanded", async () => {
+  const { host, ui } = mount();
+  ui.ingest(
+    encodeOps([
+      {
+        t: "comp",
+        id: "map1",
+        type: "map",
+        props: {
+          groups: [{ id: "all", label: "All" }],
+          places: [{ id: "p1", name: "One", sub: "First", group: "all", x: 20, y: 30 }],
+        },
+      },
+      { t: "done" },
+    ]),
+  );
+  const expand = host.querySelector<HTMLButtonElement>(".iui-map-expand");
+  const dialog = host.querySelector<HTMLDialogElement>(".iui-map-dialog");
+  assert(expand && dialog, "map expand controls missing");
+  expand.click();
+  assert(expand.getAttribute("aria-expanded") === "true", "expand did not set aria-expanded");
+  dialog.close();
+  await sleep(50);
+  assert(expand.getAttribute("aria-expanded") === "false", "close did not clear aria-expanded");
+  ui.destroy();
+  return "expand -> dialog -> close";
+});
+
+await test("lightboxes are scoped to each runtime root", () => {
+  const first = mount();
+  const second = mount();
+  const payload = encodeOps([
+    {
+      t: "comp",
+      id: "looks",
+      type: "outfitGrid",
+      props: {
+        items: [{ img: "data:image/png;base64,iVBORw0KGgo=", title: "Look" }],
+      },
+    },
+    { t: "done" },
+  ]);
+  first.ui.ingest(payload);
+  second.ui.ingest(payload);
+  first.host.querySelector<HTMLButtonElement>(".iui-enlarge")?.click();
+  second.host.querySelector<HTMLButtonElement>(".iui-enlarge")?.click();
+  assert(first.host.querySelectorAll("dialog.iui-lightbox").length === 1, "first lightbox missing");
+  assert(second.host.querySelectorAll("dialog.iui-lightbox").length === 1, "second lightbox missing");
+  first.ui.reset();
+  assert(first.host.querySelectorAll("dialog.iui-lightbox").length === 0, "reset did not close the first lightbox");
+  assert(second.host.querySelectorAll("dialog.iui-lightbox").length === 1, "reset removed the second lightbox");
+  first.ui.destroy();
+  second.ui.destroy();
+  return "one dialog per .iui-theme root";
+});
+
+await test("mount errors become IuiEvent errors", () => {
+  const events: IuiEvent[] = [];
+  const { ui } = mount({ onEvent: (event) => events.push(event) });
+  ui.registerBlock("selftestBoom", () => {
+    throw new Error("boom");
+  });
+  ui.ingest(
+    encodeOps([
+      { t: "comp", id: "boom1", type: "selftestBoom", props: {} },
+      { t: "done" },
+    ]),
+  );
+  const error = events.find((event) => event.type === "error" && event.phase === "mount");
+  assert(error && error.type === "error", "mount error event missing");
+  assert(error.error.message === "boom", "wrong mount error message");
+  ui.destroy();
+  return "mount phase error emitted";
+});
 
 const passed = results.filter((r) => r.ok).length;
 const failed = results.length - passed;

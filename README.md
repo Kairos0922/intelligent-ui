@@ -206,9 +206,9 @@ The default action policy is `agent`. It sends prompts and meaningful block even
 
 | Check | Result |
 |---|---|
-| Unit tests | 14 of 14 pass |
+| Unit tests | 21 of 21 pass |
 | Playwright host tests | 2 of 2 pass |
-| SDK browser self-test | 16 of 16 pass |
+| SDK browser self-test | 25 of 25 pass |
 | Benchmark harness self-check | 25 of 25 tasks pass with the mock provider |
 | DSH web smoke test | Pass with a synthetic replay |
 | Live DSH model update | Pass on DSH `0.2.1-rc.2` and `0.2.1-rc.3` with a signed-in profile |

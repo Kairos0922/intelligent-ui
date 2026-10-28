@@ -1,17 +1,6 @@
-/* =========================================================================
-   Insight blocks — charts, metric stats, timelines and a month calendar.
-   -------------------------------------------------------------------------
-   These are general-purpose answer surfaces: a model can summarise numbers,
-   metrics, project history or a dated plan without inventing a new component.
-   Everything is rendered with the DOM/SVG builders (no innerHTML) and only
-   safe colours are accepted from model props.
-   ========================================================================= */
-
 import { h, svg } from "../dom";
 import { defineBlock, type Ctx } from "../registry";
 import { safeColor, safeText } from "../security";
-
-/* ------------------------------------------------------------------ utils */
 
 const PALETTE_SIZE = 5;
 const DAY_MS = 86_400_000;
@@ -131,8 +120,6 @@ function panelHead(title: unknown, sub: unknown): HTMLElement | null {
   return head;
 }
 
-/* ------------------------------------------------------------------ chart */
-
 type ChartSeries = { name: string; values: number[]; color?: string };
 
 defineBlock(
@@ -218,7 +205,6 @@ defineBlock(
       "aria-label": safeText(props.title, 240) || "Chart",
     });
 
-    // horizontal grid + y-axis labels
     for (let value = scale.min; value <= scale.max + scale.step / 2; value += scale.step) {
       const lineY = y(value);
       root.append(
@@ -359,7 +345,6 @@ defineBlock(
       chart.append(legend);
     }
 
-    // The same data as a screen-reader table (the SVG is decorative for AT).
     const table = h("table", { class: "sr-only" });
     table.append(h("caption", { text: safeText(props.title, 240) || "Chart data" }));
     const headRow = h("tr");
@@ -382,8 +367,6 @@ defineBlock(
     el.append(chart);
   },
 );
-
-/* ------------------------------------------------------------------ stats */
 
 type Trend = "up" | "down" | "flat";
 
@@ -451,8 +434,6 @@ defineBlock(
   },
 );
 
-/* --------------------------------------------------------------- timeline */
-
 defineBlock(
   "timeline",
   (
@@ -507,8 +488,6 @@ defineBlock(
     el.append(section);
   },
 );
-
-/* ---------------------------------------------------------------- calendar */
 
 type CalendarEvent = {
   date: string;

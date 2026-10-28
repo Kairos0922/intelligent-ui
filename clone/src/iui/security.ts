@@ -1,11 +1,3 @@
-/* =========================================================================
-   Content safety helpers shared by the renderer and the SDK validator.
-   -------------------------------------------------------------------------
-   Intelligent UI props come from a model, so the renderer treats them as
-   untrusted input: URLs are scheme-checked, inline SVG icons are rebuilt from
-   an allowlist, and CSS colour values cannot smuggle `url(...)`.
-   ========================================================================= */
-
 const URL_CONTROL = /[\u0000-\u0020\u007f]+/g;
 
 /** Accept only URL shapes that are safe to place in an href/src attribute. */
@@ -14,21 +6,18 @@ export function safeUrl(raw: unknown, kind: "link" | "image" = "link"): string |
   const url = raw.replace(URL_CONTROL, "");
   if (!url || url.length > 4096) return null;
 
-  // absolute, explicitly safe schemes
   if (/^https?:\/\//i.test(url)) return url;
   if (kind === "link" && /^(mailto|tel):/i.test(url)) return url;
 
-  // inline images (never executable in an <img>)
   if (kind === "image") {
     if (/^data:image\/(png|jpe?g|gif|webp|avif|svg\+xml)(;[a-z0-9=._-]+)*,/i.test(url)) return url;
     if (/^blob:/i.test(url)) return url;
   }
 
-  // same-origin / relative references
   if (url.startsWith("#") || url.startsWith("?")) return url;
-  if (/^\/(?!\/)/.test(url)) return url;          // /assets/x.png
-  if (/^\.{1,2}\//.test(url)) return url;          // ./x.png, ../x.png
-  if (kind === "image" && /^\/\//.test(url)) return url; // //cdn/x.png
+  if (/^\/(?!\/)/.test(url)) return url;
+  if (/^\.{1,2}\//.test(url)) return url;
+  if (kind === "image" && /^\/\//.test(url)) return url;
 
   return null;
 }
@@ -48,8 +37,6 @@ export function safeColor(raw: unknown, fallback = "transparent"): string {
   if (!/^#|^rgba?\(|^hsla?\(|^[a-z]+$/i.test(v)) return fallback;
   return v;
 }
-
-/* ------------------------------------------------------------------ icons */
 
 const SVG_TAGS = new Set([
   "svg", "g", "path", "circle", "rect", "line", "polyline", "polygon",

@@ -1,19 +1,6 @@
-/* =========================================================================
-   Advanced answer surfaces — decisions, code and recall.
-   -------------------------------------------------------------------------
-   matrix   rows × columns trade-off table with score bars
-   code     line-numbered snippet with an optional highlight range
-   diff     unified diff with add/delete/context rows
-   fileTree repository tree with change status
-   formula  expression + variables + result + steps
-   flashcards flip cards that keep their state local to the host
-   ========================================================================= */
-
 import { h } from "../dom";
 import { defineBlock, type Ctx } from "../registry";
 import { safeText } from "../security";
-
-/* ------------------------------------------------------------------ utils */
 
 function text(raw: unknown, max = 4000): string {
   return safeText(raw, max).trim();
@@ -75,8 +62,6 @@ function formatNumber(value: number, format: unknown, currency: unknown): string
     return String(value);
   }
 }
-
-/* ----------------------------------------------------------------- matrix */
 
 type MatrixColumn = { label: string; sub?: string };
 type MatrixRow = {
@@ -219,8 +204,6 @@ defineBlock(
   },
 );
 
-/* ------------------------------------------------------------------- code */
-
 defineBlock(
   "code",
   (
@@ -293,8 +276,6 @@ defineBlock(
     el.append(section);
   },
 );
-
-/* ------------------------------------------------------------------- diff */
 
 type DiffLine = { t: "add" | "del" | "ctx" | "hunk"; text: string; old?: number; new?: number };
 
@@ -399,8 +380,6 @@ defineBlock(
   },
 );
 
-/* --------------------------------------------------------------- fileTree */
-
 type TreeItem = {
   path: string;
   type?: "file" | "dir";
@@ -486,8 +465,6 @@ defineBlock(
     el.append(section);
   },
 );
-
-/* ---------------------------------------------------------------- formula */
 
 type FormulaVar = { symbol: string; label?: string; value: string | number };
 type FormulaStep = { label?: string; expression: string; result?: string };
@@ -575,8 +552,6 @@ defineBlock(
     el.append(section);
   },
 );
-
-/* ------------------------------------------------------------- flashcards */
 
 type Flashcard = { front: string; back: string; hint?: string; tag?: string };
 

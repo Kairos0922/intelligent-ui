@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- The release workflow checks the tag, package versions, and tarball names.
+
+### Fixed
+
+- The runtime enforces the op limit and the answer byte limit for each answer.
+- The `set` op sanitizes URL values and enforces the prop byte limit.
+- Server-side validation uses the host-neutral catalog and does not import the DOM registry.
+- The `inherit` theme follows the host dark marker and sets the color scheme on the surface.
+- The runtime reports duplicate block IDs, unknown `set` targets, mount errors, and render errors.
+- The React docs describe mount-only options correctly.
+- The AI SDK predicate ignores unrelated dynamic tools.
+- Tabs use `aria-selected` and keyboard navigation. Forms use unique radio group names. The map expand control updates `aria-expanded`.
+- Lightbox dialogs are scoped to each runtime root and close on reset.
+- The DSH client imports the core stylesheet through the package export.
+
 ## [0.2.2] - 2026-10-28
 
 This is a source release. The packages are not published on npm.

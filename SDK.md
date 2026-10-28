@@ -249,7 +249,7 @@ The default limits are:
 | `props` for one block | 192 KB |
 | Answer payload | 1.5 MB |
 | Ops for one answer | 512 |
-| String | 40 KB |
+| String | 40,000 characters |
 | Array | 500 items |
 | Table | 10 columns and 300 rows |
 
@@ -359,16 +359,16 @@ The current SDK does not support cross-block `bind` or `derive` expressions. A b
 
 ## 9. Theme and CSS
 
-All component CSS starts at `.iui-theme`. The SDK does not set global `body`, font, or box-sizing rules.
+All component CSS starts at `.iui-theme`. The SDK does not set global `body`, font, or box-sizing rules. The `--iui-*` tokens are defined on `:root`. The names prevent a host style conflict. The runtime sets `color-scheme` only on `.iui-theme`.
 
 | Theme | Behavior |
 |---|---|
 | `light` | Force the light theme. |
 | `dark` | Force the dark theme. |
 | `auto` | Follow `prefers-color-scheme` and update on a change. |
-| `inherit` | Do not set `data-theme` or default tokens. Use the host CSS. |
+| `inherit` | Use the host dark marker. Set `data-theme` from the result. |
 
-The dark token set applies to `:root.dark` and `.iui-theme[data-theme="dark"]`. If the host uses a different dark selector, set `darkSelector`. The DSH adapter uses `[data-ds-dark-theme]`.
+The runtime sets `data-theme` to `dark` or `light` on the surface root. The dark token set applies to `:root.dark` and `.iui-theme[data-theme="dark"]`. If the host uses a different dark selector, set `darkSelector`. The DSH adapter uses `[data-ds-dark-theme]`. Host CSS can override any `--iui-*` token.
 
 Use `tokens` to override CSS variables:
 
@@ -403,8 +403,8 @@ Build sizes:
 
 | File | Raw | Gzip |
 |---|---|---|
-| `intelligent-ui.css` | 65.8 KB | 13.7 KB |
-| `index.js` | 103.4 KB | 26.2 KB |
+| `intelligent-ui.css` | 52.0 KB | 9.0 KB |
+| `index.js` | 103.3 KB | 26.4 KB |
 | `agent.js` | 18.6 KB | 5.8 KB |
 
 The package tarball contains no images or fonts.
@@ -440,7 +440,7 @@ const ui = createIntelligentUI({
 | `ui.abort()` | Stop the active `connect()`. |
 | `ui.reset()` | Remove all answers and run cleanups. |
 | `ui.setTheme(mode)` | Change the theme. |
-| `ui.setTokens(tokens)` | Change CSS variables. |
+| `ui.setTokens(tokens, replace?)` | Change CSS variables. Replace all custom values when `replace` is true. |
 | `ui.registerBlock(type, mount)` | Add a custom block. |
 | `ui.catalog` | The block catalog. |
 | `ui.destroy()` | Stop streams, remove the root node, and remove listeners. |
@@ -511,7 +511,7 @@ Treat all model output as untrusted input.
 1. The Markdown renderer escapes HTML first. It then restores only the supported inline syntax.
 2. A link URL must use `http`, `https`, `mailto`, `tel`, or a same-origin relative path.
 3. An image URL uses an allowlist. `data:image/*` is valid only in an `<img>` element. `data:text/html` is not valid.
-4. `tiles.icon` SVG content is rebuilt with a tag and attribute allowlist. The validator removes `on*`, `href`, `style`, `id`, and `url()`.
+4. The `tiles` component rebuilds `tiles.icon` SVG content with a tag and attribute allowlist. The validator does not accept raw SVG.
 5. `tiles.bg` color values cannot contain `url(`, `expression`, `;`, `{`, `}`, `<`, or `>`.
 6. The validator removes `__proto__`, `constructor`, `prototype`, functions, and symbols from props.
 7. A component does not use model text as `innerHTML`. The SDK does not accept raw HTML.
@@ -532,6 +532,7 @@ npm run test:e2e
 npm run check:docs
 npm run pack:all
 npm run audit:pack
+npm run check:release -- --tarballs
 ```
 
 | Command | Function |
@@ -540,10 +541,11 @@ npm run audit:pack
 | `npm run build` | Build the six packages. |
 | `npm run test:unit` | Build and run the Node tests. |
 | `npm run test:e2e` | Run the Playwright tests. |
-| `npm run selftest` | Run the 16 browser self-tests. |
+| `npm run selftest` | Run the 25 browser self-tests. |
 | `npm run bench:selfcheck` | Run the mock benchmark. |
 | `npm run pack:all` | Build the six package tarballs. |
 | `npm run audit:pack` | Audit the six package tarballs. |
+| `npm run check:release` | Compare the tag, package versions, and tarball names. |
 
 Source entry points:
 
@@ -562,8 +564,8 @@ The `exports` map supplies the type declarations for `.` and `./agent`. Keep the
 | Check | Result |
 |---|---|
 | TypeScript build and type check | Pass |
-| Browser self-test | 16 of 16 pass |
-| Node tests | 14 of 14 pass |
+| Browser self-test | 25 of 25 pass |
+| Node tests | 21 of 21 pass |
 | Playwright tests | 2 of 2 pass |
 | MCP stdio integration | Pass |
 | MCP App HTML external URL scan | Pass |
@@ -595,7 +597,7 @@ An adapter combines four core primitives: `connect()` or `ingest()` for data, `c
 
 - The runtime needs a DOM. Use the agent entry point on a server.
 - The block registry is global to a page. More than one runtime instance on a page shares the registry.
-- A `set` op updates only a block with a declared state path.
+- A `set` op changes a block by ID. The catalog describes the common state paths. A block without a custom setter can also receive a safe prop patch.
 - Markdown support is small. Raw HTML and complex table markup are not supported.
 - Auto-scroll uses the nearest scrollable ancestor. Use `scroll: "window"` for the page.
 - The three demo blocks are not general-purpose blocks.

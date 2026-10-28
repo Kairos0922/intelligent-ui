@@ -1,16 +1,11 @@
-/* =========================================================================
-   Streaming compiler
-   -------------------------------------------------------------------------
-   Consumes raw text chunks ("IUI-1" NDJSON), buffers partial lines, decodes
-   ops and applies them to the DOM incrementally. The interesting property:
-   a half-received JSON line is never dropped or mis-parsed — it waits in the
-   buffer until the terminating newline arrives.
-   ========================================================================= */
-
 import { h, append } from "./dom";
 import { renderBlock, renderInline } from "./md";
 import { decode, Op } from "./protocol";
 import { mountBlock, BlockApi, Ctx } from "./registry";
+
+function toError(value: unknown): Error {
+  return value instanceof Error ? value : new Error(String(value));
+}
 
 export class Compiler {
   readonly prose: HTMLElement;
@@ -32,6 +27,8 @@ export class Compiler {
       beforeApply?: (op: Op) => Op | null;
       /** a `comp` op named a block type that is not registered */
       onUnknown?: (id: string, type: string) => void;
+      onIssue?: (path: string, message: string) => void;
+      onError?: (error: Error, phase: "mount" | "render") => void;
     } = {},
   ) {
     this.prose = h("div", {
@@ -72,7 +69,13 @@ export class Compiler {
       if (op) this.apply(op);
     }
     this.closeOpen();
-    for (const b of this.blocks.values()) b.api?.finalize?.();
+    for (const b of this.blocks.values()) {
+      try {
+        b.api?.finalize?.();
+      } catch (error) {
+        this.opts.onError?.(toError(error), "render");
+      }
+    }
     this._done = true;
     this.ctx.scrollToBottom();
   }
@@ -95,8 +98,15 @@ export class Compiler {
   private apply(raw: Op) {
     const gated = this.opts.beforeApply ? this.opts.beforeApply(raw) : raw;
     if (!gated) return;
-    const op = gated;
     this._ops++;
+    try {
+      this.dispatch(gated);
+    } catch (error) {
+      this.opts.onError?.(toError(error), "render");
+    }
+  }
+
+  private dispatch(op: Op) {
     switch (op.t) {
       case "model": {
         const el = h("div", { class: "iui-model-note", text: op.v });
@@ -140,15 +150,23 @@ export class Compiler {
       }
       case "comp": {
         this.closeOpen();
-        const mounted = mountBlock(op.type, op.props ?? {}, this.ctx, op.id);
+        if (this.blocks.has(op.id)) {
+          this.opts.onIssue?.("id", `duplicate component id "${op.id}"`);
+          break;
+        }
+        let mounted: ReturnType<typeof mountBlock>;
+        try {
+          mounted = mountBlock(op.type, op.props ?? {}, this.ctx, op.id);
+        } catch (error) {
+          this.opts.onError?.(toError(error), "mount");
+          break;
+        }
         if (!mounted) {
           this.opts.onUnknown?.(op.id, op.type);
           break;
         }
         this.prose.append(mounted.el);
         this.blocks.set(op.id, mounted);
-        // entry animation (skipped in instant replay: the compare harness
-        // captures the DOM and a live fade would blend every pixel)
         if (this.ctx.animate !== false) {
           mounted.el.animate?.(
             [
@@ -162,7 +180,11 @@ export class Compiler {
       }
       case "set": {
         const b = this.blocks.get(op.id);
-        b?.api?.set?.(op.path, op.v);
+        if (!b) {
+          this.opts.onIssue?.("id", `set targets unknown component "${op.id}"`);
+          break;
+        }
+        b.api?.set?.(op.path, op.v);
         break;
       }
       case "ask": {

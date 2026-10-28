@@ -1,9 +1,3 @@
-/* =========================================================================
-   Intelligent UI component library.
-   ========================================================================= */
-
-/* ---- Rich text / prose -------------------------------------------------- */
-
 .iui-prose {
   overflow-wrap: anywhere;
 }
@@ -77,8 +71,6 @@
   font-weight: 600;
 }
 
-/* ---- Cards, labels ------------------------------------------------------ */
-
 .iui-card {
   border: 1px solid var(--iui-border);
   border-radius: 16px;
@@ -124,8 +116,6 @@
   padding: 24px 24px 40px;
 }
 
-/* ---- User prompt bubble (comparison style) ------------------------------ */
-
 .iui-prompt {
   background: var(--iui-prompt);
   border-radius: 24px;
@@ -135,8 +125,6 @@
   padding: 12px 18px;
   line-height: 1.5;
 }
-
-/* ---- Tabs (ui-timeline-chat style) -------------------------------------- */
 
 .iui-tabs {
   flex-wrap: wrap;
@@ -169,7 +157,7 @@
   opacity: 1;
 }
 
-.iui-tab[aria-pressed="true"] {
+.iui-tab[aria-selected="true"] {
   background: var(--iui-solid);
   color: var(--iui-on-solid);
   opacity: 1;
@@ -179,8 +167,6 @@
   outline: 2px solid var(--iui-focus);
   outline-offset: 3px;
 }
-
-/* ---- Pills -------------------------------------------------------------- */
 
 .iui-pill {
   border: 1px solid var(--iui-border-strong);
@@ -203,8 +189,6 @@
   color: var(--iui-on-solid);
   border-color: var(--iui-solid);
 }
-
-/* ---- Segmented switcher -------------------------------------------------- */
 
 .iui-switcher {
   background: var(--iui-switcher);
@@ -230,8 +214,6 @@
   background: var(--iui-elevated);
   box-shadow: var(--iui-switcher-shadow);
 }
-
-/* ---- Stepper (people count) --------------------------------------------- */
 
 .iui-stepper-card {
   border: 1px solid var(--iui-border);
@@ -305,8 +287,6 @@
   font-weight: 600;
   margin: 0;
 }
-
-/* ---- Checklist ----------------------------------------------------------- */
 
 .iui-checklist-card {
   border: 1px solid var(--iui-border);
@@ -398,7 +378,6 @@
   display: block;
 }
 
-/* Checkbox circle styles (custom look) */
 .iui-check-circle {
   appearance: none;
   border: 1px solid var(--iui-check-border);
@@ -429,8 +408,6 @@
   transform: rotate(45deg);
 }
 
-/* ---- Progress ------------------------------------------------------------ */
-
 .iui-progress {
   background: var(--iui-progress-track);
   border-radius: 999px;
@@ -446,8 +423,6 @@
   display: block;
   transition: width 200ms ease;
 }
-
-/* ---- Images -------------------------------------------------------------- */
 
 .iui-image-strip {
   border-radius: 12px;
@@ -515,8 +490,6 @@
   margin-top: 1px;
 }
 
-/* ---- Menu list ------------------------------------------------------------ */
-
 .iui-menu {
   flex-direction: column;
   display: flex;
@@ -555,8 +528,6 @@
   font-weight: 600;
 }
 
-/* ---- Shared panel headings / empty states ------------------------------- */
-
 .iui-panel-head {
   margin-bottom: 14px;
 }
@@ -577,8 +548,6 @@
   font-size: 13px;
   padding: 8px 0;
 }
-
-/* ---- Chart ---------------------------------------------------------------- */
 
 .iui-chart {
   border: 1px solid var(--iui-border);
@@ -637,7 +606,7 @@
 }
 
 @media (max-width: 520px) {
-  /* SVG text scales with the viewBox; keep it legible in narrow chat panes. */
+
   .iui-chart-tick {
     font-size: 18px;
   }
@@ -659,8 +628,6 @@
   border-radius: 3px;
   margin-right: 6px;
 }
-
-/* ---- Metric stats --------------------------------------------------------- */
 
 .iui-stats {
   border: 1px solid var(--iui-border);
@@ -740,8 +707,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-
-/* ---- Timeline ------------------------------------------------------------- */
 
 .iui-timeline {
   border: 1px solid var(--iui-border);
@@ -846,8 +811,6 @@
   margin-top: 7px;
   padding: 1px 8px;
 }
-
-/* ---- Month calendar ------------------------------------------------------- */
 
 .iui-calendar {
   border: 1px solid var(--iui-border);
@@ -1006,8 +969,6 @@
   }
 }
 
-/* ---- Map ------------------------------------------------------------------ */
-
 .iui-map-card {
   color: var(--iui-text);
   border-radius: 24px;
@@ -1018,8 +979,7 @@
 
 .iui-map {
   isolation: isolate;
-  /* Light-theme control chrome. Define it for the light theme too, or the
-     control pills lose their fill and rim. */
+
   --iui-map-control: rgba(255, 255, 255, 0.95);
   --iui-map-control-border: rgba(0, 0, 0, 0.05);
   background: var(--iui-map-bg, #f0f0ed);
@@ -1246,8 +1206,6 @@
   font-size: 12px;
 }
 
-/* ---- Steps (walkthrough) -------------------------------------------------- */
-
 .iui-steps {
   border: 1px solid var(--iui-border);
   border-radius: 16px;
@@ -1359,8 +1317,6 @@
   cursor: default;
 }
 
-/* ---- Preference form ------------------------------------------------------ */
-
 .iui-form {
   border: 1px solid var(--iui-border);
   border-radius: 16px;
@@ -1382,7 +1338,7 @@
 .iui-form legend {
   float: left;
   width: 100%;
-  /* Clear the UA legend padding so fieldset rows align. */
+
   padding: 0;
   margin-bottom: 10px;
   font-weight: 500;
@@ -1426,8 +1382,6 @@
   cursor: pointer;
 }
 
-/* ---- Follow-up actions ----------------------------------------------------- */
-
 .iui-actions {
   display: flex;
   flex-direction: column;
@@ -1452,8 +1406,6 @@
 .iui-action:hover {
   background: var(--iui-hover);
 }
-
-/* ---- Palette (World of Words) ---------------------------------------------- */
 
 .iui-palette {
   display: flex;
@@ -1491,8 +1443,6 @@
   line-height: 1.5;
 }
 
-/* ---- Mahjong tiles ---------------------------------------------------------- */
-
 .iui-tiles {
   display: flex;
   flex-wrap: wrap;
@@ -1511,11 +1461,6 @@
   color: #1a1a1a;
   box-shadow: inset 0 -2px 0 #00000008, 0 1px 2px #0000000d;
 }
-
-/* =========================================================================
-   Extension set — additional blocks
-   (bike explainer, day list, packing, map chrome, plan tiles…)
-   ========================================================================= */
 
 .iui-block {
   margin-bottom: 20px;
@@ -1544,8 +1489,6 @@
   padding: 1px 5px;
   font-size: 0.9em;
 }
-
-/* ---- Bike explainer ------------------------------------------------------ */
 
 .iui-bike-block {
   --bike-idle: #c9c9c9;
@@ -1654,7 +1597,6 @@ svg.iui-bike .callout text {
   font-family: inherit;
 }
 
-/* system highlighting */
 .iui-bike-block[data-system="frame"] svg.iui-bike .frame .tube,
 .iui-bike-block[data-system="frame"] svg.iui-bike .frame .head {
   stroke: #f2d64b;
@@ -1787,8 +1729,6 @@ svg.iui-bike .callout text {
   max-width: 46ch;
 }
 
-/* ---- Day list + outfit grid ---------------------------------------------- */
-
 .iui-days {
   border: 1px solid var(--iui-border);
   border-radius: 32px;
@@ -1847,10 +1787,6 @@ svg.iui-bike .callout text {
 .iui-outfit .s {
   color: var(--iui-text);
 }
-
-/* ---- click-to-enlarge ------------------------------------------------------
-   The thumbnail button supplies the rounded clip; the image itself stays
-   unclipped. Clicking opens the dialog built by `iui/components/lightbox.ts`. */
 
 .iui-enlarge {
   display: block;
@@ -1913,8 +1849,6 @@ svg.iui-bike .callout text {
   background: rgba(255, 255, 255, 0.26);
 }
 
-/* ---- Packing checklist ---------------------------------------------------- */
-
 .iui-packing {
   display: block;
 }
@@ -1961,7 +1895,6 @@ svg.iui-bike .callout text {
   background: var(--iui-solid);
 }
 
-/* Checkmark for completed items. */
 .iui-pack-item input:checked::after {
   content: "";
   display: block;
@@ -1977,8 +1910,6 @@ svg.iui-bike .callout text {
   color: var(--iui-completed);
   text-decoration: line-through;
 }
-
-/* ---- Map ------------------------------------------------------------------ */
 
 .iui-map-terrain,
 .iui-map-route {
@@ -2051,8 +1982,6 @@ svg.iui-bike .callout text {
   outline-offset: 2px;
 }
 
-/* ---- Plan tiles ------------------------------------------------------------ */
-
 .iui-plan {
   border: 1px solid var(--iui-border);
   border-radius: 16px;
@@ -2124,8 +2053,6 @@ svg.iui-bike .callout text {
   color: #eef3e6;
 }
 
-/* ---- Header chips + 3fr/2fr mosaic hero ---------------------------------- */
-
 .iui-chips {
   display: flex;
   flex-wrap: wrap;
@@ -2133,10 +2060,9 @@ svg.iui-bike .callout text {
   margin-bottom: 16px;
 }
 
-/* Keep the chip row at a compact 16px bottom margin. */
 .iui-chips-row {
   margin-bottom: 16px !important;
-  /* Keep the compact chip tracking separate from the prose tracking. */
+
   letter-spacing: -0.0839437px;
 }
 
@@ -2177,8 +2103,6 @@ svg.iui-bike .callout text {
   grid-row: span 2;
 }
 
-/* ---- Single figure + two-up mosaic -------------------------------------- */
-
 .iui-figure {
   margin: 0 0 20px;
 }
@@ -2211,7 +2135,6 @@ svg.iui-bike .callout text {
   display: block;
 }
 
-/* Show marker labels on hover and focus. */
 .iui-map-marker .iui-map-label {
   display: none;
 }
@@ -2221,7 +2144,6 @@ svg.iui-bike .callout text {
   display: block;
 }
 
-/* Compact day rows: bare list, square thumbnails. */
 .iui-days[data-variant="square"] {
   border: 0;
   border-radius: 0;
@@ -2233,7 +2155,6 @@ svg.iui-bike .callout text {
   gap: 16px;
 }
 
-/* Square variant: a compact fixed thumbnail with its own rounded clip. */
 .iui-days[data-variant="square"] .iui-day .m {
   width: 96px;
   flex: 0 0 96px;
@@ -2252,7 +2173,6 @@ svg.iui-bike .callout text {
   margin: 0 0 6px;
 }
 
-/* Square variant: prose-sized body copy. */
 .iui-days[data-variant="square"] .iui-day .b .bd {
   font-size: 15px;
   line-height: 1.65;
@@ -2271,10 +2191,6 @@ svg.iui-bike .callout text {
   margin: 0 0 6px;
 }
 
-/* ========================================================================== */
-/* Advanced answer surfaces: matrix, code, diff, file tree, formula, cards    */
-/* ========================================================================== */
-
 .iui-panel {
   border: 1px solid var(--iui-border);
   border-radius: 16px;
@@ -2287,8 +2203,6 @@ svg.iui-bike .callout text {
   line-height: 1.5;
   margin: 10px 0 0;
 }
-
-/* ---- Comparison matrix --------------------------------------------------- */
 
 .iui-matrix-scroll {
   margin: 0 -4px;
@@ -2312,8 +2226,6 @@ svg.iui-bike .callout text {
   vertical-align: top;
 }
 
-/* The prose table rule above sets `white-space: nowrap`; the matrix needs
-   wrapping column labels and row notes instead. */
 .iui-matrix-table th {
   white-space: normal;
 }
@@ -2414,8 +2326,6 @@ svg.iui-bike .callout text {
   background: var(--iui-success);
 }
 
-/* ---- Code --------------------------------------------------------------- */
-
 .iui-code,
 .iui-diff {
   --iui-code-font: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -2499,8 +2409,6 @@ svg.iui-bike .callout text {
   tab-size: 2;
   white-space: pre;
 }
-
-/* ---- Diff --------------------------------------------------------------- */
 
 .iui-diff-count {
   border-radius: 6px;
@@ -2586,8 +2494,6 @@ svg.iui-bike .callout text {
   white-space: pre;
 }
 
-/* ---- File tree ---------------------------------------------------------- */
-
 .iui-filetree-root {
   color: var(--iui-muted);
   font-family: var(--iui-code-font, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
@@ -2670,8 +2576,6 @@ svg.iui-bike .callout text {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-/* ---- Formula ------------------------------------------------------------ */
 
 .iui-formula-expression {
   background: var(--iui-surface);
@@ -2786,8 +2690,6 @@ svg.iui-bike .callout text {
   font-variant-numeric: tabular-nums;
   margin-left: auto;
 }
-
-/* ---- Flashcards --------------------------------------------------------- */
 
 .iui-flashcard-hint {
   color: var(--iui-muted);

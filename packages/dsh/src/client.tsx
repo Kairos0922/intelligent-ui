@@ -1,11 +1,3 @@
-/**
- * DeepSeek Harness client half.
- *
- * Registers a keyed `tool.call.toolview` for the wire name `render_iui`. The
- * view mounts the host-neutral adapter into a plain DOM node, maps DSH's
- * alias tokens onto the core's `--iui-*` tokens, follows DSH's dark marker,
- * and sends interactions back through the session's own prompt path.
- */
 import * as React from "react";
 import type { Context } from "@deepseek-ai/cordis";
 import {
@@ -15,7 +7,7 @@ import {
 } from "@intelligent-ui/adapter";
 import type { Op } from "@intelligent-ui/core";
 import { formatIuiAction } from "@intelligent-ui/core/agent";
-import coreCss from "../../../clone/dist-lib/intelligent-ui.css?raw";
+import coreCss from "@intelligent-ui/core/styles.css?raw";
 
 export const name = "intelligent-ui";
 
@@ -72,12 +64,6 @@ const VIEW_CSS = `
   margin: 4px 0 10px;
   min-width: 0;
 }
-.iui-dsh-tool .iui-theme {
-  color-scheme: light;
-}
-[data-ds-dark-theme] .iui-dsh-tool .iui-theme {
-  color-scheme: dark;
-}
 .iui-dsh-status {
   color: var(--dsw-alias-label-tertiary);
   font-size: 13px;
@@ -106,17 +92,6 @@ function installStyles(): () => void {
   return () => {
     if (style.isConnected) style.remove();
   };
-}
-
-function hostIsDark(): boolean {
-  const root = document.documentElement;
-  const body = document.body;
-  return (
-    root.hasAttribute("data-ds-dark-theme") ||
-    body?.hasAttribute("data-ds-dark-theme") === true ||
-    root.classList.contains("dark") ||
-    body?.classList.contains("dark") === true
-  );
 }
 
 type Phase = "preparing" | "start" | "result";
@@ -214,7 +189,7 @@ function createToolView(ctx: Context) {
         },
       });
       hostRef.current = host;
-      const syncTheme = () => host.ui.setTheme(hostIsDark() ? "dark" : "light");
+      const syncTheme = () => host.ui.setTheme("inherit");
       syncTheme();
       const observer = new MutationObserver(syncTheme);
       const options: MutationObserverInit = {

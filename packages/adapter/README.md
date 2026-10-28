@@ -101,16 +101,18 @@ interface IuiHost {
   connect(source: StreamSource, options?: ConnectOptions): Promise<Answer>;
   reset(): void;
   setTheme(mode: ThemeMode): void;
-  setTokens(tokens: Record<string, string>): void;
+  setTokens(tokens: Record<string, string>, replace?: boolean): void;
   destroy(): void;
 }
 ```
 
 `show(ops)` resets the answer, applies the ops, and ends the answer. Use it for a complete tool result.
 
+`setTokens(tokens, true)` replaces the previous custom token set. Use it when the host sends a complete token map.
+
 ## Theme
 
-Use `inherit` when the host supplies all colors. Use `auto` when the host follows the system color scheme.
+Use `inherit` to follow the host dark marker when the host also supplies the colors. Use `auto` when the host follows the system color scheme.
 
 Set `darkSelector` when the host uses a dark marker other than `.dark` or `[data-theme="dark"]`. Pass `tokens` to map host values to `--iui-*` variables.
 
