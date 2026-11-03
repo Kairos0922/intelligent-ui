@@ -1,6 +1,9 @@
 # Spec drafts
 
-**Status: draft 0.1 for review — not approved, not implemented.**
+**Status: Protocol/Evaluation 0.2-draft, Domain 0.1-draft.**
+**Decision basis approved 2026-11-04** (user-delegated authority; adversarial
+review passed with all four findings dispositioned — see Plan §7.6.1).
+Implementation of stage 1a is unblocked; specs remain subordinate to the plan.
 
 This directory contains the two beachhead-independent specifications called for by
 `INTELLIGENT-UI-PLAN.md` §8.5 and §9:
@@ -9,6 +12,7 @@ This directory contains the two beachhead-independent specifications called for 
 |---|---|---|
 | [`PROTOCOL-SPEC.md`](PROTOCOL-SPEC.md) | Answer Envelope, action lifecycle, authorization, idempotency, reconciliation, compensation, audit, provenance, capability manifest, pass/storage profiles | `INTELLIGENT-UI-PLAN.md` §6.3; `experiments/pass-spike/` |
 | [`EVALUATION-SPEC.md`](EVALUATION-SPEC.md) | L1–L4 + security metrics, gates, fixtures, evidence package, reporting | Plan §6.6–§6.7; Protocol Spec |
+| [`DOMAIN-ARTIFACT-SPEC.md`](DOMAIN-ARTIFACT-SPEC.md) | Travel/pass: fields, validation, two-axis states, actions, degradation, privacy, test-issuer spec, C26–C32 | Plan §6.4/§7.6.1; Protocol Spec §15; experiment pass-model |
 
 The plan remains the decision source of truth. These files are subordinate drafts:
 if they conflict with the plan, the plan wins until both are revised.

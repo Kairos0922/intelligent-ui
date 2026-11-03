@@ -448,7 +448,7 @@ proposed
   │    ├─ confirm -> authorized
   │    ├─ cancel -> cancelled
   │    └─ expire -> expired
-  ├─ auto-authorize -> authorized
+  ├─ authorize (auto) -> authorized
   │    ├─ start -> running
   │    ├─ cancel -> cancelled
   │    └─ expire -> expired
@@ -461,6 +461,7 @@ running
        ├─ reconcile_success -> succeeded
        ├─ reconcile_failure -> failed
        ├─ reconcile_cancelled -> cancelled
+       ├─ reconcile_timeout -> manual_review
        └─ reconcile_manual -> manual_review
 ```
 
@@ -499,6 +500,7 @@ running
 | `reconciling` | `reconcile_failure` | `failed` | 对账确认失败 |
 | `reconciling` | `reconcile_cancelled` | `cancelled` | 对账确认未执行 |
 | `reconciling` | `reconcile_manual` | `manual_review` | 无法自动判定 |
+| `reconciling` | `reconcile_timeout` | `manual_review` | 对账窗口届满仍未解决 |
 
 规则：
 
@@ -506,6 +508,8 @@ running
 - 同步宿主可以原子完成 `authorized -> running -> succeeded`，但 MUST 记录完整状态历史，`startedAt`/`finishedAt` 可以相同。
 - 用户在执行中取消：记录 `cancel_requested` 事件，状态仍为 `running`；结果确定为 `succeeded`/`failed`，不能假装 `cancelled`。
 - `expiresAt` 只阻止新授权/执行；已经 `running` 的操作不能被过期直接杀死。
+- 自动授权与用户确认授权使用**同一 `authorize` 事件**；差异记录在 audit 的 `policy`（`"auto"` | `"user"`）字段，不引入第二个事件名（2026-11-04 反方审阅 F4 修正；原 `auto-authorize` 废弃）。
+- 对账窗口届满仍未解决时发射 `reconcile_timeout`，转移至 `manual_review`（2026-11-04 反方审阅 F4 修正；§11 的"窗口内未解决"由此事件落地，可测试）。
 
 ### 8.3 事件与顺序
 
@@ -518,7 +522,8 @@ type ActionEvent = {
   type: "request_confirmation" | "confirm" | "authorize" | "start"
       | "succeed" | "fail" | "timeout" | "cancel" | "expire"
       | "reconcile_start" | "reconcile_success" | "reconcile_failure"
-      | "reconcile_cancelled" | "reconcile_manual" | "cancel_requested";
+      | "reconcile_cancelled" | "reconcile_manual" | "reconcile_timeout"
+      | "cancel_requested";
   payload?: Record<string, unknown>;
 };
 ```
@@ -876,13 +881,21 @@ type PassSnapshot = {
   lastCheckedAt?: string;
   validUntil: string;
   staleAfter: string;
-  seal: { alg: "host-hmac-sha256" | "issuer-signature"; keyId: string; value: string };
+  seal: {
+    /** 权威层：issuer 对 payload 的签名。公钥可公开嵌入；同源脚本无 issuer 私钥，无法伪造重签。 */
+    credential: { alg: "issuer-signature"; keyId: string; value: string };
+    /** 尽力层：宿主对元数据（snapshotAt/lastCheckedAt/validUntil/staleAfter）的 MAC。可选。 */
+    metadata?: { alg: "host-hmac-sha256"; keyId: string; value: string };
+  };
 };
 ```
 
 规则：
 
-- 快照 MUST 由宿主签名/密封（或保存 issuer 签名 + 本地 MAC）；没有 seal 的快照不能进入 `verified`。
+- **双层 seal（2026-11-04 反方审阅 F3 修正）：** 凭证本体的完整性由 `credential`（issuer 签名）判定；宿主元数据的完整性由 `metadata`（HMAC）尽力保护。`credential` 缺失或校验失败的快照不能进入 `verified`。
+- **issuer 私钥 MUST 不进前端**：测试 issuer 也必须作为独立进程/端点运行（实验的 fixture 即此形态），否则 `credential` 层退化为装饰。
+- **HMAC 密钥 MUST 不可从同源 JS 提取**：WebCrypto non-extractable `CryptoKey`（存 IndexedDB）或宿主后端密封；明文常量/可提取密钥不允许。
+- **已知边界（写入威胁模型，不得粉饰）：** 同源脚本执行权 = 宿主已妥协。客户端无法防御能调用密封 API 的同源代码对**元数据**重签；**凭证本体**仍受 issuer 签名保护。缓解：宿主 CSP、依赖审计、可选服务端密封。
 - 读取时 MUST 先验证 seal；篡改 → `integrity=invalid` 或 `unknown`，不能继续显示 `verified`。
 - `snapshotAt`、`lastCheckedAt`、`validUntil`、`staleAfter` 必填。
 - 登出、撤销、TTL 到期 MUST 删除快照。
@@ -1000,6 +1013,7 @@ type StorageAdapter = {
 | C22 | 恶意 URL/QR/注入 | 拦截；不执行指令 | S |
 | C23 | 跨用户同参数 | 不共享 operation/幂等结果 | S |
 | C24 | 审计链篡改 | 可发现；审计 append-only | Audit |
+| C25 | 同源脚本重签快照元数据（HMAC 层失效） | 凭证本体的 issuer 签名校验不受影响；issuer 签名无效时仍不得显示 `verified` | F3 / §15.3 |
 
 **退出标准：** C1–C24 全部通过；状态机/异常用例有自动化；未通过前不开放副作用 action。
 
@@ -1024,9 +1038,9 @@ type StorageAdapter = {
 | 2 | `p`/`md`/`table` 的 `id` 是否进入 IUI-1 正式线格式？ | **进入**，additive 可选字段 | answer envelope 的槽位引用需要稳定 id；旧流无 id = 不参与槽位断言，向后兼容 |
 | 3 | 确认 UI 由宿主提供还是 SDK 提供最小实现？ | **SDK 提供最小实现**（无样式依赖，宿主可覆盖） | 对应实验卡点 B5——否则每个宿主重做确认交互 |
 | 4 | capability manifest 是否需要签名/attestation？ | **首期不签名** | manifest 由宿主本地注入、非模型产物、不跨信任边界；远端分发出现后再引入 attestation |
-| 5 | 模型提议 action 与 block 产生 action 的优先级/冲突规则？ | **block 侧优先**（用户直接操作是更强意图）；同 `operationId` 幂等去重；并发冲突记 audit 并以 block 侧结果为准 | 与 user-priority 状态策略一致 |
-| 6 | 对账窗口、幂等保留期、重试预算的具体默认值？ | `expiresAt` ≤ 10 分钟（refresh/verify 类）；**对账窗口 1 小时；幂等保留期 24 小时；重试预算 2 次**，仅 `retryable=true` 且对账确认无副作用后 | 满足 §9 时距不等式：幂等保留期（24h）≥ 对账窗口（1h）+ 操作时效（≤10min） |
-| 7 | pass 快照的 seal 用宿主 HMAC 还是 issuer 签名 + 本地 MAC？ | **首期宿主 HMAC**，schema 预留 issuer 签名验证字段 | 对应卡点 B3（本地篡改不可检测）；真实 issuer 缺位（Q4），签名验证待其出现后启用——与数据门槛一致 |
+| 5 | 模型提议 action 与 block 产生 action 的优先级/冲突规则？ | **block 侧优先**（用户直接操作是更强意图）；同 `operationId` 幂等去重；并发冲突记 audit 并以 block 侧结果为准。**意图归并（把模型 action 与 block action 对齐到同一 operationId）由宿主负责**，协议只要求 audit 记录归并决策 | 与 user-priority 状态策略一致；归并是宿主语义，协议无法替宿主判断"这两次点击是不是同一件事" |
+| 6 | 对账窗口、幂等保留期、重试预算的具体默认值？ | `expiresAt` ≤ 10 分钟（refresh/verify 类）；**对账窗口 1 小时；幂等保留期 24 小时；重试预算 2 次、`retryWindow` = 1 小时**（`failed(retryable=true)` 后 1 小时内发起），仅对账确认无副作用后 | 满足 §9 时距不等式：幂等保留期（24h）≥ 对账窗口（1h）+ retryWindow（1h）≥ 操作时效（≤10min） |
+| 7 | pass 快照的 seal 用宿主 HMAC 还是 issuer 签名 + 本地 MAC？ | **双层：issuer 签名（权威，保护凭证本体）+ 宿主 HMAC（尽力，保护元数据，密钥 non-extractable 或服务端密封）**；测试 issuer 私钥不进前端 | 2026-11-04 反方审阅 F3 修正：纯 HMAC 防不住同源脚本重签；issuer 签名防得住（无私钥不可伪造）。详见 §15.3 |
 | 8 | day plan 的存储后端与跨设备同步是否在首期范围内？ | **否** | day plan 未选中；即使作为回退启用，首期也只做单设备存储 |
 
 ---
@@ -1106,6 +1120,7 @@ type ActionState = {
 | 日期 | 版本 | 变更 |
 |---|---|---|
 | 2026-11-03 | 0.1-draft | 首版草案；12 项协议契约、pass/storage profile、conformance 矩阵 |
+| 2026-11-04 | 0.2-draft | 反方审阅处置（用户授权决策人签署）：F4——统一 `authorize` 事件（废弃 `auto-authorize`）、新增 `reconcile_timeout` 事件与转移；F3——快照 seal 改双层（issuer 签名权威 + 宿主 HMAC 尽力、密钥 non-extractable、同源妥协边界入威胁模型）；§20-5 补宿主意图归并职责、§20-6 补 `retryWindow=1h`；新增 C25；P0 子集 Travel 列激活 |
 
 ## 附录 D：与计划/实验的对应
 

@@ -304,13 +304,13 @@ IntegrationCost | ? | ? | ? | host interview + diff | ? | ?
 | 指标 | 基线 | 目标 | 最小可接受 | 测量方法 | 样本量 | 负责人 |
 |---|---|---|---|---|---|---|
 | TaskCompletion（golden set，mock） | 无（首次） | ≥90% | ≥80% | L2 scripted task + 关键字段断言 | ≥20 任务 | 用户 |
-| TaskCompletion（真实模型） | 待首次运行 | ≥75% | ≥60% | bench 扩展 travel 任务 | ≥20 任务 × 3 模型 × 3 轮 | 用户 |
+| TaskCompletion（真实模型） | 待首次运行 | **形成性参考，不作门禁** | — | bench 扩展 travel 任务 | ≥20 任务 × 3 模型 × 3 轮 | 用户 |
 | TimeOnTask（打开→可出示） | 待形成性测试 | ≤30 s | ≤60 s | 会话日志（形成性） | 5–8 人 | 用户 |
-| IntegrationCost（宿主接入 pass recipe） | 待 DSH 自集成 | ≤2 人日 | ≤5 人日 | 集成工时记录 + diff | DSH 1 例 | 用户 |
+| IntegrationCost（宿主接入 pass recipe） | 待 DSH 自集成 | **记录性指标，不作门禁**（n=1 自测） | — | 集成工时记录 + diff | DSH 1 例 | 用户 |
 | SlotConformance（首屏三槽位） | — | 100% | 100% | L1 自动断言 | 全量 | 自动 |
 | provenance 开销（token 增量） | 待测 | ≤15% | ≤25% | 加/不加 envelope 的 token 计数对比 | golden set | 自动 |
 
-注意：mock 与真实模型的 TaskCompletion 是**两个不同指标**，不得混报；TimeOnTask 在拿到真实用户前只能标"未测"；IntegrationCost 以用户本人集成 DSH 的实际工时为准，外部客户的成本属 Production DoD 范围。
+注意（2026-11-04 反方审阅修正）：**真实模型 TaskCompletion 在 n=20 下 Wilson CI 约 ±20pp，60% 与 75% 两个阈值统计上不可区分**，违反本文件 §8"按效应量设计样本量"的自有规则——因此降级为形成性参考；门禁由 mock golden set（≥90%）+ L1/L3/S 自动指标（全量）承担。真实模型指标升级为门禁的前提：按效应量重算样本量（约需 n≥100/模型）。IntegrationCost 为作者自测（n=1），只能作记录；外部开发者的集成成本属 Production DoD 范围，且阶段 2 应含一个非作者环境的最小第二探针（反方审阅 F2）。TimeOnTask 在拿到真实用户前只能标"未测"。
 
 ---
 
