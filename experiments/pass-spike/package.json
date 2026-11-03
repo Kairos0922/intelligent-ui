@@ -1,0 +1,22 @@
+{
+  "name": "@intelligent-ui/pass-spike",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "P0-1 counter-experiment: a boarding pass built only with the public registerBlock API.",
+  "scripts": {
+    "dev": "vite --port 5180 --strictPort --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --port 4180 --strictPort --host 127.0.0.1",
+    "verify": "node verify.mjs"
+  },
+  "dependencies": {
+    "@intelligent-ui/core": "file:../../clone",
+    "qrcode-generator": "^2.0.4"
+  },
+  "devDependencies": {
+    "jsqr": "^1.4.0",
+    "playwright": "^1.64.1",
+    "vite": "^6.0.0"
+  }
+}
