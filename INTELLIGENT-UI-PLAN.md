@@ -3,10 +3,10 @@
 | 项目 | 内容 |
 |---|---|
 | 版本 | 2026-11-03 汇总版 + P0-1 实验修订 + spec 草案 |
-| 状态 | **方案已批准（2026-11-04，受托决策：用户授权"所有决策你来做"，原则"正确的方法做正确的事情"；用户保留推翻权）**。Beachhead：**travel/pass @ DSH，有条件**——阶段 1a 无关契约 + issuer 主动门槛（1a 末检查，未过即切 day plan，沉没成本仅 1a）+ 1b travel 专属。反方审阅 4 项发现已全部处置（§7.6.1）。开源约束已纳入（§11）。**下一步：阶段 1a 实现**；npm 发布准备并行（§11） |
+| 状态 | **方案已批准（2026-11-04，受托决策：用户授权"所有决策你来做"，原则"正确的方法做正确的事情"；用户保留推翻权）**。Beachhead：**travel/pass @ DSH，有条件**——阶段 1a 无关契约 + issuer 主动门槛（1a 末检查，未过即切 day plan，沉没成本仅 1a）+ 1b travel 专属。反方审阅 4 项发现已全部处置（§7.6.1）。开源约束已纳入（§11）。**阶段 1a 核心契约已实现（2026-11-04，见 `specs/STAGE-1A-IMPLEMENTATION-PLAN.md`）**；下一步：执行 issuer 主动门槛证据检查（未通过前不启动 1b）；npm 发布准备并行（§11） |
 | 代码基线 | `dcd1cc6`（`v0.2.2-3-gdcd1cc6`，2026-10-29） |
 | 实验证据 | `experiments/pass-spike/`（41/41 自动检查；结论见附录 G） |
-| 规范草案 | `specs/PROTOCOL-SPEC.md`、`specs/EVALUATION-SPEC.md`（0.1-draft，未批准） |
+| 规范草案 | `specs/PROTOCOL-SPEC.md`（0.3-draft）、`specs/EVALUATION-SPEC.md`（0.2-draft）；草案，非产品承诺 |
 | 本文替代 | `ANALYSIS-2026-10-29.md`、`REVIEW-2026-10-29.md`、`INTEGRATED-REPORT-2026-10-30.md`、`NEXT-PHASE-PLAN-2026-11-01.md`、`BEACHHEAD-DECISION-2026-11-01.md`、`REVIEW-2026-11-02-PLAN-CRITIQUE.md` |
 | 审阅沿革 | 三轮审阅（第一轮 AI 子代理，第二、三轮外部意见）+ 第四轮代码级复核 + 第五轮整合复核与 P0-1 实验，见附录 F |
 | 性质 | 产品与工程分析 + 方案。不是用户研究，不是人类专家审计，不是第三方审计，不是"已验证"的产品结论 |
@@ -1101,6 +1101,7 @@ Imagine      W ∈ ℂ      复平面/极点/抬升
 - 2026-11-03（spec 草案）：新增 `specs/PROTOCOL-SPEC.md`（12 项契约、pass/storage profile、C1–C24 conformance 矩阵）、`specs/EVALUATION-SPEC.md`（L1–L4 + S、指标公式、门禁、证据包、P0-1 映射）与 `specs/README.md`（评审清单/开放决策）。均为 0.1-draft，未实现、未评审、不替代本文决策。§6.3/§6.6/§9/附录 D 增加草案链接；并对齐 §6.3.1 状态图、§6.3.2 类型与幂等约束（时距形式、`reconciling`/`manual_review`、`authority` 归属）；新增附录 H 作为 spec 决策回写索引。
 - 2026-11-03（晚，第六轮审阅）：对 P0-1 实验与 spec 草案做独立核验——确认 `DECISION-RULE.md` 预登记时间戳（22:14）早于全部实验代码；**独立复跑 `verify.mjs`，41/41 通过**；核实 C1–C24、硬阻断清单与附录 H 对应关系。修正三处：附录 E action lifecycle 补 `reconciling`/`manual_review`；附录 G.3 标注 41 项中含负向断言（"41/41"≠"无缺陷"）；附录 G.4 增加批注——"必须改协议"应读作"应由平台契约吸收"（B1/B2/B5/B6/B7 有宿主侧变通，B3/B4 未能安全绕过），不影响判决 B。附录 D 记录独立复跑。**审阅结论：修订通过重审，可进入 spec 评审与 beachhead 决策。**
 - 2026-11-03（22:52，用户决策落地）：用户回答决策 1–11——宿主 DSH；开发者本人 + 外部客户；beachhead **有条件选定 travel/pass**；数据完全没有（自建测试 issuer 起步，真实 issuer 为阶段 2 门槛，day plan 回退）；反方检查由 AI 反方承担；第 8 条硬阻断采纳；证据提交 git；spec 中文豁免。新增 §7.6.1 决策记录（含与 §7.5 前置条件的张力记录）；§9 四问标记已答；§6.6 硬阻断扩为 8 条；PROTOCOL-SPEC §1.3 Travel 列激活、§20 附 8 条建议答案；EVALUATION-SPEC §7.1 第 8 条采纳、§7.4.1 阈值草案；`scripts/check-docs.mjs` 增加 specs/experiments/plan 中文豁免。
+- 2026-11-04（阶段 1a 实现）：完成 beachhead 无关契约层——`answer` op（槽位/locale/actions/provenance/fieldProvenance/assumptions）、capability manifest、只读+可逆 action runtime（授权/确认/幂等/错误/超时→unknown→reconciling/补偿/审计链）、provenance authority 分离、answer 级 i18n、适配器 manifest-aware policy 与 action 转发、E2E 自测 29/29、Node 测试 54/54。**未启动 1b**（pass 块、issuer、快照 seal、DSH travel 适配仍受 issuer 门槛约束）。同时把 `answer.fieldProvenance` 回写 PROTOCOL-SPEC §4.1/§14.2（0.3-draft）。证据与限制见 `specs/STAGE-1A-IMPLEMENTATION-PLAN.md`。
 - 2026-11-04（受托决策 + 反方检查 + 批准）：用户授权全部决策（原则"正确的方法做正确的事情"）并指令按开源标准交付。执行独立 AI 反方审阅：4 项发现全部处置——**F1** 回退成本低估 → 阶段 1 拆 1a（beachhead 无关契约，4–5 周）/ issuer 主动门槛（1a 末检查，未过即切 day plan，沉没成本仅 1a）/ 1b（travel 专属，3–5 周），外联从 1a 第一周并行；**F2** DSH 单点/作者自测 → 记录为风险，阶段 2 加非作者第二探针；**F3** 快照 seal 改双层（issuer 签名权威 + 宿主 HMAC 尽力、密钥 non-extractable、同源妥协边界入威胁模型，PROTOCOL-SPEC §15.3、新增 C25）；**F4** 状态机统一 `authorize` 事件、新增 `reconcile_timeout`（PROTOCOL-SPEC §8，0.2-draft）。EVALUATION-SPEC：真实模型 TaskCompletion 降为形成性（n=20 无法区分 60/75）、IntegrationCost 降为记录性。§7.6.1 签署批准（受托决策，用户保留推翻权）。新增 **§11 开源标准**（npm 发布为 1a 并行轨道、PROTOCOL-SPEC 英译与证据进 CI 为阶段 1 退出条件、DSH=验证宿主≠分发渠道）。新增 `specs/DOMAIN-ARTIFACT-SPEC.md`（travel/pass，0.1-draft，C26–C32）。**阶段 1a 实现解锁。**
 
 ---
@@ -1233,13 +1234,13 @@ node verify.mjs
 | Spec 位置 | 内容 | 本文对应 | 回写状态 |
 |---|---|---|---|
 | Protocol §1.3 | P0 子集（Travel / Day plan） | §6.2、§6.7 | 待 beachhead 选定后裁剪 |
-| Protocol §3–4 | Answer Envelope / 槽位 / locale | §6.3 P0-0a、§6.5 | 已回写摘要 |
-| Protocol §5、§7–13 | Action Intent / 授权 / 状态机 / 幂等 / 错误 / 重试 / 对账 / 补偿 / 审计 | §6.3 P0-1、§6.3.1、§6.3.2、§6.4 | 已回写约束与验收 |
-| Protocol §6 | Host Capability Manifest | §6.3 P0-0b | 已回写 |
-| Protocol §14 | provenance / authority / 新鲜度 | §6.3.2 | 已回写 |
+| Protocol §3–4 | Answer Envelope / 槽位 / locale | §6.3 P0-0a、§6.5 | 1a 已实现（契约层）；布局断言仅自测 |
+| Protocol §5、§7–13 | Action Intent / 授权 / 状态机 / 幂等 / 错误 / 重试 / 对账 / 补偿 / 审计 | §6.3 P0-1、§6.3.1、§6.3.2、§6.4 | 1a 已实现只读/可逆子集 |
+| Protocol §6 | Host Capability Manifest | §6.3 P0-0b | 1a 已实现（prompt/validator/UI 同源） |
+| Protocol §14 | provenance / authority / 新鲜度 | §6.3.2 | 1a 已实现记录形状/authority 分离/verification 降级；高风险字段映射与新鲜度状态待 1b |
 | Protocol §15 | pass profile / `integrity × freshness` | §6.3.4、§6.4 | 已回写验收 |
 | Protocol §16 | storage / state ownership / PII | §6.3 P0-3 | 已回写 |
-| Protocol §17–18 | 验证规则 / C1–C24 conformance | §6.3.3、§6.4 | 已回写验收 |
+| Protocol §17–18 | 验证规则 / C1–C24 conformance | §6.3.3、§6.4 | C1–C15、C20、C21 契约层有测试；C16–C19、C22–C25 待 1b/2 |
 | Evaluation §3–7 | L1–L4 + S / 指标 / 门禁 | §6.6、§6.7 | 已回写门禁 |
 | Evaluation §8–10 | 样本量 / 评分者一致性 / 反方审阅 | §6.6、§7.8 | 已回写摘要 |
 | Evaluation §11 | 证据包 / Evaluation Card | §6.7、§7.8 | 已回写 |

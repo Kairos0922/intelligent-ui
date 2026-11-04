@@ -1,9 +1,10 @@
 # Spec drafts
 
-**Status: Protocol/Evaluation 0.2-draft, Domain 0.1-draft.**
+**Status: Protocol 0.3-draft, Evaluation 0.2-draft, Domain 0.1-draft.**
 **Decision basis approved 2026-11-04** (user-delegated authority; adversarial
 review passed with all four findings dispositioned — see Plan §7.6.1).
-Implementation of stage 1a is unblocked; specs remain subordinate to the plan.
+Stage 1a core contracts are implemented in `clone/src` (2026-11-04). The plan
+remains the decision source of truth. Stage 1b/2 stay gated by the issuer check.
 
 This directory contains the two beachhead-independent specifications called for by
 `INTELLIGENT-UI-PLAN.md` §8.5 and §9:
@@ -20,8 +21,8 @@ if they conflict with the plan, the plan wins until both are revised.
 ## What these drafts do not do
 
 - They do not select a beachhead.
-- They do not add product code or change the core protocol.
-- They do not claim that any implementation passes.
+- They do not start travel-specific work before the issuer gate. Stage 1a is beachhead-neutral.
+- They do not claim that the beachhead passes. Only stage 1a contract tests are implemented.
 - They do not replace user research, a real-host experiment, or a security audit.
 
 ## Language and repo guardrail

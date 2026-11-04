@@ -30,7 +30,12 @@ function footnote(raw: unknown): HTMLElement | null {
   return note ? h("p", { class: "iui-panel-footnote", text: note }) : null;
 }
 
-function formatNumber(value: number, format: unknown, currency: unknown): string {
+function formatNumber(
+  value: number,
+  format: unknown,
+  currency: unknown,
+  locale = "en-US",
+): string {
   const abs = Math.abs(value);
   const digits = Number.isInteger(abs)
     ? 0
@@ -43,10 +48,10 @@ function formatNumber(value: number, format: unknown, currency: unknown): string
           : 0;
   try {
     if (format === "percent") {
-      return `${value.toLocaleString("en-US", { maximumFractionDigits: digits })}%`;
+      return `${value.toLocaleString(locale, { maximumFractionDigits: digits })}%`;
     }
     if (format === "currency") {
-      return new Intl.NumberFormat("en-US", {
+      return new Intl.NumberFormat(locale, {
         style: "currency",
         currency:
           typeof currency === "string" && /^[A-Za-z]{3}$/.test(currency)
@@ -55,7 +60,7 @@ function formatNumber(value: number, format: unknown, currency: unknown): string
         maximumFractionDigits: digits,
       }).format(value);
     }
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(locale, {
       maximumFractionDigits: format === "score" ? 1 : digits,
     }).format(value);
   } catch {
@@ -86,6 +91,7 @@ defineBlock(
       currency?: string;
       caption?: string;
     },
+    ctx: Ctx,
   ) => {
     const columns = Array.isArray(props.columns)
       ? props.columns.slice(0, 5).map((column) => ({
@@ -107,7 +113,7 @@ defineBlock(
     if (head) section.append(head);
 
     if (!columns.length || !rows.length) {
-      section.append(h("div", { class: "iui-empty", text: "No matrix data" }));
+      section.append(h("div", { class: "iui-empty", text: ctx.t?.("noMatrixData") ?? "No matrix data" }));
       el.append(section);
       return;
     }
@@ -135,7 +141,7 @@ defineBlock(
     const scroll = h("div", { class: "iui-matrix-scroll" });
     const table = h("table", {
       class: "iui-matrix-table",
-      "aria-label": text(props.title, 160) || "Comparison matrix",
+      "aria-label": text(props.title, 160) || ctx.t?.("comparisonMatrix") || "Comparison matrix",
     });
     const thead = h("thead");
     const headerRow = h("tr");
@@ -174,12 +180,12 @@ defineBlock(
           cell.append(
             h("span", {
               class: "iui-matrix-value",
-              text: formatNumber(numericValue, props.format, props.currency),
+              text: formatNumber(numericValue, props.format, props.currency ?? ctx.i18n?.currency, ctx.i18n?.locale),
             }),
             track,
           );
         }
-        if (isBest) cell.setAttribute("aria-label", `Best value: ${cell.textContent}`);
+        if (isBest) cell.setAttribute("aria-label", `${ctx.t?.("bestValue") ?? "Best value"}: ${cell.textContent}`);
         tr.append(cell);
       }
       tbody.append(tr);

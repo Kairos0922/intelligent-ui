@@ -100,23 +100,28 @@ interface IuiHost {
 ```ts
 type IuiHostAction =
   | { kind: "prompt"; text: string; answerId?: string }
-  | { kind: "block"; envelope: IuiActionEnvelope };
+  | { kind: "block"; envelope: IuiActionEnvelope }
+  | { kind: "action"; answerId?: string; actionId: string; name: string; args?: Record<string, unknown>; riskHint?: RiskLevel };
 ```
 
 A `prompt` action is a suggestion chip, a form button, or other raw user intent. Send it as a normal user message.
 
 A `block` action is a block interaction. Send `formatAction(action)`. It gives one line with the `[iui-action]` prefix.
 
+An `action` action is a model proposal from the Answer Envelope. The host must confirm and authorize it with `createActionRuntime()`. Send `formatAction(action)` only after the host accepts the action.
+
 The action policy supplies a filter:
 
 | Policy | Action that leaves the UI |
 |---|---|
 | `prompt` | Prompt actions only. |
-| `agent` | Prompts and the `select`, `step`, `view`, and `filter` block events. This is the default. |
+| `agent` | Prompts, the `select`, `step`, `view`, and `filter` block events, and manifest-declared actions. This is the default. |
 | `all` | All block events, including local events. |
 | Function | The function selects each event. |
 
 The `submit` event is not in the `agent` policy. A form sends a raw prompt on submit. If the adapter also sends the block event, the agent receives the same interaction two times.
+
+A host action handler can return a `Promise`. The adapter sends a rejected promise to `onActionError`. Use this callback to show a visible error. The adapter also logs the error with `console.warn`.
 
 The adapter keeps a local event in the UI unless the host selects a policy that sends it.
 

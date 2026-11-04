@@ -1,8 +1,10 @@
 import { h } from "../dom";
+import { translate } from "../i18n";
 
 interface Lightbox {
   dialog: HTMLDialogElement;
   img: HTMLImageElement;
+  close: HTMLButtonElement;
   opener: HTMLButtonElement | null;
 }
 
@@ -20,7 +22,7 @@ function ensureDialog(root: HTMLElement): Lightbox {
   const close = h("button", { class: "iui-lightbox-x", type: "button", "aria-label": "Close" });
   close.append(h("span", { text: "\u00d7" }));
   const dialog = h("dialog", { class: "iui-lightbox" }) as HTMLDialogElement;
-  const box: Lightbox = { dialog, img, opener: null };
+  const box: Lightbox = { dialog, img, close, opener: null };
   dialog.append(img, close);
   close.addEventListener("click", () => dialog.close());
   dialog.addEventListener("click", (event) => {
@@ -41,6 +43,12 @@ function ensureDialog(root: HTMLElement): Lightbox {
 export function openLightbox(src: string, alt: string, trigger: HTMLButtonElement | null): void {
   const root = rootFor(trigger);
   const box = ensureDialog(root);
+  const locale =
+    trigger?.closest<HTMLElement>("[data-iui-locale]")?.dataset.iuiLocale ??
+    root.querySelector<HTMLElement>("[data-iui-locale]")?.dataset.iuiLocale ??
+    "en-US";
+  const closeLabel = translate(locale, "close");
+  box.close.setAttribute("aria-label", closeLabel);
   if (box.opener && box.opener !== trigger) {
     box.opener.setAttribute("aria-expanded", "false");
     box.opener.dataset.state = "closed";
@@ -48,7 +56,10 @@ export function openLightbox(src: string, alt: string, trigger: HTMLButtonElemen
   box.img.src = src;
   box.img.alt = alt;
   box.opener = trigger;
-  if (trigger) trigger.setAttribute("aria-expanded", "true");
+  if (trigger) {
+    trigger.setAttribute("aria-expanded", "true");
+    trigger.setAttribute("aria-label", `${translate(locale, "enlarge")} ${alt}`);
+  }
   if (!box.dialog.open) box.dialog.showModal();
 }
 

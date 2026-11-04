@@ -6,10 +6,16 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- The optional `answer` op adds answer-level locale, slots, actions, provenance, and assumptions. Answers without this op stay in legacy mode.
+- The host capability manifest drives the prompt, the validator, and the answer action bar from one source.
+- `createActionRuntime()` provides a host-side action state machine. It covers authorization, confirmation, idempotency, timeout, reconciliation, compensation, and an audit hash chain.
+- The adapter forwards manifest-declared actions and answer actions. A rejected action handler reports to `onActionError`.
+- Answer-level locale drives number, date, and currency formatting in the core runtime.
 - The release workflow checks the tag, package versions, and tarball names.
 
 ### Fixed
 
+- The validator removes model-provided operation and audit fields. Model provenance authority is forced to `claimed`.
 - The runtime enforces the op limit and the answer byte limit for each answer.
 - The `set` op sanitizes URL values and enforces the prop byte limit.
 - Server-side validation uses the host-neutral catalog and does not import the DOM registry.

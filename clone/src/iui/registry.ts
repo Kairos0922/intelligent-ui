@@ -11,6 +11,17 @@ export interface Ctx {
   animate?: boolean;
   /** report an interaction inside a block to the host (SDK event bridge) */
   emit?(name: string, detail?: Record<string, unknown>): void;
+  /**
+   * Answer-level locale context. Optional so existing custom blocks keep
+   * compiling; the core runtime always supplies it.
+   */
+  i18n?: import("./i18n").I18n;
+  /** short alias for `i18n.locale` (BCP 47) */
+  locale?: string;
+  /** short alias for `i18n.timeZone` (IANA) */
+  timeZone?: string;
+  /** short alias for `i18n.t` */
+  t?: import("./i18n").I18n["t"];
 }
 
 export interface BlockApi {

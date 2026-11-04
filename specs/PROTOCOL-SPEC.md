@@ -2,13 +2,13 @@
 
 | 项目 | 内容 |
 |---|---|
-| 状态 | **草案 0.1，待审；未批准、未实现、不是产品承诺** |
+| 状态 | **草案 0.3；阶段 1a 核心契约已实现（2026-11-04）；pass/storage profile 未实现；不是产品承诺** |
 | 适用范围 | IUI-1 op stream 之上的 answer / action / provenance / capability 契约；与 beachhead 无关的公共部分 |
 | 依据 | `INTELLIGENT-UI-PLAN.md` §6.3、§6.3.1–6.3.4、§6.4、§8.2；`experiments/pass-spike/` 的 B1–B7 |
 | 代码基线 | `dcd1cc6`（`v0.2.2-3-gdcd1cc6`） |
 | 规范用语 | **MUST** = 必须；**SHOULD** = 除非有记录的理由，否则必须；**MAY** = 可选 |
 
-> 本文是契约草案，不是实现说明。文中出现的字段、错误码和状态名，只有在对应的 Protocol Spec 条目通过评审后才进入代码。当前 SDK 只实现了 §3.1 的 8 种 op。
+> 本文是契约草案，不是实现说明。阶段 1a 已实现：`answer` op、capability manifest、只读/可逆 action 状态机、provenance 校验、answer 级 i18n。pass profile、storage profile、快照 seal、DSN/DSH travel 适配仍未实现。
 
 ---
 
@@ -205,6 +205,7 @@ type AnswerSlots = {
 | `slots` | 是 | `AnswerSlots` | 见 §3.3 |
 | `actions` | 否 | `ProposedAction[]` | 最多 8 个；模型提议，宿主可拒绝 |
 | `provenance` | 条件 | `ProvenanceSummary` | 所有含数据/`comp`/action 的 answer 必需；纯 prose 可省略；模型值只能是 claim |
+| `fieldProvenance` | 否 | `ProvenanceRecord[]` | §14.2 字段级记录的 additive 载体；模型 producer 只能是 claim；高风险字段的必需映射由 profile/1b 决定 |
 | `assumptions` | 否 | string[] | 最多 12 条，每条 ≤ 280 字符 |
 
 ### 4.2 locale / timeZone / currency / units
@@ -683,7 +684,7 @@ type ReconciliationRecord = {
 ```ts
 type CompensationRecord = {
   kind: "none" | "reversible" | "refund" | "manual";
-  state: "available" | "running" | "done" | "failed";
+  state: "available" | "running" | "done" | "failed" | "manual_review";
   operationId: string;
   createdAt: string;
   startedAt?: string;
@@ -698,7 +699,7 @@ type CompensationRecord = {
 
 - 补偿 MUST 幂等；重复请求返回已有结果。
 - 补偿不改变原 operation 的终态；它只追加记录。
-- 补偿失败 → `manual_review`；不能静默重试不可逆补偿。
+- 补偿失败 → `state:"manual_review"`；不能静默重试不可逆补偿。失败记录仍保留 `error`，便于人工处置。
 - UI 必须区分“原操作失败”和“补偿完成/失败”。
 - `undo` 不是状态；它只是补偿的一种用户入口。
 
@@ -750,6 +751,8 @@ type AuditEvent = {
 高风险字段：金额、价格、凭证、医疗、时间/登机口、外部链接。
 
 ### 14.2 记录
+
+字段级记录在线格式中的载体是 `answer.fieldProvenance`（§4.1）。这是 0.3 的 additive 补充：§14 早先定义了类型，但没有定义载体；阶段 1a 验证其形状与 authority 分离，1b 再把 pass 高风险字段映射到 `fieldPath`。
 
 ```ts
 type ProvenanceRecord = {
@@ -1121,6 +1124,7 @@ type ActionState = {
 |---|---|---|
 | 2026-11-03 | 0.1-draft | 首版草案；12 项协议契约、pass/storage profile、conformance 矩阵 |
 | 2026-11-04 | 0.2-draft | 反方审阅处置（用户授权决策人签署）：F4——统一 `authorize` 事件（废弃 `auto-authorize`）、新增 `reconcile_timeout` 事件与转移；F3——快照 seal 改双层（issuer 签名权威 + 宿主 HMAC 尽力、密钥 non-extractable、同源妥协边界入威胁模型）；§20-5 补宿主意图归并职责、§20-6 补 `retryWindow=1h`；新增 C25；P0 子集 Travel 列激活 |
+| 2026-11-04 | 0.3-draft | 阶段 1a 实现回写：`answer` op 与槽位、capability manifest、只读/可逆 action runtime、answer 级 i18n、`answer.fieldProvenance` 载体、补偿失败 `manual_review`；实现细节与测试见 `specs/STAGE-1A-IMPLEMENTATION-PLAN.md`。pass/storage profile 仍未实现 |
 
 ## 附录 D：与计划/实验的对应
 
