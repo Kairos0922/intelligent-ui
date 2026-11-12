@@ -124,3 +124,19 @@
 - V11 的“高风险字段必须有 field-level provenance”只实现了记录形状与 authority/verification 校验；字段路径到高风险字段的映射依赖 1b 的 pass profile。
 - 模型提供的 `verification.schema` 保留为 claim，不作为可信结论；`integrity`、`sourceIdentity`、`crossSource` 已降级，宿主 attestation 接入前不得显示为已验证。
 - 本计划不改变 issuer 门槛结论：1a 完成后仍需外联检查，未通过则切 day plan。
+
+## 7. 三场景真实模型验收（2026-11-11）
+
+在已冻结的 1a 契约之上，新增三个场景各 20 个预登记任务，共 60 个。首轮真实模型使用本地 Ollama `qwen2.5:14b`，单并发，最多 2 次校验反馈修复。2026-11-13 在同一契约上补跑 hosted DeepSeek `deepseek-flash`（`DeepSeek-V4.1-Flash-1017`），双并发。
+
+Hosted 主结果：
+
+| 场景 | 预登记 | 完成 | 覆盖率 | 结论 |
+|---|---:|---:|---:|---|
+| 数据分析 | 20 | 19 | 95.0% | 通过 |
+| 日常旅行规划 | 20 | 20 | 100.0% | 通过 |
+| 日常生活 | 20 | 20 | 100.0% | 通过 |
+
+本地 Qwen 对照：三个场景各 19/20，均 95.0%。两组都分别过线，不用全局平均分替代单场景门槛。完整失败原因、修复次数、复现命令和 DSH 宿主验收见 [`SCENARIO-COVERAGE.md`](SCENARIO-COVERAGE.md)。
+
+本轮没有启动 travel/pass、issuer、快照 seal、Wallet 或 DSH travel 凭证适配。这些仍属于 1b，受 issuer 门槛阻塞。npm 发布仍暂停。

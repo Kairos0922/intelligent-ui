@@ -76,6 +76,39 @@ The synthetic replay test from version 0.2.0 still passes in light and dark them
 - Theme changes.
 - Hot module replacement removal and restore.
 
+## Hosted-provider acceptance (2026-11-13)
+
+This run used DSH Web `0.2.2-rc.1`, `@intelligent-ui/dsh` `0.2.2`, Node
+`v26.11.1`, Playwright `1.64.1`, Google Chrome `157.0.8103.51`, and the
+DeepSeek OpenAI-compatible API. The model id was `deepseek-flash`. DeepSeek
+currently serves that alias with `DeepSeek-V4.1-Flash-1017`.
+
+The Playwright smoke drove the real web UI:
+
+- The first `render_iui` call rendered the table and tabs toolview.
+- The `save_note` action opened the host confirmation dialog.
+- Cancel closed the dialog, did not write `localStorage`, and did not add a tool row.
+- Confirm wrote exactly one note and sent an `[iui-action]` message to the session.
+- The model's automatic `[iui-action]` turn answered in prose, not with a tool call.
+  The pre-registered smoke protocol then sent the exact complete replacement ops
+  as a user message. The model called `render_iui`, and the replacement rendered
+  with `copy_text`.
+- The deliberately invalid op was refused by the model before it called
+  `render_iui`. No invalid tool row was created. The previous valid interface
+  stayed available, so the host was not stuck.
+- The final UI still had one usable `copy_text` action. The browser console had
+  no errors.
+
+This passes the host interaction path with an explicit complete-ops recovery.
+It does not show autonomous second-turn model compliance, and it does not
+exercise the validator with an actual malformed tool call from this model. The
+DSH protocol tests cover the validator path without a model.
+
+The sanitized evidence is in [specs/evidence/dsh-smoke.json](../../specs/evidence/dsh-smoke.json).
+Screenshots and session records stayed in local `.dsh-smoke/` and `.dsh-home/`
+directories, which are ignored. The repository contains no credential or route
+token.
+
 ## Limits
 
 - The deterministic runs used a local server, not a signed-in model. They check the DSH protocol, tool registration, toolview, and action path. They do not measure model compliance.

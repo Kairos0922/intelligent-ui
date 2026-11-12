@@ -651,18 +651,25 @@ The `exports` map supplies the type declarations for `.` and `./agent`. Keep the
 | Check | Result |
 |---|---|
 | TypeScript build and type check | Pass |
-| Browser self-test | 25 of 25 pass |
-| Node tests | 21 of 21 pass |
+| Browser self-test | 29 of 29 pass |
+| Node tests | 64 of 64 pass |
 | Playwright tests | 2 of 2 pass |
 | MCP stdio integration | Pass |
 | MCP App HTML external URL scan | Pass |
 | Tarball audit | Pass |
 | DSH synthetic replay | Pass in light and dark themes |
+| Scenario fixture | 60 of 60 tasks pass (20 of 20 per scenario) |
+| Real hosted scenario coverage | data-analysis 19/20 (95.0%), daily-travel 20/20, daily-life 20/20 with DeepSeek V4.1 Flash. Overall 59/60 |
+| Local Qwen scenario comparison | data-analysis 19/20, daily-travel 19/20, daily-life 19/20 (historical) |
+| DSH hosted-provider web smoke | Pass on DSH `0.2.2-rc.1`. Explicit complete-ops second-turn recovery |
 | DSH live model update | Pass on DSH `0.2.1-rc.2` and `0.2.1-rc.3` with a signed-in profile |
 | DSH deterministic update | Pass on DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` with a local Messages server and the self-contained tarball |
-| Real model benchmark | Not run. No provider credentials were available. |
 
-The DSH live test used DeepSeek-V4.1-Flash and one real tab click for each host. The deterministic test used the same toolview and action path on all three host versions without an account. Read [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md) for the details.
+The hosted scenario row used DeepSeek `deepseek-flash` (served by `DeepSeek-V4.1-Flash-1017`). The local Qwen row is historical comparison only. The model was deleted after the local run.
+
+On DSH `0.2.2-rc.1`, the hosted smoke used `deepseek-flash`. The automatic `[iui-action]` turn was prose-only. The pre-registered protocol sent the exact complete replacement ops. The invalid-op guard was refused by the model before the tool call. Read [specs/SCENARIO-COVERAGE.md](specs/SCENARIO-COVERAGE.md) and [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md) for the exact caveats.
+
+The older DSH live test used DeepSeek-V4.1-Flash and one real tab click for each host. The deterministic test used the same toolview and action path on all three host versions without an account.
 
 ## 15. Host adapters
 
@@ -689,5 +696,5 @@ An adapter combines four core primitives: `connect()` or `ingest()` for data, `c
 - Auto-scroll uses the nearest scrollable ancestor. Use `scroll: "window"` for the page.
 - The three demo blocks are not general-purpose blocks.
 - The MCP App makes no network request by default. A remote image needs an explicit CSP origin.
-- DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` are release candidates. Test the adapter after each DSH upgrade.
+- DSH `0.2.1-rc.2`, `0.2.1-rc.3`, `0.2.1-rc.4`, and `0.2.2-rc.1` are release candidates. Test the adapter after each DSH upgrade.
 - The DSH tarball is self-contained. It installs without a registry copy of `@intelligent-ui/core` or `@intelligent-ui/adapter`.

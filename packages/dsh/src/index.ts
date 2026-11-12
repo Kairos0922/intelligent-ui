@@ -3,16 +3,44 @@ import type { Context } from "@deepseek-ai/cordis";
 import {
   BLOCK_TYPES,
   IUI_TOOL_NAME,
+  iuiSystemPrompt,
   iuiToolDescription,
-  validateOps,
+  validateAnswerOps,
 } from "@intelligent-ui/core/agent";
+import { DSH_MANIFEST } from "./manifest.js";
+
+export { DSH_ALLOWED_RISKS, DSH_MANIFEST, dshAction } from "./manifest.js";
 
 export const name = "intelligent-ui";
 
 /** Services this plugin needs before `apply` runs. */
 export const inject = ["tools", "systemPrompt"];
 
-const DESCRIPTION = iuiToolDescription({ name: IUI_TOOL_NAME });
+const DESCRIPTION = iuiToolDescription({
+  name: IUI_TOOL_NAME,
+  capabilities: DSH_MANIFEST,
+  answerEnvelope: true,
+});
+
+const DSH_RULES = [
+  "The DSH web host renders the tool result inline. After the user interacts, the next user message begins with `[iui-action]`; block interactions carry the block id and a payload, while a suggestion chip or form CTA arrives as `{\"action\":\"prompt\",\"payload\":{\"text\":\"…\"}}`. Resend the complete interface with a new `render_iui` call and stable block ids.",
+  "Only propose actions declared in the host capability manifest. The host confirms every reversible action before sending it back to the session; never invent an action or describe an irreversible operation.",
+  "A request for an interface, dashboard, comparison, plan, chart, form, itinerary, or interactive tool is answered by calling `render_iui` immediately. Do not call `working_directory`, `read`, `glob`, `grep`, shell, or other tools first; they are unnecessary for a self-contained interface answer.",
+  "Host runtime-context and time-context messages are metadata, not user requests. Ignore their contents when deciding what to answer; the last actual human message is the task.",
+  "Every `render_iui` call replaces the previous interface. When the user interacts, resend the complete interface with the same block ids, including unchanged blocks. Never send patch or delta ops such as `{\"t\":\"set\"}`.",
+].join(" ");
+
+const SYSTEM_PROMPT = [
+  iuiSystemPrompt({
+    mode: "tool",
+    productName: "DeepSeek Harness",
+    capabilities: DSH_MANIFEST,
+    answerEnvelope: true,
+  }),
+  "## DSH host rules",
+  "",
+  DSH_RULES,
+].join("\n\n");
 
 const OUTPUT = {
   type: "object",
@@ -29,18 +57,41 @@ const OUTPUT = {
       items: { type: "json" },
       description: "Validation issues; the valid ops still render.",
     },
+    envelope: {
+      type: "json",
+      description: "The validated Answer Envelope, or null in legacy mode.",
+    },
+    legacy: {
+      type: "boolean",
+      description: "True when the model did not send an Answer Envelope.",
+    },
   },
 } as const;
+
+interface IuiToolValue {
+  ops: unknown[];
+  issues?: unknown[];
+  envelope?: unknown;
+  legacy?: boolean;
+}
+
+function issueDetails(issues: unknown[]): string {
+  return issues
+    .slice(0, 8)
+    .map((issue) => {
+      if (issue && typeof issue === "object" && "path" in issue && "message" in issue) {
+        return `${String((issue as { path: unknown }).path)}: ${String((issue as { message: unknown }).message)}`;
+      }
+      return String(issue);
+    })
+    .join("; ");
+}
 
 export function apply(ctx: Context): void {
   ctx.systemPrompt.section({
     name: "tool:render-iui",
     order: ctx.systemPrompt.getSectionOrder("TOOLS_SDK"),
-    text: [
-      "When a request is better answered as an interface than as prose — a comparison, plan, chart, dashboard, form, itinerary, quiz, or small interactive tool — call `render_iui` with the complete ordered IUI-1 op list.",
-      "Use only the block types in the tool description. Keep prose in `md` ops, give components unique ids, and end with `{\"t\":\"done\"}`.",
-      "The host renders the interface inline. When the user interacts, the next user message begins with `[iui-action]`; block interactions carry the block id and a payload, while a suggestion chip or form CTA arrives as `{\"action\":\"prompt\",\"payload\":{\"text\":\"…\"}}`. Update the affected component with another `render_iui` call.",
-    ].join(" "),
+    text: SYSTEM_PROMPT,
   });
 
   ctx.tools.register(
@@ -49,47 +100,53 @@ export function apply(ctx: Context): void {
       description: DESCRIPTION,
       parameters: {
         ops: {
+          // Heterogeneous JSON objects. Do not add an `items` schema: some
+          // OpenAI-compatible local models (notably Qwen 2.5 via Ollama) drop
+          // the tool call entirely when an array parameter has nested items.
           type: "array",
           required: true,
-          items: { type: "json" },
           description:
-            "Complete, ordered IUI-1 ops for this assistant turn. Start with content ops, then comp ops, then ask, then done.",
+            "Complete, ordered IUI-1 ops for this assistant turn. Start with one answer op, then content ops, then comp ops, then ask, then done. Each entry is a JSON object in the IUI-1 wire format described above.",
         },
       },
       output: {
         schema: OUTPUT,
-        render(_args: unknown, value: { ops: unknown[]; issues?: unknown[] }) {
+        render(_args: unknown, value: IuiToolValue) {
           const count = value.ops.length;
           const issues = value.issues ?? [];
+          const mode = value.legacy ? "legacy mode" : "an answer envelope";
           if (issues.length > 0) {
-            const details = issues
-              .slice(0, 8)
-              .map((issue) => {
-                if (issue && typeof issue === "object" && "path" in issue && "message" in issue) {
-                  return `${String((issue as { path: unknown }).path)}: ${String((issue as { message: unknown }).message)}`;
-                }
-                return String(issue);
-              })
-              .join("; ");
+            const recovery =
+              count === 0
+                ? " No interface was rendered. Resend the complete interface as a new render_iui call; do not send patch or delta ops."
+                : " The valid ops were rendered; resend the complete interface if the requested change is missing.";
             return [
               {
                 type: "text",
-                text: `Rendered ${count} valid op(s) with ${issues.length} issue(s): ${details}`,
+                text: `Rendered ${count} valid op(s) with ${issues.length} issue(s) in ${mode}: ${issueDetails(issues)}.${recovery}`,
               },
             ];
           }
-          return [{ type: "text", text: `Rendered ${count} IUI op(s).` }];
+          return [{ type: "text", text: `Rendered ${count} IUI op(s) in ${mode}.` }];
         },
-        presentationMeta(_args: unknown, value: { ops: unknown[]; issues?: unknown[] }) {
+        presentationMeta(_args: unknown, value: IuiToolValue) {
           return value;
         },
       },
       presentCall() {
         return { card: "generic", title: "Rendering interface", kind: "other" };
       },
-      async execute(args: { ops: unknown[] }) {
-        const result = validateOps(args.ops, { blocks: BLOCK_TYPES });
-        return { ops: result.ops as unknown[], issues: result.issues as unknown[] };
+      async execute(args: { ops: unknown[] }): Promise<IuiToolValue> {
+        const result = validateAnswerOps(args.ops, {
+          blocks: BLOCK_TYPES,
+          capabilities: DSH_MANIFEST,
+        });
+        return {
+          ops: result.ops as unknown[],
+          issues: result.issues as unknown[],
+          envelope: result.envelope,
+          legacy: result.legacy,
+        };
       },
     }),
   );

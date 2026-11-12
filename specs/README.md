@@ -6,6 +6,12 @@ review passed with all four findings dispositioned — see Plan §7.6.1).
 Stage 1a core contracts are implemented in `clone/src` (2026-11-04). The plan
 remains the decision source of truth. Stage 1b/2 stay gated by the issuer check.
 
+The three P0 verticals have a real-model coverage report in
+[`SCENARIO-COVERAGE.md`](SCENARIO-COVERAGE.md). It reports the hosted DeepSeek
+V4.1 Flash run as the main result and the local Qwen 2.5 14B run as comparison,
+with data analysis, daily travel planning, and daily life on their own 20-task
+registries. It does not change the Stage 1b issuer gate.
+
 This directory contains the two beachhead-independent specifications called for by
 `INTELLIGENT-UI-PLAN.md` §8.5 and §9:
 
