@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <title>Pass spike · P0-1 counter-experiment</title>
+  </head>
+  <body>
+    <header class="spike-header">
+      <div>
+        <div class="spike-eyebrow">P0-1 counter-experiment · not a product</div>
+        <h1>Boarding pass with the public <code>registerBlock</code> API</h1>
+      </div>
+      <p class="spike-scope">
+        Core SDK, protocol and validator are untouched. The host supplies trust,
+        persistence and issuer data.
+      </p>
+    </header>
+
+    <main class="spike-layout">
+      <section class="spike-chat" aria-label="Chat surface">
+        <div class="spike-chat-shell">
+          <div class="spike-user">Can you pull up my boarding pass for tonight?</div>
+          <div id="answer"></div>
+        </div>
+      </section>
+
+      <aside class="spike-console" aria-label="Experiment controls">
+        <section class="spike-panel">
+          <h2>Host controls</h2>
+          <label class="spike-field">
+            <span>Issuer scenario</span>
+            <select id="scenario">
+              <option value="normal">Normal · gate D7</option>
+              <option value="gate-change">Gate change · D2</option>
+              <option value="unverified">Unverified issuer</option>
+              <option value="revoked">Revoked credential</option>
+              <option value="invalid">Invalid signature</option>
+            </select>
+          </label>
+          <label class="spike-field">
+            <span>Locale</span>
+            <select id="locale">
+              <option value="en-US">en-US</option>
+              <option value="zh-CN">zh-CN</option>
+            </select>
+          </label>
+          <div class="spike-actions">
+            <button id="save" type="button">Save offline snapshot</button>
+            <button id="reopen" type="button">Reopen from snapshot</button>
+            <button id="reload" type="button">Reload page</button>
+            <button id="clear" type="button">Clear snapshot</button>
+          </div>
+          <label class="spike-check">
+            <input id="offline" type="checkbox" />
+            <span>Force offline (then reopen or reload)</span>
+          </label>
+          <p class="spike-note" id="snapshot-state">No snapshot</p>
+        </section>
+
+        <section class="spike-panel">
+          <h2>Adversarial checks</h2>
+          <div class="spike-actions">
+            <button id="tamper" type="button">Tamper snapshot</button>
+            <button id="forge" type="button">Inject model-claimed pass</button>
+          </div>
+          <p class="spike-note">
+            Neither path needs a core change; both show why the block cannot be the
+            trust boundary.
+          </p>
+        </section>
+
+        <section class="spike-panel">
+          <h2>Host capabilities</h2>
+          <pre id="capabilities" class="spike-capabilities"></pre>
+          <p class="spike-note">
+            There is no capability manifest in the prompt/tool schema. The model
+            cannot know which of these actions exist.
+          </p>
+        </section>
+
+        <section class="spike-panel spike-panel--log">
+          <h2>Evidence log</h2>
+          <ol id="log" class="spike-log" aria-live="polite"></ol>
+        </section>
+      </aside>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

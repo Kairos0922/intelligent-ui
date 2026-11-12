@@ -1,0 +1,118 @@
+{
+  "schema": "iui-dsh-smoke-evidence-v1",
+  "generatedAt": "2026-11-12T18:52:24Z",
+  "host": {
+    "name": "DeepSeek Harness Web",
+    "version": "0.2.2-rc.1",
+    "adapter": "@intelligent-ui/dsh 0.2.2",
+    "route": "http://127.0.0.1:3210 (local tokenized route)"
+  },
+  "model": {
+    "provider": "deepseek-hosted",
+    "modelId": "deepseek-flash",
+    "servedBy": "DeepSeek-V4.1-Flash-1017"
+  },
+  "runtime": {
+    "node": "v26.11.1",
+    "playwright": "1.64.1",
+    "browser": "Google Chrome 157.0.8103.51"
+  },
+  "method": {
+    "protocol": "Playwright drove the real DSH web UI. The test used a real hosted DeepSeek chat completion for the first render, then exercised the host action path with real browser clicks.",
+    "secondTurn": "The first automatic [iui-action] turn returned prose only. Per the pre-registered smoke protocol, the host then sent the exact complete replacement ops as a user message; the model called render_iui and the replacement rendered.",
+    "invalidOp": "The invalid-op guard intentionally sent an ops array without an answer envelope and with an unknown component type. The model refused to call the tool; no invalid tool row was created. The prior valid interface remained usable.",
+    "secretHandling": "The API key was supplied through DEEPSEEK_API_KEY in an ignored local environment file. No key or route token is included in this evidence."
+  },
+  "result": {
+    "status": "pass-with-explicit-recovery",
+    "acceptance": true,
+    "firstRender": true,
+    "confirmCancel": true,
+    "confirmSave": true,
+    "actionMessage": true,
+    "automaticSecondTurn": false,
+    "exactOpsRecovery": true,
+    "secondUpdateVisible": true,
+    "invalidOpsModelRefused": true,
+    "invalidOpsToolRow": false,
+    "previousUiUsableAfterInvalidOps": true,
+    "finalCopyButtons": 1
+  },
+  "checks": [
+    {
+      "id": "first-render",
+      "ok": true,
+      "detail": "render_iui tool row rendered the table and stats/tabs."
+    },
+    {
+      "id": "save-action-visible",
+      "ok": true,
+      "detail": "save_note action was declared by the render_iui envelope and appeared in the toolview."
+    },
+    {
+      "id": "confirm-dialog",
+      "ok": true,
+      "detail": "Reversible save_note opened the host confirmation dialog."
+    },
+    {
+      "id": "cancel",
+      "ok": true,
+      "detail": "Cancel closed the dialog without writing localStorage and without a new tool row."
+    },
+    {
+      "id": "confirm",
+      "ok": true,
+      "detail": "Confirm wrote one note and sent an [iui-action] message."
+    },
+    {
+      "id": "second-turn-explicit-recovery",
+      "ok": true,
+      "detail": "The model answered the [iui-action] turn in prose, so the host re-sent the exact complete replacement; the second interface rendered with copy_text."
+    },
+    {
+      "id": "invalid-op-guard",
+      "ok": true,
+      "detail": "The model refused the deliberately invalid ops before calling the tool. The previous valid interface stayed available; this was not a tool-row validation cycle."
+    },
+    {
+      "id": "final-ui-usable",
+      "ok": true,
+      "detail": "A usable copy_text action remained at the end."
+    },
+    {
+      "id": "console-clean",
+      "ok": true,
+      "detail": "No browser console or page error was recorded."
+    }
+  ],
+  "session": {
+    "sessionId": "session-a8032e81-5b91-410f-a7f6-191cd5829b7f",
+    "turns": 4,
+    "steps": 7,
+    "llmMs": 12811,
+    "toolMs": 30,
+    "decodeTokens": 2108,
+    "consoleErrors": 0
+  },
+  "artifacts": {
+    "committed": false,
+    "localOnly": [
+      ".dsh-smoke/smoke-1-ready.png",
+      ".dsh-smoke/smoke-2-rendered.png",
+      ".dsh-smoke/smoke-3-confirm.png",
+      ".dsh-smoke/smoke-4-cancelled.png",
+      ".dsh-smoke/smoke-5-action-sent.png",
+      ".dsh-smoke/smoke-6-second-turn.png",
+      ".dsh-smoke/smoke-7-before-recovery.png",
+      ".dsh-smoke/smoke-8-recovered.png",
+      ".dsh-smoke/smoke-9-invalid-update.png",
+      ".dsh-smoke/smoke-run.log"
+    ]
+  },
+  "caveats": [
+    "This is one model, one session, and one DSH web route; it is not a statistical model evaluation.",
+    "The automatic [iui-action] turn was prose-only. The acceptance uses the pre-registered exact complete-ops recovery, so it verifies the host update path but not autonomous second-turn model compliance.",
+    "The deliberately invalid ops were refused by the model before the tool call. A separate model that sends invalid JSON to render_iui would exercise the validator branch; the DSH protocol tests cover that branch without a model.",
+    "Screenshots and session records remain local and ignored; the repository contains no credential, token, screenshot, or session file."
+  ]
+}

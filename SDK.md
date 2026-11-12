@@ -217,10 +217,11 @@ The stream is NDJSON. Each line is one JSON object. The last op is `done`.
 
 | Op | Meaning |
 |---|---|
-| `{"t":"p","lvl":0}` | Start a paragraph. |
-| `{"t":"p","lvl":2}` | Start a heading at level 2, 3, or 4. |
-| `{"t":"md","v":"..."}` | Append supported Markdown to the open block. |
-| `{"t":"table","head":[],"rows":[]}` | Add a table. |
+| `{"t":"answer",...}` | Start a structured answer. This op is optional and must be first. |
+| `{"t":"p","lvl":0,"id":"..."}` | Start a paragraph. The ID is optional. |
+| `{"t":"p","lvl":2,"id":"..."}` | Start a heading at level 2, 3, or 4. The ID is optional. |
+| `{"t":"md","v":"...","id":"..."}` | Append supported Markdown to the open block. The ID is optional. |
+| `{"t":"table","head":[],"rows":[],"id":"..."}` | Add a table. The ID is optional. |
 | `{"t":"comp","id":"c1","type":"card","props":{}}` | Mount a block. |
 | `{"t":"set","id":"c1","path":"value","v":3}` | Change one block property. |
 | `{"t":"ask","v":["..."]}` | Add one to six suggestion chips. |
@@ -229,6 +230,82 @@ The stream is NDJSON. Each line is one JSON object. The last op is `done`.
 
 Markdown support is a small set: bold, italic, inline code, links, and simple lists. The runtime does not accept raw HTML.
 
+### 6.1 Answer Envelope
+
+The `answer` op adds answer-level locale, slots, actions, provenance, and assumptions. It is optional. An answer without this op is a legacy answer.
+
+```json
+{"t":"answer","schemaVersion":"1.0","locale":"zh-CN","timeZone":"Asia/Shanghai","currency":"CNY","units":"metric","slots":{"conclusion":{"kind":"op","id":"conclusion"},"primaryArtifact":{"kind":"comp","id":"c1"},"primaryAction":{"kind":"action","id":"a1"}},"actions":[{"id":"a1","name":"open_qr","args":{"passId":"p1"},"riskHint":"read"}],"provenance":{"authority":"claimed","source":{"id":"issuer-test","kind":"issuer"},"retrievedAt":"2026-11-04T00:00:00Z","verification":{"sourceIdentity":"unverified","integrity":"unverified","schema":"valid","crossSource":"not_checked"}}}
+```
+
+The runtime checks these rules:
+
+| Rule | Result |
+|---|---|
+| The `answer` op is not first | Drop the envelope and use legacy mode. |
+| A slot points to a missing ID | Report `invalid_slot`. |
+| The conclusion is missing | Report `missing_conclusion`. |
+| The primary artifact is missing when an action exists | Report `invalid_primary_artifact`. |
+| An action is not in the host manifest | Drop the action and report `unsupported_action`. |
+| An action has `irreversible` risk | Drop the action and report `action_not_open`. |
+| The model sets `operationId`, `idempotencyKey`, `auditId`, `authorizedAt`, or `confirmedBy` | Remove the field and report `untrusted_field`. |
+| The model sets provenance authority to `attested` | Force `claimed` and report `untrusted_verification`. |
+| The locale or time zone is invalid | Use `en-US` and `UTC`, then report `invalid_locale`. |
+
+`answer.envelope` exposes the checked envelope. `answer.legacy` is true for an answer without a valid envelope. The DOM carries `data-iui-locale`, `data-iui-time-zone`, and `data-iui-legacy` on the answer node. Slot targets carry `data-iui-slot` and `data-iui-slot-id`.
+
+### 6.2 Host manifest and actions
+
+A host manifest declares the actions that the host can run. The validator and the prompt use the same manifest.
+
+```ts
+const capabilities = {
+  schemaVersion: "1.0",
+  hostId: "travel-host",
+  capabilities: {
+    canNotify: true,
+    canPersist: true,
+    canOpenWallet: true,
+    canVerifyPass: true,
+    canWriteCalendar: false,
+    canDeepLink: true,
+  },
+  actions: [{
+    name: "open_qr",
+    description: "Show the boarding pass QR",
+    risk: "read",
+    requiresConfirmation: false,
+    idempotent: true,
+    compensation: "none",
+    timeoutMs: 5000,
+    argsSchema: { type: "object", properties: { passId: { type: "string" } }, required: ["passId"] },
+  }],
+} as const;
+
+const ui = createIntelligentUI({ container, capabilities });
+const prompt = iuiSystemPrompt({ capabilities });
+const tool = iuiTool({ capabilities });
+```
+
+A manifest action with `irreversible` risk is not open in stage 1a. The answer action bar shows only declared actions. A click sends an `action` event. The host owns confirmation, authorization, execution, and the result.
+
+`createActionRuntime()` provides the host-side state machine. The runtime covers idempotency, confirmation, authorization, timeout, reconciliation, compensation, and an audit hash chain.
+
+```ts
+const runtime = createActionRuntime({ manifest: capabilities, userId: "u1", tenantId: "t1" });
+const proposal = await runtime.propose({
+  action: { id: "a1", name: "open_qr", args: { passId: "p1" } },
+  source: "model",
+  answerId: "a1",
+});
+const ready = await runtime.decide(proposal.operation.operationId);
+if (ready.state === "awaiting_confirmation") await runtime.confirm(ready.operationId);
+await runtime.start(ready.operationId);
+await runtime.succeed(ready.operationId, { payload: { opened: true } });
+```
+
+The default ledger is in memory. A host must persist the ledger for cross-process reconciliation.
+
 ## 7. Validation
 
 The validator repairs an op when it can. It drops an op when it cannot repair the op.
@@ -236,6 +313,9 @@ The validator repairs an op when it can. It drops an op when it cannot repair th
 | Condition | Result |
 |---|---|
 | Unknown block type | Drop the block and send an `unknown-block` event. |
+| Answer op not first or repeated | Drop the envelope and continue in legacy mode. |
+| Missing conclusion | Drop the envelope and continue in legacy mode. |
+| Duplicate ID | Drop the duplicate op. |
 | Unsafe URL | Remove the URL field and send a `validation` event. |
 | Missing block ID | Assign an ID with the `c_` prefix. |
 | Table row length mismatch | Fill or cut the row to the header length. |
@@ -403,9 +483,9 @@ Build sizes:
 
 | File | Raw | Gzip |
 |---|---|---|
-| `intelligent-ui.css` | 52.0 KB | 9.0 KB |
-| `index.js` | 103.3 KB | 26.4 KB |
-| `agent.js` | 18.6 KB | 5.8 KB |
+| `intelligent-ui.css` | 53.0 KB | 9.1 KB |
+| `index.js` | 111.9 KB | 28.5 KB |
+| `agent.js` | 21.2 KB | 6.8 KB |
 
 The package tarball contains no images or fonts.
 
@@ -422,7 +502,13 @@ const ui = createIntelligentUI({
   animate?: boolean,
   sanitize?: boolean,
   ariaLabel?: string,
+  locale?: string,
+  timeZone?: string,
+  currency?: string,
+  units?: "metric" | "imperial",
+  capabilities?: HostCapabilityManifest,
   onPrompt?: (prompt, ui) => void,
+  onAction?: (action, ui) => void,
   onEvent?: (event) => void,
   onError?: (error, event) => void,
 });
@@ -445,7 +531,7 @@ const ui = createIntelligentUI({
 | `ui.catalog` | The block catalog. |
 | `ui.destroy()` | Stop streams, remove the root node, and remove listeners. |
 
-`Answer` has `id`, `el`, `done`, `opCount`, `write(chunk)`, and `end()`.
+`Answer` has `id`, `el`, `done`, `opCount`, `envelope`, `legacy`, `write(chunk)`, and `end()`.
 
 `ConnectOptions` has `signal`, `headers`, `credentials`, `method`, `body`, `transform`, `format`, and `sse`.
 
@@ -454,8 +540,9 @@ const ui = createIntelligentUI({
 ```ts
 type IuiEvent =
   | { type: "answer-start"; answerId: string }
-  | { type: "answer-end"; answerId: string; ops: number; ms: number }
+  | { type: "answer-end"; answerId: string; ops: number; ms: number; legacy: boolean }
   | { type: "prompt"; answerId: string; prompt: string }
+  | { type: "action"; answerId: string; actionId: string; name: string; args?: Record<string, unknown>; riskHint?: RiskLevel }
   | { type: "block"; answerId: string; name: string; detail: Record<string, unknown> }
   | { type: "unknown-block"; answerId: string; id: string; blockType: string }
   | { type: "validation"; answerId: string; issues: ValidationIssue[] }
@@ -564,18 +651,25 @@ The `exports` map supplies the type declarations for `.` and `./agent`. Keep the
 | Check | Result |
 |---|---|
 | TypeScript build and type check | Pass |
-| Browser self-test | 25 of 25 pass |
-| Node tests | 21 of 21 pass |
+| Browser self-test | 29 of 29 pass |
+| Node tests | 64 of 64 pass |
 | Playwright tests | 2 of 2 pass |
 | MCP stdio integration | Pass |
 | MCP App HTML external URL scan | Pass |
 | Tarball audit | Pass |
 | DSH synthetic replay | Pass in light and dark themes |
+| Scenario fixture | 60 of 60 tasks pass (20 of 20 per scenario) |
+| Real hosted scenario coverage | data-analysis 19/20 (95.0%), daily-travel 20/20, daily-life 20/20 with DeepSeek V4.1 Flash. Overall 59/60 |
+| Local Qwen scenario comparison | data-analysis 19/20, daily-travel 19/20, daily-life 19/20 (historical) |
+| DSH hosted-provider web smoke | Pass on DSH `0.2.2-rc.1`. Explicit complete-ops second-turn recovery |
 | DSH live model update | Pass on DSH `0.2.1-rc.2` and `0.2.1-rc.3` with a signed-in profile |
 | DSH deterministic update | Pass on DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` with a local Messages server and the self-contained tarball |
-| Real model benchmark | Not run. No provider credentials were available. |
 
-The DSH live test used DeepSeek-V4.1-Flash and one real tab click for each host. The deterministic test used the same toolview and action path on all three host versions without an account. Read [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md) for the details.
+The hosted scenario row used DeepSeek `deepseek-flash` (served by `DeepSeek-V4.1-Flash-1017`). The local Qwen row is historical comparison only. The model was deleted after the local run.
+
+On DSH `0.2.2-rc.1`, the hosted smoke used `deepseek-flash`. The automatic `[iui-action]` turn was prose-only. The pre-registered protocol sent the exact complete replacement ops. The invalid-op guard was refused by the model before the tool call. Read [specs/SCENARIO-COVERAGE.md](specs/SCENARIO-COVERAGE.md) and [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md) for the exact caveats.
+
+The older DSH live test used DeepSeek-V4.1-Flash and one real tab click for each host. The deterministic test used the same toolview and action path on all three host versions without an account.
 
 ## 15. Host adapters
 
@@ -602,5 +696,5 @@ An adapter combines four core primitives: `connect()` or `ingest()` for data, `c
 - Auto-scroll uses the nearest scrollable ancestor. Use `scroll: "window"` for the page.
 - The three demo blocks are not general-purpose blocks.
 - The MCP App makes no network request by default. A remote image needs an explicit CSP origin.
-- DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` are release candidates. Test the adapter after each DSH upgrade.
+- DSH `0.2.1-rc.2`, `0.2.1-rc.3`, `0.2.1-rc.4`, and `0.2.2-rc.1` are release candidates. Test the adapter after each DSH upgrade.
 - The DSH tarball is self-contained. It installs without a registry copy of `@intelligent-ui/core` or `@intelligent-ui/adapter`.

@@ -6,10 +6,20 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- The optional `answer` op adds answer-level locale, slots, actions, provenance, and assumptions. Answers without this op stay in legacy mode.
+- The host capability manifest drives the prompt, the validator, and the answer action bar from one source.
+- `createActionRuntime()` provides a host-side action state machine. It covers authorization, confirmation, idempotency, timeout, reconciliation, compensation, and an audit hash chain.
+- The adapter forwards manifest-declared actions and answer actions. A rejected action handler reports to `onActionError`.
+- Answer-level locale drives number, date, and currency formatting in the core runtime.
 - The release workflow checks the tag, package versions, and tarball names.
+- A 60-task three-scenario suite covers data analysis, daily travel planning, and daily life. Each scenario registers 20 tasks and reports coverage on its own.
+- The scenario runner supports validation-feedback repair calls, conservative JSON wrapping, interaction replay, per-scenario release gates, and a hosted DeepSeek OpenAI-compatible provider.
+- The DSH adapter declares only `copy_text`, `open_link`, and `save_note`. It rejects undeclared actions and tells the model to resend a complete interface after an `[iui-action]` message.
+- The DSH package carries a `dsh.bundle.patch` layer for DSH `0.2.2-rc.1`.
 
 ### Fixed
 
+- The validator removes model-provided operation and audit fields. Model provenance authority is forced to `claimed`.
 - The runtime enforces the op limit and the answer byte limit for each answer.
 - The `set` op sanitizes URL values and enforces the prop byte limit.
 - Server-side validation uses the host-neutral catalog and does not import the DOM registry.
@@ -20,6 +30,14 @@ All notable changes to this project are documented in this file.
 - Tabs use `aria-selected` and keyboard navigation. Forms use unique radio group names. The map expand control updates `aria-expanded`.
 - Lightbox dialogs are scoped to each runtime root and close on reset.
 - The DSH client imports the core stylesheet through the package export.
+- The release tarball audit permits CJK only inside generated locale payloads. Package docs and source remain English-only.
+
+### Tested
+
+- A hosted DeepSeek `deepseek-flash` run (served by `DeepSeek-V4.1-Flash-1017`) completed 19 of 20 data-analysis tasks, 20 of 20 daily-travel tasks, and 20 of 20 daily-life tasks. Each scenario passed its own 90% gate. Overall was 59 of 60.
+- The DSH hosted-provider web smoke passed on `0.2.2-rc.1` with `deepseek-flash`. The second turn used an explicit complete-ops recovery. The invalid-op attempt was refused before the tool call.
+- A historical local Ollama `qwen2.5:14b` run completed 19 of 20 tasks in each scenario. The local model was deleted after the run.
+- The reference fixture completed 60 of 60 tasks. This is contract coverage, not model coverage.
 
 ## [0.2.2] - 2026-10-28
 

@@ -11,7 +11,11 @@ Version 0.2.2 is a source release. It contains:
 - The adapter layer.
 - React, Vercel AI SDK, MCP Apps, and DeepSeek Harness adapters.
 - A 25-task structural benchmark.
+- A 60-task three-scenario suite for data analysis, daily travel planning, and daily life.
+- A hosted DeepSeek V4.1 Flash scenario run: data analysis 19 of 20, daily travel planning 20 of 20, and daily life 20 of 20.
+- A historical local Qwen 2.5 14B comparison with 19 of 20 tasks completed in each scenario.
 - Live DSH model and action validation on `0.2.1-rc.2` and `0.2.1-rc.3`.
+- A DSH `0.2.2-rc.1` bundle patch. A hosted-provider web smoke passed with an explicit complete-ops second-turn recovery.
 - Deterministic DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` validation with a local Messages server.
 - A self-contained DSH tarball with the core and adapter in the bundles.
 

@@ -80,7 +80,14 @@ async function onAction(action: IuiHostAction) {
     try {
       await app.updateModelContext({
         content: [{ type: "text", text: formatAction(action) }],
-        structuredContent: action.envelope as unknown as Record<string, unknown>,
+        structuredContent: (action.kind === "block"
+          ? action.envelope
+          : {
+              action: action.name,
+              answerId: action.answerId,
+              actionId: action.actionId,
+              payload: action.args,
+            }) as unknown as Record<string, unknown>,
       });
       return;
     } catch (error) {

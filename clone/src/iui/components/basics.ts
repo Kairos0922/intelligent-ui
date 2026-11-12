@@ -392,12 +392,12 @@ defineBlock(
     const max = props.max ?? 20;
 
     const stepper = h("div", { class: "iui-stepper" });
-    const minus = h("button", { type: "button", "aria-label": "Fewer people", text: "−" });
+    const minus = h("button", { type: "button", "aria-label": ctx.t?.("fewerPeople") ?? "Fewer people", text: "−" });
     const readout = h("div", { "aria-live": "polite" });
     const strong = h("strong");
     const unitEl = h("span", { text: props.unit });
     readout.append(strong, unitEl);
-    const plus = h("button", { type: "button", "aria-label": "More people", text: "+" });
+    const plus = h("button", { type: "button", "aria-label": ctx.t?.("morePeople") ?? "More people", text: "+" });
     stepper.append(minus, readout, plus);
 
     const heading = h("h4", { text: props.title ?? "Your shopping quantities" });

@@ -4,7 +4,7 @@ The benchmark has 25 host-neutral tasks. It measures the model-facing half of In
 
 The benchmark is not a visual quality test. It is not a model judge. It checks the wire contract, the local validator, and the shape of the result.
 
-**Status:** The mock self-check passes. Real model results are not published. This repository has no provider credentials.
+**Status:** The mock self-check passes. Real three-scenario results are summarized in [specs/SCENARIO-COVERAGE.md](../specs/SCENARIO-COVERAGE.md). This repository has no provider credentials.
 
 ## Metrics
 
@@ -69,6 +69,22 @@ node bench/run.mjs --provider openai --mode fence --repeats 3 \
 node bench/run.mjs --provider openai --mode fence \
   --base-url http://127.0.0.1:11434/v1 --model qwen2.5:14b
 ```
+
+## Three-scenario runner
+
+`scenario-run.mjs` runs the frozen 60-task suite and reports each scenario separately. The `deepseek` provider reads `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL`, and `DEEPSEEK_MODEL` from the environment. Keep the key out of Git and shell history.
+
+```bash
+export DEEPSEEK_API_KEY=...
+export DEEPSEEK_BASE_URL=https://api.deepseek.com
+export DEEPSEEK_MODEL=deepseek-flash
+
+npm run build:core
+node bench/scenario-run.mjs --provider deepseek --model deepseek-flash \
+  --concurrency 2 --timeout 300000 --repair 2 --require 0.9
+```
+
+The `deepseek-flash` alias is currently served by `DeepSeek-V4.1-Flash-1017`. The runner also keeps the `fixture`, `opencode`, `pollinations`, and `ollama` providers for local checks. Only the fixture provider proves the contract. It is not a model coverage result.
 
 ## Options
 
