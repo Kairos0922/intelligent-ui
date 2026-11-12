@@ -101,7 +101,7 @@ export function apply(ctx: Context): void {
       parameters: {
         ops: {
           // Heterogeneous JSON objects. Do not add an `items` schema: some
-          // OpenAI-compatible local models (notably Qwen 2.5 via Ollama) drop
+          // local chat-completions models (notably Qwen 2.5 via Ollama) drop
           // the tool call entirely when an array parameter has nested items.
           type: "array",
           required: true,

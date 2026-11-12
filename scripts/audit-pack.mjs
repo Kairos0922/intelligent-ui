@@ -35,6 +35,11 @@ const forbiddenPaths = [
   "rothcalc",
   "retrogame",
 ];
+// The core ships deliberate zh locale payloads inside generated bundles.
+// The CJK check still applies to every other file, including package docs.
+const generatedLocalePayload =
+  /^package\/(?:dist-lib\/i18n-[^/]+\.js|lib\/client\.js|dist\/app\.html)$/;
+
 const textChecks = [
   ["CJK text", /[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/],
   ["secret", /OPENAI_API_KEY|IUI_BENCH_API_KEY|eyJhbGciOi|sk-[A-Za-z0-9]{20,}/],
@@ -75,11 +80,22 @@ for (const file of files) {
     }
   }
 
-  const text = execFileSync("tar", ["-xOzf", path], {
-    maxBuffer: 100 * 1024 * 1024,
-  }).toString("utf8");
+  const texts = names.map((name) => ({
+    name,
+    text: execFileSync("tar", ["-xOzf", path, name], {
+      maxBuffer: 100 * 1024 * 1024,
+    }).toString("utf8"),
+  }));
+  const text = texts.map((entry) => entry.text).join("\n");
   for (const [label, pattern] of textChecks) {
-    if (pattern.test(text)) {
+    if (label === "CJK text") {
+      for (const entry of texts) {
+        if (generatedLocalePayload.test(entry.name)) continue;
+        if (pattern.test(entry.text)) {
+          fail(`${file}: found ${label} in ${entry.name}.`);
+        }
+      }
+    } else if (pattern.test(text)) {
       fail(`${file}: found ${label}.`);
     }
   }

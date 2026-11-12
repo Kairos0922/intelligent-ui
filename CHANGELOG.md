@@ -30,6 +30,7 @@ All notable changes to this project are documented in this file.
 - Tabs use `aria-selected` and keyboard navigation. Forms use unique radio group names. The map expand control updates `aria-expanded`.
 - Lightbox dialogs are scoped to each runtime root and close on reset.
 - The DSH client imports the core stylesheet through the package export.
+- The release tarball audit permits CJK only inside generated locale payloads. Package docs and source remain English-only.
 
 ### Tested
 
