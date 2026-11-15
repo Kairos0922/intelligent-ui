@@ -2,7 +2,7 @@
 
 DeepSeek Harness (DSH) adapter for Intelligent UI. It registers the `render_iui` tool, gives the model the IUI-1 rules, and renders the result as a keyed tool row in the DSH web client.
 
-- Host: DSH `0.2.2-rc.1`, web profile. The peer range accepts `0.2.1-rc.2` and later. This source tree targets `0.2.2-rc.1`. A hosted-provider web smoke passed with an explicit complete-ops second-turn recovery. See [SMOKE.md](SMOKE.md).
+- Host: DSH `0.2.2-rc.3`, web profile. The peer range requires `0.2.2-rc.3` or later within the `0.2.x` line. This source tree targets `0.2.2-rc.3` because DSH 0.2.2-rc.3 uses `zod 4.6.6`, which clears [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5). A hosted-provider web smoke passed on `0.2.2-rc.1` with an explicit complete-ops second-turn recovery. See [SMOKE.md](SMOKE.md).
 - Runtime: DSH supplies React.
 - Package entries: `.` for the server and `./client` for the browser. The `dsh.client` field declares the client entry.
 - Package contents: one self-contained tarball. The server bundle includes the core validator. The client bundle includes the core and the adapter. The package has no npm runtime dependency on `@intelligent-ui/*`.
@@ -57,7 +57,7 @@ dsh plugin --profile web add @intelligent-ui/dsh
 
 ### 2. Let the bundle patch add the plugin
 
-DSH `0.2.2-rc.1` reads the `dsh.bundle.patch` field in the package and appends `@intelligent-ui/dsh` to `dsh.profile.bundles` in `$DSH_HOME/profiles/web/package.json`. Check that the list contains the package. If it does not, add it:
+The DSH `0.2.2` release line reads the `dsh.bundle.patch` field in the package and appends `@intelligent-ui/dsh` to `dsh.profile.bundles` in `$DSH_HOME/profiles/web/package.json`. Check that the list contains the package. If it does not, add it:
 
 ```json
 {
@@ -144,6 +144,8 @@ The live tests used DeepSeek-V4.1-Flash. Each run made one click. A model can ma
 
 On 2026-11-13, a hosted-provider web smoke passed on DSH `0.2.2-rc.1` with adapter `0.2.2` and `deepseek-flash` (served by `DeepSeek-V4.1-Flash-1017`). It covered the first render, cancel and confirm, the `[iui-action]` message, and a second complete interface. The model's automatic action turn answered in prose. The pre-registered protocol then sent the exact complete ops as a user message. That call rendered the replacement.
 
+On 2026-11-16, the dependency tree moved to DSH `0.2.2-rc.3` and Cordis `4.1.0`. Build, typecheck, the 64 Node tests, and the two Playwright tests pass. `npm audit` reports no vulnerabilities. A new hosted web smoke on rc.3 has not been run yet.
+
 A deliberately invalid op was refused by the model before the tool call. The previous valid interface stayed usable. The sanitized record is in [specs/evidence/dsh-smoke.json](https://github.com/Kairos0922/intelligent-ui/blob/main/specs/evidence/dsh-smoke.json).
 
 The deterministic tests used the self-contained tarball in a clean profile. They did not use an account. They check the DSH protocol, tool registration, toolview, and action path. They do not measure model compliance.
@@ -162,10 +164,11 @@ An old session uses the generic DSH tool row. The adapter removes its stylesheet
 
 ## Compatibility
 
-- The package targets DSH `0.2.2-rc.1`. The peer range accepts `0.2.1-rc.2` and later.
-- The peer range is `@deepseek-ai/dsh-tools` `>=0.2.1-rc.2 <0.3.0`.
-- DSH compares the runtime version with each `@deepseek-ai/dsh*` peer range and includes prerelease versions. Version 0.2.0 declared `0.2.1-rc.2` exactly. DSH rejected `0.2.1-rc.3` before it loaded the plugin. Version 0.2.1 and later use the range above. No exact-version exemption is necessary.
-- DSH 0.2.1 is a release candidate. Test the adapter after each DSH upgrade.
+- The package targets DSH `0.2.2-rc.3`. The peer range requires `0.2.2-rc.3` or later within the `0.2.x` line.
+- The peer range is `@deepseek-ai/dsh-tools` `>=0.2.2-rc.3 <0.3.0`.
+- DSH 0.2.1 uses `zod 4.4.3`, which is affected by [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5). DSH 0.2.2-rc.3 uses `zod 4.6.6`, so the adapter no longer supports the 0.2.1 line.
+- DSH compares the runtime version with each `@deepseek-ai/dsh*` peer range and includes prerelease versions. Version 0.2.0 declared `0.2.1-rc.2` exactly. DSH rejected `0.2.1-rc.3` before it loaded the plugin. The current range requires rc.3 or later, so no exact-version exemption is necessary.
+- DSH 0.2.2-rc.3 is a release candidate. Test the adapter after each DSH upgrade.
 - The package uses the DSH `tools`, `systemPrompt`, `slots`, and `sessions` services.
 - The client uses the DSH `window.__ModuleLoader__` format and keeps React external.
 - The `exports["./client"]` map must use the `default` condition.
