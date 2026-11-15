@@ -37,7 +37,7 @@
     "inspect:mcp": "npx --yes @modelcontextprotocol/inspector node examples/mcp-server.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
+    "@playwright/test": "^1.65.0",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
