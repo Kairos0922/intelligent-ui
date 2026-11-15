@@ -108,13 +108,41 @@ test("pass validation rejects malformed flight, seat, route and QR URLs", () => 
   assert.ok(result.issues.some((issue) => issue.path.includes("seat")));
   assert.ok(result.issues.some((issue) => issue.path.includes("route.to.code")));
   assert.ok(result.issues.some((issue) => issue.path.includes("qr.payload")));
+
+  const unsafeScheme = validatePassPayload(
+    fixture({ qr: { format: "qr", payload: "ftp://example.com/pass" } }),
+  );
+  assert.equal(unsafeScheme.payload, null);
+  assert.ok(unsafeScheme.issues.some((issue) => issue.path.includes("qr.payload")));
 });
 
-test("a malformed pass op is dropped with a validation issue", () => {
+test("a malformed pass op or pass set is dropped with a validation issue", () => {
   const ops = answer(fixture({ seat: "14" }));
   const result = validateAnswerOps(ops);
   assert.ok(result.issues.some((issue) => issue.code === "invalid_pass"));
   assert.equal(result.ops.some((op) => op.t === "comp" && op.type === "pass"), false);
+
+  const patched = answer(fixture());
+  patched.splice(patched.length - 1, 0, {
+    t: "set",
+    id: "c1",
+    path: "pass",
+    v: fixture({ seat: "14" }),
+  });
+  const badSet = validateAnswerOps(patched);
+  assert.ok(badSet.issues.some((issue) => issue.code === "invalid_pass"));
+  assert.equal(badSet.ops.some((op) => op.t === "set"), false);
+
+  const goodPatch = answer(fixture());
+  goodPatch.splice(goodPatch.length - 1, 0, {
+    t: "set",
+    id: "c1",
+    path: "pass",
+    v: fixture({ gate: "D2" }),
+  });
+  const goodSet = validateAnswerOps(goodPatch);
+  assert.equal(goodSet.issues.some((issue) => issue.code === "invalid_pass"), false);
+  assert.equal(goodSet.ops.find((op) => op.t === "set")?.v?.gate, "D2");
 });
 
 test("two axes decide presentation, not the model's status", () => {
@@ -137,7 +165,11 @@ test("snapshot staleness and the 24h TTL are host-derived", () => {
     source: { id: "test-issuer", kind: "issuer" },
   };
   assert.equal(freshnessForPass(attestation, { now: Date.parse("2026-11-13T00:30:00Z") }), "live");
-  assert.equal(freshnessForPass(attestation, { now: Date.parse("2026-11-13T00:30:00Z"), online: false }), "stale");
+  assert.equal(
+    freshnessForPass(attestation, { now: Date.parse("2026-11-13T00:30:00Z"), online: false }),
+    "unknown",
+    "offline without a snapshot is unknown, not a saved snapshot",
+  );
   assert.equal(
     freshnessForPass({ ...attestation, snapshotAt: "2026-11-13T00:00:00Z" }, { now: Date.parse("2026-11-13T00:30:00Z") }),
     "stale",
@@ -292,6 +324,10 @@ test("DSH pass host verifies live, gate-change, revoked, and invalid feeds", asy
   );
   assert.equal(verified.credentialId, "p1");
   assert.equal(host.getPayload("p1")?.gate, "D7");
+  assert.ok(
+    Date.parse(verified.staleAfter) <= Date.parse("2026-11-14T10:00:00Z"),
+    "issuer staleAfter must not extend the 24h snapshot TTL",
+  );
 
   await fetch(`http://127.0.0.1:${port}/scenario?value=gate-change`);
   await host.refresh("p1");

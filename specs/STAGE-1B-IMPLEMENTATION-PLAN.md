@@ -71,13 +71,15 @@
 | `verified` | `live` | 可出示 | 正常徽章 |
 | `verified` | `stale` | 可出示 | “显示保存的快照”警示 + 上次校验时间 |
 | `verified` | `unknown` | 可出示 | “当前状态未知”警示，不写“已验证” |
-| `unverified` | 任意 | 可出示 | “未验证”警示，不得显示 Verified |
+| `unverified` | 任意 | 可出示（离线且无快照时回退文本） | “未验证”警示，不得显示 Verified |
 | `invalid` / `revoked` | 任意 | 禁用 | danger 样式，说明原因 |
 | 任意 | `expired` | 禁用 | 过期提示 |
 
+离线且没有密封快照时，块不渲染凭证字段，只显示回退文本并禁用 QR（Domain Spec §7）。在线但 issuer 不可达时仍按 `unverified` 展示，并明确标注未验证。当前块只实现 `qr` / `iui-pass-v1` 的 QR 渲染；`pdf417` / `aztec` 可展示字段但禁用代码按钮并提示宿主不支持，不能把其他码制误画成 QR。
+
 ### 3.3 DSH 动作
 
-- `show_code`：本地打开 QR dialog；未验证/撤销/无效时不可用。
+- `show_code`：本地打开 QR dialog；invalid/revoked/expired 时不可用；`unverified` 仍可出示并标注警告；离线且无密封快照时回退文本。
 - `refresh`：重新拉取 issuer 并验证；成功后动作仍回传 session。
 - `request_verification`：同 refresh，语义为请求重新验证。
 - `open_issuer_link`：只接受 `https://`；不写 Wallet。

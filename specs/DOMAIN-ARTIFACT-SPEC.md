@@ -95,7 +95,7 @@ type Attestation = {
 | verified | stale | ✅ + 警示 | warning | "登机口可能已变更（上次校验 …）"；主行动可用但文案带条件 |
 | verified | unknown | ✅ + 警示 | warning | "无法确认最新状态" |
 | verified | expired | ❌ | danger | "凭证已过期"；QR 禁用 |
-| unverified | 任意 | ✅ + 标注 | warning* | "未验证：仅按模型/缓存呈现"；*unverified+expired → danger |
+| unverified | 任意 | ✅ + 标注（离线且无快照时按 §7 回退） | warning* | "未验证：仅按模型/缓存呈现"；*unverified+expired → danger |
 | invalid / revoked | 任意 | ❌ | danger | "签名无效 / 已撤销"；QR 禁用 |
 
 **规则**：`verified` 一词只能由宿主 attestation 产生；任何 UI 元素不得把模型声明渲染为信任徽标（实验 08-model-claimed 用例）。

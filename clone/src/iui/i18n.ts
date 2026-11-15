@@ -141,6 +141,7 @@ type MessageKey =
   | "actionExpired"
   | "actionNeedsConfirmation"
   | "showCode"
+  | "codeUnavailable"
   | "refresh"
   | "boardingPass"
   | "flight"
@@ -169,6 +170,10 @@ type MessageKey =
   | "passInvalid"
   | "passStale"
   | "passUnknown"
+  | "passExpired"
+  | "passOffline"
+  | "passOfflineDetail"
+  | "passCodeUnsupported"
   | "gateChanged"
   | "interfaceUpdated"
   | "snapshotOutdated"
@@ -208,6 +213,7 @@ const EN: Record<MessageKey, string> = {
   actionExpired: "Expired",
   actionNeedsConfirmation: "Confirmation required",
   showCode: "Show code",
+  codeUnavailable: "Code unavailable",
   refresh: "Refresh",
   boardingPass: "Boarding pass",
   flight: "Flight",
@@ -236,6 +242,10 @@ const EN: Record<MessageKey, string> = {
   passInvalid: "The pass signature or snapshot seal is invalid. Do not present it.",
   passStale: "Showing a saved snapshot. Refresh before boarding.",
   passUnknown: "The current pass status is unknown. Refresh before boarding.",
+  passExpired: "This pass has expired. Do not present it.",
+  passOffline: "This pass cannot be shown offline.",
+  passOfflineDetail: "No sealed snapshot is available. Reconnect to load the pass.",
+  passCodeUnsupported: "This pass uses a code format this host cannot render.",
   gateChanged: "Gate changed: {from} → {to}",
   interfaceUpdated: "The interface was updated from the issuer feed.",
   snapshotOutdated: "The saved snapshot is out of date.",
@@ -276,6 +286,7 @@ const ZH: Partial<Record<MessageKey, string>> = {
   actionExpired: "已过期",
   actionNeedsConfirmation: "需要确认",
   showCode: "显示代码",
+  codeUnavailable: "代码不可用",
   refresh: "刷新",
   boardingPass: "登机牌",
   flight: "航班",
@@ -304,6 +315,10 @@ const ZH: Partial<Record<MessageKey, string>> = {
   passInvalid: "凭证签名或快照封印无效，请勿出示。",
   passStale: "当前显示保存的快照，登机前请刷新。",
   passUnknown: "当前凭证状态未知，登机前请刷新。",
+  passExpired: "凭证已过期，请勿出示。",
+  passOffline: "当前离线，无法出示此凭证。",
+  passOfflineDetail: "没有可用的密封快照，请恢复网络后重试。",
+  passCodeUnsupported: "此凭证的代码格式不受当前宿主支持。",
   gateChanged: "登机口已变更：{from} → {to}",
   interfaceUpdated: "界面已按签发方数据更新。",
   snapshotOutdated: "保存的快照已过时。",

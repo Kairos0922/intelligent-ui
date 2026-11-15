@@ -212,8 +212,11 @@ function timeZone(
 
 function safeQrPayload(payload: string): boolean {
   if (payload.length > MAX_QR_PAYLOAD) return false;
-  if (/^(?:javascript|data|vbscript):/i.test(payload)) return false;
-  if (/^https?:\/\//i.test(payload)) {
+  // The compact IUI payload is issuer-defined and opaque to the host.
+  if (payload.toLowerCase().startsWith("iui1:")) return true;
+  // Any other URI scheme must be an https URL. This rejects javascript:,
+  // data:, http:, ftp:, and custom schemes that a scanner might hand to an app.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(payload)) {
     try {
       return new URL(payload).protocol === "https:";
     } catch {
@@ -438,7 +441,9 @@ export function freshnessForPass(
     if (Number.isFinite(snapshotAge) && snapshotAge > 24 * 60 * 60 * 1000) return "unknown";
     return "stale";
   }
-  if (options.online === false) return "stale";
+  // Offline without a sealed snapshot is unknown, not stale: there is no
+  // saved snapshot to describe. The block can then fall back to text.
+  if (options.online === false) return "unknown";
   if (Date.parse(attestation.staleAfter) <= now) return "stale";
   return "live";
 }

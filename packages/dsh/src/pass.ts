@@ -400,10 +400,14 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
     }
     await store.putIssuerKey(payload.issuer.keyId, configValue.publicKey);
     const checkedAt = new Date(now()).toISOString();
-    const staleAfter = instant(
-      feed.staleAfter,
-      new Date(Math.min(Date.parse(payload.validUntil), Date.parse(checkedAt) + SNAPSHOT_TTL_MS)).toISOString(),
+    const maxStaleAt = Math.min(
+      Date.parse(payload.validUntil),
+      Date.parse(checkedAt) + SNAPSHOT_TTL_MS,
     );
+    const requestedStaleAt = feed.staleAfter ? Date.parse(feed.staleAfter) : Number.NaN;
+    const staleAfter = new Date(
+      Number.isFinite(requestedStaleAt) ? Math.min(requestedStaleAt, maxStaleAt) : maxStaleAt,
+    ).toISOString();
     const integrity: PassIntegrity = feed.status === "revoked" ? "revoked" : "verified";
     payloads.set(payload.credentialId, payload);
     attestations.set(payload.credentialId, {
@@ -476,6 +480,7 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
     await task;
   };
 
+  let onlineListener: (() => void) | null = null;
   const host: DshPassHost = {
     ensurePass(payload) {
       if (!payload || typeof payload.credentialId !== "string") return;
@@ -519,13 +524,18 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
     },
     dispose() {
       listeners.clear();
+      if (typeof window !== "undefined" && onlineListener) {
+        window.removeEventListener("online", onlineListener);
+        onlineListener = null;
+      }
     },
   };
 
   if (typeof window !== "undefined") {
-    window.addEventListener("online", () => {
+    onlineListener = () => {
       void host.refreshAll();
-    });
+    };
+    window.addEventListener("online", onlineListener);
   }
 
   return host;

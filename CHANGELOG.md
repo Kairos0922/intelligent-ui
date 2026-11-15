@@ -29,6 +29,8 @@ All notable changes to this project are documented in this file.
 - The validator removes model-provided operation and audit fields. Model provenance authority is forced to `claimed`.
 - The runtime enforces the op limit and the answer byte limit for each answer.
 - The `set` op sanitizes URL values and enforces the prop byte limit.
+- A `set` op that replaces a travel-pass payload is validated like the initial block and is dropped when invalid.
+- The pass block falls back to text when offline without a sealed snapshot, and does not render PDF417/Aztec payloads as QR codes.
 - Server-side validation uses the host-neutral catalog and does not import the DOM registry.
 - The `inherit` theme follows the host dark marker and sets the color scheme on the surface.
 - The runtime reports duplicate block IDs, unknown `set` targets, mount errors, and render errors.

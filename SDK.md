@@ -416,7 +416,9 @@ const ui = createIntelligentUI({
 });
 ```
 
-The host owns the trust decision. A verified payload needs an issuer signature that matches the payload's `issuer.keyId`, a credential id that matches the attestation, and an unexpired validity window. The block turns the two axes into the status badge, warnings, and QR availability. A revoked, invalid, or expired pass cannot open the QR. A stale snapshot shows the last-checked time and a warning.
+The host owns the trust decision. A verified payload needs an issuer signature that matches the payload's `issuer.keyId`, a credential id that matches the attestation, and an unexpired validity window. The block turns the two axes into the status badge, warnings, and QR availability.
+
+A revoked, invalid, or expired pass cannot open the QR. A stale snapshot shows the last-checked time and a warning. Offline without a sealed snapshot, the block shows fallback text instead of pass fields. A `set` op that replaces `pass` is validated like the initial block. The browser block renders only `qr` and `iui-pass-v1` payloads. PDF417 and Aztec payloads stay visible but cannot open a QR.
 
 The core exports `verifyPassSignature()`, `createSnapshotMetadataSeal()`, `verifySnapshotMetadata()`, and `verifySnapshotCredential()` for host adapters. The DSH adapter uses IndexedDB for sealed snapshots and a non-extractable WebCrypto HMAC key. The test issuer in `tools/test-issuer/` is an independent process. Its Ed25519 private key never enters the page.
 

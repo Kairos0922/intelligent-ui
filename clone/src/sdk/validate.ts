@@ -876,6 +876,7 @@ export function validateOps(input: unknown, options: ValidateOptions = {}): Vali
 
   const ops: Op[] = [];
   const ids = new Map<string, "op" | "comp" | "action">();
+  const componentTypes = new Map<string, string>();
   let bytes = 0;
   for (let i = 0; i < input.length; i++) {
     if (ops.length >= maxOps) {
@@ -897,7 +898,20 @@ export function validateOps(input: unknown, options: ValidateOptions = {}): Vali
       issue(issues, `$[${i}]`, "answer op must be the first op", "invalid_answer");
       continue;
     }
+    if (
+      result.op.t === "set" &&
+      result.op.path === "pass" &&
+      componentTypes.get(result.op.id) === "pass"
+    ) {
+      const checked = validatePassPayload(result.op.v, "v.pass");
+      for (const item of checked.issues) {
+        issue(issues, `$[${i}].${item.path}`, item.message, item.code ?? "invalid_pass");
+      }
+      if (!checked.payload) continue;
+      result.op.v = checked.payload;
+    }
     if (!collectIds(result.op, ids, issues, `$[${i}]`)) continue;
+    if (result.op.t === "comp") componentTypes.set(result.op.id, result.op.type);
     if (bytes + result.bytes > maxTotalBytes) {
       issue(issues, `$[${i}]`, `answer exceeds ${maxTotalBytes} bytes`);
       break;

@@ -1080,6 +1080,21 @@ await test("travel pass uses host attestation, QR dialog, refresh, and revocatio
     "refresh event missing",
   );
 
+  online = false;
+  for (const listener of listeners) listener();
+  assert(pass.dataset.freshness === "unknown", "offline state should be unknown, not stale");
+  assert(pass.querySelector('[data-testid="pass-offline"]'), "offline fallback missing");
+  assert(!pass.querySelector('[data-testid="pass-show-code"]'), "offline fallback still offers a code");
+  online = true;
+  for (const listener of listeners) listener();
+
+  payload.qr = { ...payload.qr, format: "pdf417" };
+  for (const listener of listeners) listener();
+  assert(pass.querySelector('[data-testid="pass-code-unsupported"]'), "unsupported code format notice missing");
+  assert(host.querySelector<HTMLButtonElement>('[data-testid="pass-show-code"]')?.disabled, "unsupported code format is still enabled");
+  payload.qr = { ...payload.qr, format: "iui-pass-v1" };
+  for (const listener of listeners) listener();
+
   attestation = {
     ...attestation,
     integrity: "revoked",
@@ -1099,7 +1114,8 @@ await test("travel pass uses host attestation, QR dialog, refresh, and revocatio
     snapshotAt: "2026-11-13T09:00:00Z",
   };
   for (const listener of listeners) listener();
-  assert(pass.dataset.freshness === "stale", "snapshot freshness missing");
+  const staleFreshness: string | undefined = pass.dataset.freshness;
+  assert(staleFreshness === "stale", "snapshot freshness missing");
   assert(host.querySelector('[data-testid="pass-stale"]'), "stale notice missing");
   ui.destroy();
   return "attestation · verified/revoked · QR dialog · refresh event · stale snapshot";

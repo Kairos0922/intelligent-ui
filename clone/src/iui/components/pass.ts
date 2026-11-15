@@ -4,6 +4,7 @@ import { defineBlock, type Ctx } from "../registry";
 import {
   evaluatePass,
   freshnessForPass,
+  validatePassPayload,
   type PassFreshness,
   type PassIntegrity,
   type PassPayload,
@@ -14,6 +15,10 @@ interface PassProps {
 }
 
 const SVG_NS = "http://www.w3.org/2000/svg";
+
+function qrFormatSupported(format: PassPayload["qr"]["format"]): boolean {
+  return format === "qr" || format === "iui-pass-v1";
+}
 
 function qrSvg(payload: string, label: string): SVGSVGElement {
   const code = qrcode(0, "M");
@@ -135,6 +140,7 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
   };
 
   const showCode = (pass: PassPayload) => {
+    if (!canShowCode || !qrFormatSupported(pass.qr.format)) return;
     if (dialog) dialog.close();
     const qrLabel = "Scannable boarding pass code";
     const sheet = h("dialog", { class: "iui-pass-dialog", "aria-label": qrLabel }) as HTMLDialogElement;
@@ -176,13 +182,28 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
     const now = host?.now?.() ?? Date.now();
     const freshness = freshnessForPass(attestation, { now, online });
     const integrity = attestation?.integrity ?? "unverified";
-    const present = evaluatePass(integrity, freshness, payload.validUntil, now);
     const latestKnown = host?.getLatestKnown?.(current.credentialId) ?? null;
     const locale = ctx.locale ?? "en-US";
     renderedPayload = payload;
-    canShowCode = present.canShowCode;
 
     root.replaceChildren();
+    if (!online && !attestation?.snapshotAt) {
+      canShowCode = false;
+      root.dataset.integrity = "unverified";
+      root.dataset.freshness = "unknown";
+      root.append(
+        h("div", { class: "iui-pass-notice iui-pass-notice--danger", "data-testid": "pass-offline" },
+          h("strong", { text: label("passOffline", "This pass cannot be shown offline.") }),
+          h("span", { text: label("passOfflineDetail", "No sealed snapshot is available. Reconnect to load the pass.") }),
+        ),
+      );
+      return;
+    }
+
+    const present = evaluatePass(integrity, freshness, payload.validUntil, now);
+    const codeFormatSupported = qrFormatSupported(payload.qr.format);
+    const canPresentCode = present.canShowCode && codeFormatSupported;
+    canShowCode = canPresentCode;
     root.dataset.integrity = integrity;
     root.dataset.freshness = freshness;
 
@@ -229,16 +250,21 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
     root.append(fields);
 
     const notices = h("div", { class: "iui-pass-notices", "aria-live": "polite" });
-    if (!attestation) {
-      notices.append(h("div", { class: "iui-pass-notice", "data-testid": "pass-unverified", text: label("passUnverified", "The issuer has not provided a verifiable status for this pass.") }));
-    } else if (integrity === "revoked") {
+    if (integrity === "revoked") {
       notices.append(h("div", { class: "iui-pass-notice iui-pass-notice--danger", "data-testid": "pass-revoked", text: label("passRevoked", "This pass was revoked by the issuer. Do not present it.") }));
     } else if (integrity === "invalid") {
       notices.append(h("div", { class: "iui-pass-notice iui-pass-notice--danger", "data-testid": "pass-invalid", text: label("passInvalid", "The pass signature or snapshot seal is invalid. Do not present it.") }));
+    } else if (freshness === "expired") {
+      notices.append(h("div", { class: "iui-pass-notice iui-pass-notice--danger", "data-testid": "pass-expired", text: label("passExpired", "This pass has expired. Do not present it.") }));
+    } else if (integrity === "unverified") {
+      notices.append(h("div", { class: "iui-pass-notice", "data-testid": "pass-unverified", text: label("passUnverified", "The issuer has not provided a verifiable status for this pass.") }));
     } else if (freshness === "stale") {
       notices.append(h("div", { class: "iui-pass-notice", "data-testid": "pass-stale", text: label("passStale", "Showing a saved snapshot. Refresh before boarding.") }));
     } else if (freshness === "unknown") {
       notices.append(h("div", { class: "iui-pass-notice", "data-testid": "pass-unknown", text: label("passUnknown", "The current pass status is unknown. Refresh before boarding.") }));
+    }
+    if (present.canShowCode && !codeFormatSupported) {
+      notices.append(h("div", { class: "iui-pass-notice", "data-testid": "pass-code-unsupported", text: label("passCodeUnsupported", "This pass uses a code format this host cannot render.") }));
     }
     const modelGate = current.gate;
     const hostGate = payload.gate;
@@ -263,9 +289,9 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
     const show = h("button", {
       type: "button",
       class: "iui-pass-button iui-pass-button--primary",
-      text: present.canShowCode ? label("showCode", "Show code") : "Code unavailable",
+      text: canPresentCode ? label("showCode", "Show code") : label("codeUnavailable", "Code unavailable"),
       "data-testid": "pass-show-code",
-      disabled: !present.canShowCode,
+      disabled: !canPresentCode,
       onclick: () => showCode(payload),
     });
     actions.append(show);
@@ -308,7 +334,7 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
 
   const onShowCode = (event: Event) => {
     const detail = (event as CustomEvent<{ credentialId?: unknown }>).detail;
-    if (detail?.credentialId && detail.credentialId !== current.credentialId) return;
+    if (detail?.credentialId !== current.credentialId) return;
     if (canShowCode) showCode(renderedPayload);
   };
   if (typeof window !== "undefined") {
@@ -330,11 +356,14 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
 
   return {
     set(path, value) {
-      if (path === "pass" && value && typeof value === "object") {
-        current = value as PassPayload;
-        ctx.passHost?.ensurePass?.(current);
-        render();
-      }
+      if (path !== "pass" || !value || typeof value !== "object") return;
+      // A streaming caller may not have run the full-answer validator. Never
+      // mount an unvalidated payload through a patch.
+      const checked = validatePassPayload(value, "pass");
+      if (!checked.payload) return;
+      current = checked.payload;
+      ctx.passHost?.ensurePass?.(current);
+      render();
     },
   };
 });
