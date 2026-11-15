@@ -1,0 +1,120 @@
+{
+  "schema": "iui-pass-host-evidence-v1",
+  "generatedAt": "2026-11-15T13:39:32Z",
+  "scope": "stage-1b-travel-pass-vertical-slice",
+  "branch": "feat/stage-1b-travel-pass",
+  "issuer": {
+    "kind": "self-built-test-issuer",
+    "realIssuerConnected": false,
+    "algorithm": "Ed25519",
+    "privateKeyLocation": "test-issuer process memory only",
+    "walletConnected": false,
+    "issuerGateOverride": "Explicit 2026-11-13 user instruction. This is not a passed real-issuer gate."
+  },
+  "implementation": {
+    "passModel": "clone/src/iui/pass.ts",
+    "passBlock": "clone/src/iui/components/pass.ts",
+    "hostController": "packages/dsh/src/pass.ts",
+    "manifest": "packages/dsh/src/manifest.ts",
+    "testIssuer": "tools/test-issuer/server.mjs",
+    "snapshotStorage": "IndexedDB iui-pass, host HMAC CryptoKey non-extractable",
+    "snapshotTtlHours": 24
+  },
+  "commands": [
+    "npm run build",
+    "npm run typecheck",
+    "node --test tests/*.test.mjs",
+    "npm run selftest",
+    "npm run test:e2e",
+    "npm run check:docs",
+    "npm run audit:content",
+    "npm run bench:selfcheck",
+    "npm run pack:all",
+    "npm run audit:pack",
+    "npm run check:release -- --tarballs"
+  ],
+  "result": {
+    "status": "pass-host-path-only",
+    "nodeTests": {
+      "passed": 72,
+      "total": 72
+    },
+    "sdkBrowserSelfTest": {
+      "passed": 30,
+      "total": 30
+    },
+    "playwrightTests": {
+      "passed": 3,
+      "total": 3
+    },
+    "passHostBrowser": true,
+    "snapshotRestore": true,
+    "slowTimeoutFallback": true,
+    "gateChangeRefresh": true,
+    "revokedSnapshot": true,
+    "invalidSignature": true,
+    "qrDialog": true,
+    "refreshBlockAction": true
+  },
+  "checks": [
+    {
+      "id": "issuer-signature",
+      "ok": true,
+      "detail": "The core verifies an Ed25519 signature over canonical payload JSON. A changed gate fails verification."
+    },
+    {
+      "id": "host-attestation",
+      "ok": true,
+      "detail": "The block reads integrity and freshness from PassHost. Model-supplied trust fields are ignored."
+    },
+    {
+      "id": "snapshot-seal",
+      "ok": true,
+      "detail": "Snapshot metadata is HMAC-sealed with a non-extractable WebCrypto key. Tampering fails validation."
+    },
+    {
+      "id": "offline-restore",
+      "ok": true,
+      "detail": "A new offline host restored the verified snapshot in a real browser and marked freshness stale."
+    },
+    {
+      "id": "slow-issuer-fallback",
+      "ok": true,
+      "detail": "A slow issuer response timed out and the host fell back to the sealed snapshot instead of clearing the pass."
+    },
+    {
+      "id": "revocation",
+      "ok": true,
+      "detail": "A revoked feed produced integrity=revoked, disabled the QR, and preserved revoked through the snapshot."
+    },
+    {
+      "id": "invalid-signature",
+      "ok": true,
+      "detail": "A tampered feed signature produced integrity=invalid and no verified badge."
+    },
+    {
+      "id": "validator",
+      "ok": true,
+      "detail": "Malformed flight, seat, route, and QR props drop the pass op with an invalid_pass issue."
+    },
+    {
+      "id": "dsh-actions",
+      "ok": true,
+      "detail": "DSH declares canVerifyPass=true and read-only show_code, refresh, request_verification, and open_issuer_link. canOpenWallet remains false."
+    }
+  ],
+  "notProven": [
+    "A real airline, hotel, rail, Google Wallet, or Apple Wallet issuer.",
+    "Real-world credential validity or airport scanner compatibility.",
+    "Autonomous hosted-model pass turns or a hosted DeepSeek pass smoke.",
+    "C26 conclusion-layer rewriting when a stale snapshot disagrees with the model prose.",
+    "C29 action-runtime unknown reconciliation for a timed-out pass refresh.",
+    "C30 DSH logout hook wiring; PassHost.clear() exists but is not bound to sign-out.",
+    "C32 issuer-domain allowlist for URL QR payloads; only https or opaque payloads are enforced."
+  ],
+  "caveats": [
+    "The test issuer generates a fresh key pair on each process start. This is not production key management.",
+    "The browser tests use the local test issuer and a synthetic boarding pass. They do not use passenger data from a real booking.",
+    "No API key, route token, session record, screenshot, private key, or real credential is included in this evidence."
+  ]
+}

@@ -785,6 +785,8 @@ Beachhead Decision Record
 
 > **与 §7.5 的张力（必须记录，不得粉饰）：** travel 的前置条件要求"真实 issuer 或能拿到可验证测试凭证"；当前两者皆无外源。本记录以"自建测试 issuer 起步 + 真实 issuer 作为阶段 2 门槛 + day plan 回退"化解，**不等于条件已满足**。自建测试 issuer 只能验证协议与实现，不能验证产品价值（没有用户能拿它登机）。若不接受此化解，正确动作是改选 day plan——这是 §7.5 的原文要求，本记录选择"有条件偏离 + 明确回退"，责任在决策人。
 
+> **2026-11-13 issuer-gate override（显式偏离，不得当作门槛通过）：** 用户在 issuer 阻塞未解时指示"那现在就解决这个事情啊"。本记录将指令解释为：**授权以自建测试 issuer 继续 Stage 1b，同时把真实外部 issuer 保留为阶段 2 门槛**。不接入真实航司/Wallet，不把测试 issuer 的 `verified` 当作真实凭证，不声称机场闸机可扫。Stage 1b 交付与限制见 `specs/STAGE-1B-IMPLEMENTATION-PLAN.md`；若该解释不符合用户意图，立即停止 travel 实现并回退 day plan。
+
 ### 7.7 暂定建议（不是决定）
 
 若目前没有宿主约束，建议先用 **Day plan 作为协议与评估的测试夹具**：它不依赖 issuer/凭证发行，能更早验证持久化、冲突、提醒与 action 状态。但这只是"测试夹具"，不等于产品 beachhead；正式 beachhead 仍由真实宿主、用户、数据决定。
@@ -1103,6 +1105,7 @@ Imagine      W ∈ ℂ      复平面/极点/抬升
 - 2026-11-03（22:52，用户决策落地）：用户回答决策 1–11——宿主 DSH；开发者本人 + 外部客户；beachhead **有条件选定 travel/pass**；数据完全没有（自建测试 issuer 起步，真实 issuer 为阶段 2 门槛，day plan 回退）；反方检查由 AI 反方承担；第 8 条硬阻断采纳；证据提交 git；spec 中文豁免。新增 §7.6.1 决策记录（含与 §7.5 前置条件的张力记录）；§9 四问标记已答；§6.6 硬阻断扩为 8 条；PROTOCOL-SPEC §1.3 Travel 列激活、§20 附 8 条建议答案；EVALUATION-SPEC §7.1 第 8 条采纳、§7.4.1 阈值草案；`scripts/check-docs.mjs` 增加 specs/experiments/plan 中文豁免。
 - 2026-11-04（阶段 1a 实现）：完成 beachhead 无关契约层——`answer` op（槽位/locale/actions/provenance/fieldProvenance/assumptions）、capability manifest、只读+可逆 action runtime（授权/确认/幂等/错误/超时→unknown→reconciling/补偿/审计链）、provenance authority 分离、answer 级 i18n、适配器 manifest-aware policy 与 action 转发、E2E 自测 29/29、Node 测试 54/54。**未启动 1b**（pass 块、issuer、快照 seal、DSH travel 适配仍受 issuer 门槛约束）。同时把 `answer.fieldProvenance` 回写 PROTOCOL-SPEC §4.1/§14.2（0.3-draft）。证据与限制见 `specs/STAGE-1A-IMPLEMENTATION-PLAN.md`。
 - 2026-11-04（受托决策 + 反方检查 + 批准）：用户授权全部决策（原则"正确的方法做正确的事情"）并指令按开源标准交付。执行独立 AI 反方审阅：4 项发现全部处置——**F1** 回退成本低估 → 阶段 1 拆 1a（beachhead 无关契约，4–5 周）/ issuer 主动门槛（1a 末检查，未过即切 day plan，沉没成本仅 1a）/ 1b（travel 专属，3–5 周），外联从 1a 第一周并行；**F2** DSH 单点/作者自测 → 记录为风险，阶段 2 加非作者第二探针；**F3** 快照 seal 改双层（issuer 签名权威 + 宿主 HMAC 尽力、密钥 non-extractable、同源妥协边界入威胁模型，PROTOCOL-SPEC §15.3、新增 C25）；**F4** 状态机统一 `authorize` 事件、新增 `reconcile_timeout`（PROTOCOL-SPEC §8，0.2-draft）。EVALUATION-SPEC：真实模型 TaskCompletion 降为形成性（n=20 无法区分 60/75）、IntegrationCost 降为记录性。§7.6.1 签署批准（受托决策，用户保留推翻权）。新增 **§11 开源标准**（npm 发布为 1a 并行轨道、PROTOCOL-SPEC 英译与证据进 CI 为阶段 1 退出条件、DSH=验证宿主≠分发渠道）。新增 `specs/DOMAIN-ARTIFACT-SPEC.md`（travel/pass，0.1-draft，C26–C32）。**阶段 1a 实现解锁。**
+- 2026-11-13（Stage 1b 垂直切片 + issuer-gate override）：按用户指示以自建测试 issuer 启动 1b，同时保留真实 issuer 为阶段 2 门槛。新增 `pass` 块、QR、`PassHost`、Ed25519 校验、双层快照（issuer 签名 + 宿主 HMAC/IndexedDB）、测试 issuer 进程、DSH `canVerifyPass: true` 与只读 pass 动作。Node 72/72、SDK 自测 30/30、浏览器 pass host 1/1；真实 issuer、Wallet、闸机与 hosted pass smoke 未做。证据与限制见 `specs/STAGE-1B-IMPLEMENTATION-PLAN.md`。
 
 ---
 
@@ -1238,9 +1241,9 @@ node verify.mjs
 | Protocol §5、§7–13 | Action Intent / 授权 / 状态机 / 幂等 / 错误 / 重试 / 对账 / 补偿 / 审计 | §6.3 P0-1、§6.3.1、§6.3.2、§6.4 | 1a 已实现只读/可逆子集 |
 | Protocol §6 | Host Capability Manifest | §6.3 P0-0b | 1a 已实现（prompt/validator/UI 同源） |
 | Protocol §14 | provenance / authority / 新鲜度 | §6.3.2 | 1a 已实现记录形状/authority 分离/verification 降级；高风险字段映射与新鲜度状态待 1b |
-| Protocol §15 | pass profile / `integrity × freshness` | §6.3.4、§6.4 | 已回写验收 |
+| Protocol §15 | pass profile / `integrity × freshness` / 双层快照 seal | §6.3.4、§6.4 | 1b 已实现测试 issuer 路径；真实 issuer 未接 |
 | Protocol §16 | storage / state ownership / PII | §6.3 P0-3 | 已回写 |
-| Protocol §17–18 | 验证规则 / C1–C24 conformance | §6.3.3、§6.4 | C1–C15、C20、C21 契约层有测试；C16–C19、C22–C25 待 1b/2 |
+| Protocol §17–18 | 验证规则 / C1–C24 conformance | §6.3.3、§6.4 | C1–C15、C20、C21、C27、C28、C31 有测试；C26/C29/C30/C32 部分；真实 issuer 与真机测试待阶段 2 |
 | Evaluation §3–7 | L1–L4 + S / 指标 / 门禁 | §6.6、§6.7 | 已回写门禁 |
 | Evaluation §8–10 | 样本量 / 评分者一致性 / 反方审阅 | §6.6、§7.8 | 已回写摘要 |
 | Evaluation §11 | 证据包 / Evaluation Card | §6.7、§7.8 | 已回写 |

@@ -16,6 +16,9 @@ All notable changes to this project are documented in this file.
 - The scenario runner supports validation-feedback repair calls, conservative JSON wrapping, interaction replay, per-scenario release gates, and a hosted DeepSeek OpenAI-compatible provider.
 - The DSH adapter declares only `copy_text`, `open_link`, and `save_note`. It rejects undeclared actions and tells the model to resend a complete interface after an `[iui-action]` message.
 - The DSH package carries a `dsh.bundle.patch` layer for the DSH `0.2.2` release line.
+- The travel `pass` profile adds a host-verified boarding pass block, real QR rendering, Ed25519 issuer verification, a 24h sealed snapshot, and refresh/verification actions.
+- DSH declares `canVerifyPass: true` plus read-only `show_code`, `refresh`, `request_verification`, and `open_issuer_link` actions.
+- A standalone test issuer signs payloads with an in-process Ed25519 key. The browser receives only the public key and signed feed.
 
 ### Security
 
@@ -26,6 +29,8 @@ All notable changes to this project are documented in this file.
 - The validator removes model-provided operation and audit fields. Model provenance authority is forced to `claimed`.
 - The runtime enforces the op limit and the answer byte limit for each answer.
 - The `set` op sanitizes URL values and enforces the prop byte limit.
+- A `set` op that replaces a travel-pass payload is validated like the initial block and is dropped when invalid.
+- The pass block falls back to text when offline without a sealed snapshot, and does not render PDF417/Aztec payloads as QR codes.
 - Server-side validation uses the host-neutral catalog and does not import the DOM registry.
 - The `inherit` theme follows the host dark marker and sets the color scheme on the surface.
 - The runtime reports duplicate block IDs, unknown `set` targets, mount errors, and render errors.
@@ -42,6 +47,7 @@ All notable changes to this project are documented in this file.
 - The DSH hosted-provider web smoke passed on `0.2.2-rc.1` with `deepseek-flash`. The second turn used an explicit complete-ops recovery. The invalid-op attempt was refused before the tool call.
 - A historical local Ollama `qwen2.5:14b` run completed 19 of 20 tasks in each scenario. The local model was deleted after the run.
 - The reference fixture completed 60 of 60 tasks. This is contract coverage, not model coverage.
+- The pass profile tests cover Ed25519 verification, HMAC snapshot seals, stale/revoked snapshots in IndexedDB, QR dialog, DSH manifest actions, and a live test issuer. No real issuer or Wallet was used.
 - The DSH `0.2.2-rc.3` dependency update passed build, typecheck, 64 Node tests, and 2 Playwright tests on 2026-11-16. A new hosted web smoke on rc.3 was not run.
 
 ## [0.2.2] - 2026-10-28

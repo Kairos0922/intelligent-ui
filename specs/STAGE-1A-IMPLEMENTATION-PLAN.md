@@ -139,4 +139,6 @@ Hosted 主结果：
 
 本地 Qwen 对照：三个场景各 19/20，均 95.0%。两组都分别过线，不用全局平均分替代单场景门槛。完整失败原因、修复次数、复现命令和 DSH 宿主验收见 [`SCENARIO-COVERAGE.md`](SCENARIO-COVERAGE.md)。
 
-本轮没有启动 travel/pass、issuer、快照 seal、Wallet 或 DSH travel 凭证适配。这些仍属于 1b，受 issuer 门槛阻塞。npm 发布仍暂停。
+本轮没有启动 travel/pass、issuer、快照 seal、Wallet 或 DSH travel 凭证适配。这些仍属于 1b，当时受 issuer 门槛阻塞。npm 发布仍暂停。
+
+> **2026-11-13 后续：** 用户在 issuer 门槛未解时指示继续。Stage 1b 已按显式 issuer-gate override 实现垂直切片，真实 issuer 仍未接入；见 `STAGE-1B-IMPLEMENTATION-PLAN.md`。前文的 1a 结果与限制保持不变。

@@ -4,6 +4,9 @@ import {
   type HostCapabilityManifest,
   type IntelligentUIOptions,
   type IuiEvent,
+  type PassAttestation,
+  type PassHost,
+  type PassPayload,
 } from "./sdk/index";
 import {
   createIuiExtractor,
@@ -794,6 +797,24 @@ const selftestManifest: HostCapabilityManifest = {
       compensation: "none",
       timeoutMs: 5000,
     },
+    {
+      name: "show_code",
+      description: "Show the pass code",
+      risk: "read",
+      requiresConfirmation: false,
+      idempotent: true,
+      compensation: "none",
+      timeoutMs: 5000,
+    },
+    {
+      name: "refresh",
+      description: "Refresh the pass",
+      risk: "read",
+      requiresConfirmation: false,
+      idempotent: true,
+      compensation: "none",
+      timeoutMs: 5000,
+    },
   ],
 };
 
@@ -943,6 +964,161 @@ await test("an answer envelope that is not first falls back to legacy", () => {
   assert(host.textContent?.includes("Legacy lead"), "legacy content missing");
   ui.destroy();
   return "late envelope ignored";
+});
+
+await test("travel pass uses host attestation, QR dialog, refresh, and revocation", () => {
+  const payload: PassPayload = {
+    kind: "boarding-pass",
+    credentialId: "p1",
+    issuer: { id: "test-issuer", name: "Test Air", keyId: "k1", algorithm: "Ed25519" },
+    holder: { name: "Kairos" },
+    bookingRef: "X7K2Q9",
+    cabin: "Economy",
+    flight: "MR 284",
+    route: {
+      from: { code: "AMS", city: "Amsterdam" },
+      to: { code: "LIS", city: "Lisbon" },
+    },
+    departAt: "2027-06-01T09:30:00+02:00",
+    arriveAt: "2027-06-01T11:45:00+01:00",
+    boardingAt: "2027-06-01T08:50:00+02:00",
+    departTimeZone: "Europe/Amsterdam",
+    arriveTimeZone: "Europe/Lisbon",
+    terminal: "1",
+    gate: "D7",
+    seat: "14A",
+    boardingGroup: "3",
+    qr: { format: "iui-pass-v1", payload: "IUI1:p1:k1:D7" },
+    validFrom: "2027-06-01T06:00:00+02:00",
+    validUntil: "2027-06-01T17:00:00+01:00",
+  };
+  let attestation: PassAttestation = {
+    credentialId: "p1",
+    integrity: "verified",
+    observedAt: "2026-11-13T10:00:00Z",
+    checkedAt: "2026-11-13T10:00:00Z",
+    validUntil: payload.validUntil,
+    staleAfter: "2026-11-13T11:00:00Z",
+    source: { id: "test-issuer", kind: "issuer" },
+  };
+  let online = true;
+  const listeners = new Set<() => void>();
+  const events: IuiEvent[] = [];
+  const passHost: PassHost = {
+    ensurePass() {},
+    getPayload() {
+      return payload;
+    },
+    getAttestation() {
+      return attestation;
+    },
+    isOnline() {
+      return online;
+    },
+    now() {
+      return Date.parse("2026-11-13T10:30:00Z");
+    },
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
+  const { host, ui } = mount({
+    capabilities: selftestManifest,
+    passHost,
+    onEvent: (event) => events.push(event),
+  });
+  ui.ingest(
+    encodeOps([
+      {
+        t: "answer",
+        schemaVersion: "1.0",
+        locale: "en-US",
+        timeZone: "Europe/Amsterdam",
+        slots: {
+          conclusion: { kind: "op", id: "conclusion" },
+          primaryArtifact: { kind: "comp", id: "c1" },
+        },
+        provenance: {
+          authority: "claimed",
+          source: { id: "test-issuer", kind: "issuer" },
+          retrievedAt: "2026-11-13T10:00:00Z",
+          verification: {
+            sourceIdentity: "unverified",
+            integrity: "unverified",
+            schema: "valid",
+            crossSource: "not_checked",
+          },
+        },
+      },
+      { t: "p", id: "conclusion" },
+      { t: "md", v: "Your pass is ready." },
+      { t: "comp", id: "c1", type: "pass", props: { pass: payload } },
+      { t: "done" },
+    ]),
+  );
+
+  const pass = host.querySelector<HTMLElement>('[data-testid="pass"]');
+  assert(pass, "pass block missing");
+  assert(pass.dataset.integrity === "verified", "host attestation not used");
+  assert(pass.textContent?.includes("Verified"), "verified badge missing");
+  assert(host.querySelector('[data-testid="pass-gate"]')?.textContent?.includes("D7"), "gate missing");
+
+  const show = host.querySelector<HTMLButtonElement>('[data-testid="pass-show-code"]');
+  assert(show && !show.disabled, "show-code action missing");
+  show.click();
+  const dialog = host.querySelector<HTMLDialogElement>("dialog.iui-pass-dialog");
+  assert(dialog?.open, "QR dialog did not open");
+  assert(dialog.querySelector("[data-qr-payload]"), "QR payload missing");
+  host.querySelector<HTMLButtonElement>('[data-testid="pass-qr-close"]')?.click();
+
+  const refresh = host.querySelector<HTMLButtonElement>('[data-testid="pass-refresh"]');
+  assert(refresh, "refresh action missing");
+  refresh.click();
+  assert(
+    events.some((event) => event.type === "block" && event.name === "refresh"),
+    "refresh event missing",
+  );
+
+  online = false;
+  for (const listener of listeners) listener();
+  assert(pass.dataset.freshness === "unknown", "offline state should be unknown, not stale");
+  assert(pass.querySelector('[data-testid="pass-offline"]'), "offline fallback missing");
+  assert(!pass.querySelector('[data-testid="pass-show-code"]'), "offline fallback still offers a code");
+  online = true;
+  for (const listener of listeners) listener();
+
+  payload.qr = { ...payload.qr, format: "pdf417" };
+  for (const listener of listeners) listener();
+  assert(pass.querySelector('[data-testid="pass-code-unsupported"]'), "unsupported code format notice missing");
+  assert(host.querySelector<HTMLButtonElement>('[data-testid="pass-show-code"]')?.disabled, "unsupported code format is still enabled");
+  payload.qr = { ...payload.qr, format: "iui-pass-v1" };
+  for (const listener of listeners) listener();
+
+  attestation = {
+    ...attestation,
+    integrity: "revoked",
+    observedAt: "2026-11-13T10:45:00Z",
+    checkedAt: "2026-11-13T10:45:00Z",
+  };
+  for (const listener of listeners) listener();
+  const integrityAfterRevoke: string | undefined = pass.dataset.integrity;
+  assert(integrityAfterRevoke === "revoked", "revocation did not repaint");
+  assert(pass.textContent?.includes("Revoked"), "revoked label missing");
+  assert(host.querySelector<HTMLButtonElement>('[data-testid="pass-show-code"]')?.disabled, "revoked QR is still enabled");
+
+  online = false;
+  attestation = {
+    ...attestation,
+    integrity: "verified",
+    snapshotAt: "2026-11-13T09:00:00Z",
+  };
+  for (const listener of listeners) listener();
+  const staleFreshness: string | undefined = pass.dataset.freshness;
+  assert(staleFreshness === "stale", "snapshot freshness missing");
+  assert(host.querySelector('[data-testid="pass-stale"]'), "stale notice missing");
+  ui.destroy();
+  return "attestation · verified/revoked · QR dialog · refresh event · stale snapshot";
 });
 
 const passed = results.filter((r) => r.ok).length;

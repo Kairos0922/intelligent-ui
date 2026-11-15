@@ -1,6 +1,6 @@
 # @intelligent-ui/core
 
-Host-neutral runtime for Intelligent UI. The package supplies the IUI-1 compiler, 30 general-purpose blocks, validation and repair, the agent prompt and tool contract, and the action envelope.
+Host-neutral runtime for Intelligent UI. The package supplies the IUI-1 compiler, validation and repair, the agent prompt and tool contract, and the action envelope. The catalog has 31 blocks: 30 general-purpose blocks plus the travel pass profile.
 
 No code touches the DOM outside the mount container. The `@intelligent-ui/core/agent` entry point operates on a server.
 

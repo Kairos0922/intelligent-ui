@@ -24,6 +24,7 @@ import {
 } from "../iui/contracts";
 import { BLOCK_TYPES } from "./catalog";
 import { safeColor, safeUrl } from "../iui/security";
+import { validatePassPayload } from "../iui/pass";
 
 export interface ValidationIssue {
   path: string;
@@ -759,6 +760,14 @@ export function validateOp(input: unknown, options: ValidateOptions = {}): Valid
       }
       let props = sanitizeValue(input.props, opts, "props", issues) as Record<string, unknown>;
       props = stripUntrustedFields(props, "props", issues) as Record<string, unknown>;
+      if (type === "pass") {
+        const checked = validatePassPayload(props.pass, "props.pass");
+        for (const item of checked.issues) {
+          issue(issues, item.path, item.message, item.code ?? "invalid_pass");
+        }
+        if (!checked.payload) break;
+        props = { ...props, pass: checked.payload };
+      }
       const size = jsonBytes(props);
       if (size > opts.maxPropsBytes) {
         issue(issues, "props", `props exceed ${opts.maxPropsBytes} bytes`);
@@ -867,6 +876,7 @@ export function validateOps(input: unknown, options: ValidateOptions = {}): Vali
 
   const ops: Op[] = [];
   const ids = new Map<string, "op" | "comp" | "action">();
+  const componentTypes = new Map<string, string>();
   let bytes = 0;
   for (let i = 0; i < input.length; i++) {
     if (ops.length >= maxOps) {
@@ -888,7 +898,20 @@ export function validateOps(input: unknown, options: ValidateOptions = {}): Vali
       issue(issues, `$[${i}]`, "answer op must be the first op", "invalid_answer");
       continue;
     }
+    if (
+      result.op.t === "set" &&
+      result.op.path === "pass" &&
+      componentTypes.get(result.op.id) === "pass"
+    ) {
+      const checked = validatePassPayload(result.op.v, "v.pass");
+      for (const item of checked.issues) {
+        issue(issues, `$[${i}].${item.path}`, item.message, item.code ?? "invalid_pass");
+      }
+      if (!checked.payload) continue;
+      result.op.v = checked.payload;
+    }
     if (!collectIds(result.op, ids, issues, `$[${i}]`)) continue;
+    if (result.op.t === "comp") componentTypes.set(result.op.id, result.op.type);
     if (bytes + result.bytes > maxTotalBytes) {
       issue(issues, `$[${i}]`, `answer exceeds ${maxTotalBytes} bytes`);
       break;

@@ -110,6 +110,29 @@ It does not show autonomous second-turn model compliance, and it does not
 exercise the validator with an actual malformed tool call from this model. The
 DSH protocol tests cover the validator path without a model.
 
+## Pass host path (2026-11-13)
+
+Stage 1b adds a travel-pass host path. It is separate from the hosted-provider
+smoke above.
+
+- A standalone test issuer (`tools/test-issuer/server.mjs`) signs payloads with
+  an in-process Ed25519 key. The private key never enters the browser.
+- The DSH pass controller fetches `/config` and `/pass`, verifies the signature,
+  stores a sealed snapshot in IndexedDB, and exposes a host attestation.
+- A Playwright test opened a real browser page, verified the live feed, reopened
+  the pass through a new offline host, checked the sealed stale snapshot, forced
+  a slow-issuer timeout back to that snapshot, refreshed to a changed gate, and
+  then checked revoked and invalid feeds.
+- The SDK self-test renders the pass block, opens the QR dialog, emits a
+  `refresh` block action, repaints to revoked, and shows a stale notice.
+- Node tests cover Ed25519 verification, HMAC tamper detection, validator
+  rejection, and the DSH controller.
+
+This is **host-path evidence only**. There is no real airline, Google Wallet,
+Apple Wallet, or airport scanner. No hosted DeepSeek pass turn was run. The
+issuer-gate override and the remaining conformance gaps are recorded in
+[`specs/STAGE-1B-IMPLEMENTATION-PLAN.md`](../../specs/STAGE-1B-IMPLEMENTATION-PLAN.md).
+
 The sanitized evidence is in [specs/evidence/dsh-smoke.json](../../specs/evidence/dsh-smoke.json).
 Screenshots and session records stayed in local `.dsh-smoke/` and `.dsh-home/`
 directories, which are ignored. The repository contains no credential or route

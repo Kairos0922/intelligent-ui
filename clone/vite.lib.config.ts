@@ -12,6 +12,11 @@ export default defineConfig({
   publicDir: false,
   build: {
     outDir: "dist-lib",
+    rollupOptions: {
+      // Keep the QR encoder as a package dependency instead of inlining its
+      // Kanji tables (and its CJK test literal) into the core bundle.
+      external: ["qrcode-generator"],
+    },
     emptyOutDir: true,
     target: "es2022",
     sourcemap: false,

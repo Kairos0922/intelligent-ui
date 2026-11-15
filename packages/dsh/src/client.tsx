@@ -9,6 +9,7 @@ import type { Op } from "@intelligent-ui/core";
 import { formatIuiAction } from "@intelligent-ui/core/agent";
 import coreCss from "@intelligent-ui/core/styles.css?raw";
 import { DSH_MANIFEST, dshAction } from "./manifest.js";
+import { createDshPassHost, type DshPassHost } from "./pass.js";
 
 export const name = "intelligent-ui";
 
@@ -17,6 +18,28 @@ export const inject = ["sessions", "slots"];
 
 const TOOL_NAME = "render_iui";
 const STYLE_ID = "iui-dsh-styles";
+
+let sharedPassHost: DshPassHost | null = null;
+
+/** Lazily create one host-side pass store for the whole DSH client. */
+function getPassHost(): DshPassHost {
+  sharedPassHost ??= createDshPassHost();
+  return sharedPassHost;
+}
+
+function actionCredentialId(action: {
+  kind: "block" | "action" | "prompt";
+  envelope?: { payload?: Record<string, unknown> };
+  args?: Record<string, unknown>;
+}): string | null {
+  const value =
+    action.kind === "block"
+      ? action.envelope?.payload?.credentialId
+      : action.kind === "action"
+        ? action.args?.credentialId
+        : undefined;
+  return typeof value === "string" && value ? value : null;
+}
 
 /** Map DSH's semantic alias tokens onto the core's host-neutral tokens. */
 const DSH_TOKENS: Record<string, string> = {
@@ -163,6 +186,7 @@ function createToolView(ctx: Context) {
         scroll: "none",
         animate: true,
         capabilities: DSH_MANIFEST,
+        passHost: getPassHost(),
         onAction: async (action) => {
           try {
             // Answer actions are confirmed by the core runtime's dialog before
@@ -191,6 +215,38 @@ function createToolView(ctx: Context) {
             }
             if (action.kind === "action" && !descriptor) {
               throw new Error(`Unsupported action: ${action.name}`);
+            }
+            const payload =
+              action.kind === "block"
+                ? action.envelope.payload ?? {}
+                : action.kind === "action"
+                  ? action.args ?? {}
+                  : {};
+            if (descriptor?.name === "show_code") {
+              const credentialId = actionCredentialId(action);
+              if (!credentialId) throw new Error("show_code requires a credentialId.");
+              window.dispatchEvent(
+                new CustomEvent("iui:pass-show-code", { detail: { credentialId } }),
+              );
+              setSendError(null);
+              return;
+            }
+            if (descriptor?.name === "open_issuer_link") {
+              const url = payload.url;
+              if (typeof url !== "string" || !url.startsWith("https://")) {
+                throw new Error("open_issuer_link requires an https URL.");
+              }
+              window.open(url, "_blank", "noopener,noreferrer");
+              setSendError(null);
+              return;
+            }
+            if (
+              descriptor?.name === "refresh" ||
+              descriptor?.name === "request_verification"
+            ) {
+              const credentialId = actionCredentialId(action);
+              if (!credentialId) throw new Error(`${descriptor.name} requires a credentialId.`);
+              await getPassHost().refresh(credentialId);
             }
             if (action.kind === "action" && descriptor) {
               const args = action.args ?? {};

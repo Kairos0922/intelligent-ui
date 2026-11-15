@@ -19,6 +19,30 @@ import {
 
 export { BLOCK_CATALOG, BLOCK_TYPES, catalogPrompt, registerBlockSpec, selectBlocks, validateNdjson, validateOps, validateAnswerOps };
 export type { BlockSpec, CatalogFilter, ValidateOptions, ValidationIssue };
+export {
+  PASS_SIGNATURE_ALGORITHM,
+  createSnapshotMetadataSeal,
+  evaluatePass,
+  freshnessForPass,
+  isPassSnapshot,
+  passPayloadHash,
+  validatePassPayload,
+  validatePassSnapshot,
+  verifyPassSignature,
+  verifySnapshotCredential,
+  verifySnapshotMetadata,
+} from "../iui/pass";
+export type {
+  PassAttestation,
+  PassFreshness,
+  PassHost,
+  PassIntegrity,
+  PassLatestKnown,
+  PassPayload,
+  PassPresentability,
+  PassSignature,
+  PassSnapshot,
+} from "../iui/pass";
 
 export const IUI_VERSION = "1.0";
 export const IUI_TOOL_NAME = "render_iui";

@@ -884,10 +884,12 @@ type PassSnapshot = {
   lastCheckedAt?: string;
   validUntil: string;
   staleAfter: string;
+  /** 快照时的宿主判定；省略时按 verified 处理。revoked 快照必须保留 revoked。 */
+  integrity?: "verified" | "unverified" | "invalid" | "revoked";
   seal: {
     /** 权威层：issuer 对 payload 的签名。公钥可公开嵌入；同源脚本无 issuer 私钥，无法伪造重签。 */
     credential: { alg: "issuer-signature"; keyId: string; value: string };
-    /** 尽力层：宿主对元数据（snapshotAt/lastCheckedAt/validUntil/staleAfter）的 MAC。可选。 */
+    /** 尽力层：宿主对元数据（snapshotAt/lastCheckedAt/validUntil/staleAfter/integrity）的 MAC。可选。 */
     metadata?: { alg: "host-hmac-sha256"; keyId: string; value: string };
   };
 };
@@ -901,7 +903,8 @@ type PassSnapshot = {
 - **已知边界（写入威胁模型，不得粉饰）：** 同源脚本执行权 = 宿主已妥协。客户端无法防御能调用密封 API 的同源代码对**元数据**重签；**凭证本体**仍受 issuer 签名保护。缓解：宿主 CSP、依赖审计、可选服务端密封。
 - 读取时 MUST 先验证 seal；篡改 → `integrity=invalid` 或 `unknown`，不能继续显示 `verified`。
 - `snapshotAt`、`lastCheckedAt`、`validUntil`、`staleAfter` 必填。
-- 登出、撤销、TTL 到期 MUST 删除快照。
+- 撤销响应 MUST 把 `integrity=revoked` 写入快照并由宿主 HMAC 覆盖；离线恢复后 QR 仍禁用。
+- 登出 MUST 删除快照与 QR 缓存；TTL 到期 MUST 删除快照，或降为 `unknown` 并显示警示，不得继续以 `live` 呈现。是否禁用主行动由宿主风险策略决定；禁用时 MUST 说明原因。
 - 离线可显示 ≠ 离线仍有效；主行动文案必须反映 `freshness`。
 
 ### 15.4 QR 与安全

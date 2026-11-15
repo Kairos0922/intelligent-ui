@@ -83,6 +83,8 @@ export interface IntelligentUIOptions {
   units?: "metric" | "imperial";
   /** host capability manifest; required to render or validate answer actions */
   capabilities?: HostCapabilityManifest;
+  /** host-owned travel-pass trust and snapshot adapter (stage 1b) */
+  passHost?: import("../iui/pass").PassHost;
   /** suggestion chip / form CTA clicked */
   onPrompt?: (prompt: string, ui: IntelligentUI) => void;
   /** an answer action button was activated after host-side confirmation */
@@ -531,6 +533,8 @@ class IntelligentUIInternal implements IntelligentUI {
       units: this.opts.units,
     });
     return {
+      capabilities: this.opts.capabilities,
+      passHost: this.opts.passHost,
       scrollToBottom: () => this.scheduleScroll(),
       onPrompt: (prompt) => {
         this.emit({ type: "prompt", answerId, prompt });
@@ -644,3 +648,28 @@ export { createI18n, formatCurrency, formatDate, formatNumber, resolveLocaleCont
 export type { I18n, LocaleContext, ResolvedLocaleContext } from "../iui/i18n";
 export { validateAnswerOps };
 export type { AnswerValidationResult } from "./validate";
+export {
+  PASS_SIGNATURE_ALGORITHM,
+  createSnapshotMetadataSeal,
+  evaluatePass,
+  freshnessForPass,
+  isPassSnapshot,
+  passPayloadHash,
+  validatePassPayload,
+  validatePassSnapshot,
+  verifyPassSignature,
+  verifySnapshotCredential,
+  verifySnapshotMetadata,
+} from "../iui/pass";
+export type {
+  PassAttestation,
+  PassFreshness,
+  PassHost,
+  PassIntegrity,
+  PassIssuer,
+  PassLatestKnown,
+  PassPayload,
+  PassPresentability,
+  PassSignature,
+  PassSnapshot,
+} from "../iui/pass";

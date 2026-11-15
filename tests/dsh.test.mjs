@@ -82,7 +82,7 @@ test("DSH declares only read or reversible actions and confirms reversible ones"
   }
   assert.equal(DSH_MANIFEST.capabilities.canWriteCalendar, false);
   assert.equal(DSH_MANIFEST.capabilities.canOpenWallet, false);
-  assert.equal(DSH_MANIFEST.capabilities.canVerifyPass, false);
+  assert.equal(DSH_MANIFEST.capabilities.canVerifyPass, true);
   assert.equal(
     DSH_MANIFEST.actions.some((action) => action.name === "add_to_calendar"),
     false,
@@ -91,6 +91,13 @@ test("DSH declares only read or reversible actions and confirms reversible ones"
     DSH_MANIFEST.actions.some((action) => action.name === "save_note"),
     true,
   );
+  for (const name of ["show_code", "refresh", "request_verification", "open_issuer_link"]) {
+    assert.equal(
+      DSH_MANIFEST.actions.some((action) => action.name === name),
+      true,
+      `${name} is declared`,
+    );
+  }
 });
 
 test("DSH registers render_iui with the shared manifest and envelope rules", () => {
