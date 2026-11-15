@@ -19,6 +19,7 @@ function fmtValue(
   format: string | undefined,
   currency: string | undefined,
   compact = false,
+  locale = "en-US",
 ): string {
   const abs = Math.abs(value);
   const decimals =
@@ -33,12 +34,12 @@ function fmtValue(
             : 0;
   try {
     if (format === "percent") {
-      return `${value.toLocaleString("en-US", {
+      return `${value.toLocaleString(locale, {
         maximumFractionDigits: decimals,
       })}%`;
     }
     if (format === "currency") {
-      return new Intl.NumberFormat("en-US", {
+      return new Intl.NumberFormat(locale, {
         style: "currency",
         currency: typeof currency === "string" && /^[A-Za-z]{3}$/.test(currency)
           ? currency.toUpperCase()
@@ -48,12 +49,12 @@ function fmtValue(
       }).format(value);
     }
     if (format === "compact" || compact) {
-      return new Intl.NumberFormat("en-US", {
+      return new Intl.NumberFormat(locale, {
         notation: "compact",
         maximumFractionDigits: 1,
       }).format(value);
     }
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(locale, {
       maximumFractionDigits: decimals,
     }).format(value);
   } catch {
@@ -138,6 +139,7 @@ defineBlock(
       legend?: boolean;
       baseline?: "auto" | "zero";
     },
+    ctx: Ctx,
   ) => {
     const labels = Array.isArray(props.labels)
       ? props.labels
@@ -159,7 +161,7 @@ defineBlock(
     if (head) chart.append(head);
 
     if (!labels.length || !series.length) {
-      chart.append(h("div", { class: "iui-chart-empty", text: "No chart data" }));
+      chart.append(h("div", { class: "iui-chart-empty", text: ctx.t?.("noChartData") ?? "No chart data" }));
       el.append(chart);
       return;
     }
@@ -171,7 +173,8 @@ defineBlock(
     const plotW = width - pad.left - pad.right;
     const plotH = height - pad.top - pad.bottom;
     const format = props.format;
-    const currency = props.currency;
+    const currency = props.currency ?? ctx.i18n?.currency;
+    const locale = ctx.i18n?.locale ?? "en-US";
 
     const allValues = series.flatMap((item) =>
       labels.map((_, index) => num(item.values[index], 0)),
@@ -221,7 +224,7 @@ defineBlock(
           "text-anchor": "end",
           "dominant-baseline": "middle",
           class: "iui-chart-tick",
-        }, fmtValue(value, format, currency, true)),
+        }, fmtValue(value, format, currency, true, locale)),
       );
     }
 
@@ -276,7 +279,7 @@ defineBlock(
             fill: color,
             class: "iui-chart-bar",
           });
-          bar.append(svg("title", {}, `${labels[index]}: ${fmtValue(value, format, currency)}`));
+          bar.append(svg("title", {}, `${labels[index]}: ${fmtValue(value, format, currency, false, locale)}`));
           root.append(bar);
         });
         return;
@@ -323,7 +326,7 @@ defineBlock(
           class: "iui-chart-point",
         });
         dot.append(
-          svg("title", {}, `${labels[index]}: ${fmtValue(point.value, format, currency)}`),
+          svg("title", {}, `${labels[index]}: ${fmtValue(point.value, format, currency, false, locale)}`),
         );
         root.append(dot);
       });
@@ -357,7 +360,7 @@ defineBlock(
       const row = h("tr");
       row.append(h("th", { scope: "row", text: label }));
       for (const item of series) {
-        row.append(h("td", { text: fmtValue(num(item.values[index], 0), format, currency) }));
+        row.append(h("td", { text: fmtValue(num(item.values[index], 0), format, currency, false, locale) }));
       }
       tbody.append(row);
     });
@@ -380,6 +383,7 @@ defineBlock(
       columns?: number;
       items?: { label: string; value: string | number; change?: string; trend?: Trend; detail?: string }[];
     },
+    ctx: Ctx,
   ) => {
     const section = h("section", { class: "iui-stats" });
     const head = panelHead(props.title, props.sub);
@@ -387,7 +391,7 @@ defineBlock(
 
     const items = Array.isArray(props.items) ? props.items.slice(0, 8) : [];
     if (!items.length) {
-      section.append(h("div", { class: "iui-empty", text: "No metrics" }));
+      section.append(h("div", { class: "iui-empty", text: ctx.t?.("noMetrics") ?? "No metrics" }));
       el.append(section);
       return;
     }
@@ -403,7 +407,7 @@ defineBlock(
       const rawValue = item?.value;
       const valueText =
         typeof rawValue === "number" && Number.isFinite(rawValue)
-          ? String(rawValue)
+          ? ctx.i18n?.number(rawValue) ?? String(rawValue)
           : safeText(rawValue, 80);
       value.append(h("div", { class: "iui-stat-value", text: valueText }));
       const change = safeText(item?.change, 80).trim();
@@ -450,6 +454,7 @@ defineBlock(
         tone?: "neutral" | "success" | "warning" | "danger";
       }[];
     },
+    ctx: Ctx,
   ) => {
     const section = h("section", { class: "iui-timeline" });
     const head = panelHead(props.title, props.sub);
@@ -457,7 +462,7 @@ defineBlock(
 
     const items = Array.isArray(props.items) ? props.items.slice(0, 40) : [];
     if (!items.length) {
-      section.append(h("div", { class: "iui-empty", text: "No timeline entries" }));
+      section.append(h("div", { class: "iui-empty", text: ctx.t?.("noTimeline") ?? "No timeline entries" }));
       el.append(section);
       return;
     }
@@ -530,7 +535,7 @@ defineBlock(
       }
     }
 
-    const locale = localeOf(props.locale);
+    const locale = localeOf(props.locale ?? ctx.locale ?? ctx.i18n?.locale);
     const weekStart = props.weekStart === 1 ? 1 : 0;
     const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
     const firstWeekday = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
@@ -564,7 +569,7 @@ defineBlock(
       const list = events.get(key) ?? [];
       list.push({
         date: key,
-        title: safeText(raw?.title, 200) || "Event",
+        title: safeText(raw?.title, 200) || ctx.t?.("event") || "Event",
         time: safeText(raw?.time, 40).trim() || undefined,
         tone:
           raw?.tone === "success" ||
@@ -622,9 +627,14 @@ defineBlock(
           return key;
         }
       })();
+      const eventLabel = dayEvents.length
+        ? ctx.t?.(dayEvents.length === 1 ? "eventCountOne" : "eventCountMany", {
+            count: dayEvents.length,
+          }) ?? `${dayEvents.length} events`
+        : "";
       button.setAttribute(
         "aria-label",
-        `${accessibleDate}${dayEvents.length ? `, ${dayEvents.length} event${dayEvents.length === 1 ? "" : "s"}` : ""}`,
+        `${accessibleDate}${eventLabel ? `, ${eventLabel}` : ""}`,
       );
       button.append(h("span", { class: "iui-calendar-num", text: String(day) }));
       if (dayEvents.length) {
@@ -661,7 +671,7 @@ defineBlock(
       details.append(h("div", { class: "iui-calendar-events-head", text: label }));
       const list = events.get(selected) ?? [];
       if (!list.length) {
-        details.append(h("div", { class: "iui-calendar-empty", text: "No events" }));
+        details.append(h("div", { class: "iui-calendar-empty", text: ctx.t?.("noCalendarEvents") ?? "No events" }));
         return;
       }
       for (const event of list) {

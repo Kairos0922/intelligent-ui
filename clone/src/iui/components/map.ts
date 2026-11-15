@@ -97,7 +97,7 @@ defineBlock(
     const map = h("div", {
       class: "iui-map",
       role: "group",
-      "aria-label": props.label ?? "Interactive map",
+      "aria-label": props.label ?? ctx.t?.("interactiveMap") ?? "Interactive map",
       "data-expanded": "false",
     });
     if (props.height) map.style.height = `${props.height}px`;
@@ -125,7 +125,7 @@ defineBlock(
 
     const controls = h("div", { class: "iui-map-controls" });
     const selectWrap = h("div", { class: "iui-map-select-wrap" });
-    const select = h("select", { "aria-label": "Choose route days" }) as HTMLSelectElement;
+    const select = h("select", { "aria-label": ctx.t?.("chooseRouteDays") ?? "Choose route days" }) as HTMLSelectElement;
     for (const g of props.groups) {
       const opt = h("option", { value: g.id, text: g.label });
       select.append(opt);
@@ -138,7 +138,7 @@ defineBlock(
     const reset = h("button", {
       class: "iui-map-reset",
       type: "button",
-      "aria-label": "Reset map view",
+      "aria-label": ctx.t?.("resetMapView") ?? "Reset map view",
       title: "Reset view",
     });
     const arrow = svg("svg", { viewBox: "0 0 20 20", width: 20, height: 20, "aria-hidden": "true" });
@@ -197,7 +197,7 @@ defineBlock(
     const dName = h("strong");
     const dSub = h("span", { class: "iui-map-detail-sub" });
     dLeft.append(dName, dSub);
-    const dClose = h("button", { type: "button", "aria-label": "Close details", text: "×" });
+    const dClose = h("button", { type: "button", "aria-label": ctx.t?.("closeDetails") ?? "Close details", text: "×" });
     details.append(dLeft, dClose);
 
     map.append(controls, expand, markerWrap, details);
@@ -261,7 +261,7 @@ defineBlock(
     const dialog = h("dialog", { class: "iui-map-dialog" }) as HTMLDialogElement;
     const dialogMap = h("div", { class: "iui-map iui-map-expanded" });
     dialogMap.append(terrain(), dash.cloneNode(true), markerWrap.cloneNode(true));
-    const dlgClose = h("button", { class: "iui-map-expand", type: "button", text: "Close ✕" });
+    const dlgClose = h("button", { class: "iui-map-expand", type: "button", text: `${ctx.t?.("close") ?? "Close"} ✕` });
     dlgClose.addEventListener("click", () => dialog.close());
     dialogMap.append(dlgClose);
     dialog.append(dialogMap);

@@ -100,23 +100,28 @@ interface IuiHost {
 ```ts
 type IuiHostAction =
   | { kind: "prompt"; text: string; answerId?: string }
-  | { kind: "block"; envelope: IuiActionEnvelope };
+  | { kind: "block"; envelope: IuiActionEnvelope }
+  | { kind: "action"; answerId?: string; actionId: string; name: string; args?: Record<string, unknown>; riskHint?: RiskLevel };
 ```
 
 A `prompt` action is a suggestion chip, a form button, or other raw user intent. Send it as a normal user message.
 
 A `block` action is a block interaction. Send `formatAction(action)`. It gives one line with the `[iui-action]` prefix.
 
+An `action` action is a model proposal from the Answer Envelope. The host must confirm and authorize it with `createActionRuntime()`. Send `formatAction(action)` only after the host accepts the action.
+
 The action policy supplies a filter:
 
 | Policy | Action that leaves the UI |
 |---|---|
 | `prompt` | Prompt actions only. |
-| `agent` | Prompts and the `select`, `step`, `view`, and `filter` block events. This is the default. |
+| `agent` | Prompts, the `select`, `step`, `view`, and `filter` block events, and manifest-declared actions. This is the default. |
 | `all` | All block events, including local events. |
 | Function | The function selects each event. |
 
 The `submit` event is not in the `agent` policy. A form sends a raw prompt on submit. If the adapter also sends the block event, the agent receives the same interaction two times.
+
+A host action handler can return a `Promise`. The adapter sends a rejected promise to `onActionError`. Use this callback to show a visible error. The adapter also logs the error with `console.warn`.
 
 The adapter keeps a local event in the UI unless the host selects a policy that sends it.
 
@@ -237,7 +242,7 @@ The package does not import the `ai` package. It accepts the structural tool-par
 
 ## 7. DeepSeek Harness
 
-The DSH adapter is for the DSH web profile. It is tested with DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4`.
+The DSH adapter is for the DSH web profile. It targets DSH `0.2.2-rc.1`. The peer range accepts `0.2.1-rc.2` and later. A hosted-provider web smoke passed with `deepseek-flash` using an explicit complete-ops second-turn recovery. Read [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md) for the caveats.
 
 The package is not on npm. Use the self-contained DSH tarball from the GitHub release:
 
@@ -254,7 +259,7 @@ npm run build
 dsh plugin --profile web add link:/absolute/path/to/intelligent-ui/packages/dsh
 ```
 
-Then add these items to `$DSH_HOME/profiles/web/cordis.patch.yml`:
+Then add these items to `$DSH_HOME/profiles/web/cordis.patch.yml` when the bundle patch does not add them. DSH `0.2.2-rc.1` reads `dsh.bundle.patch` and appends `@intelligent-ui/dsh` to `dsh.profile.bundles`:
 
 ```yaml
 - insert:
@@ -285,6 +290,8 @@ The synthetic replay test passes in light and dark themes. The test covers keyed
 A live signed-in test passed on DSH `0.2.1-rc.2` and `0.2.1-rc.3`. It covers a real model call, a keyed toolview with tabs and stats, and a real tab click. It also covers a second model call with the same block IDs. The test used DeepSeek-V4.1-Flash and Work details set to Verbose.
 
 A deterministic web test passed on DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` with a local DeepSeek Messages server and the self-contained `0.2.2` tarball. It covers the same toolview and action path. It does not use an account and does not measure model compliance.
+
+The adapter declares only `copy_text`, `open_link`, and `save_note`. `save_note` is reversible and requires confirmation. Every `render_iui` call is a complete replacement, and the model is told to resend all blocks with stable ids after an `[iui-action]` message. The DSH `0.2.2-rc.1` bundle patch adds the plugin to the profile through `dsh.bundle.patch`.
 
 Each live run made one click. The tests do not cover every block or model. The validator keeps the valid ops if a model makes a malformed op.
 

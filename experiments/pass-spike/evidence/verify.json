@@ -1,0 +1,368 @@
+{
+  "experiment": "P0-1 pass spike",
+  "startedAt": "2026-11-03T14:13:10.597Z",
+  "finishedAt": "2026-11-03T14:13:15.373Z",
+  "baseUrl": "http://127.0.0.1:4180",
+  "viewport": "456x920, then 320/720",
+  "checks": [
+    {
+      "name": "initial gate is D7",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "initial integrity is verified",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "initial freshness is live",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "primary action is enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "conclusion names the gate",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "host attestation exists",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "capabilities are host-supplied",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "QR decodes to the pass payload",
+      "ok": true,
+      "detail": "IUI1:MR284:AMS-LIS:2026-11-04T18:35:00.000Z:14A:X7K2QP:cred_8f3a2c71"
+    },
+    {
+      "name": "QR has a real module grid",
+      "ok": true,
+      "detail": "37 modules"
+    },
+    {
+      "name": "QR dialog is modal",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "QR dialog has a visible close control",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "snapshot stores gate D7",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "online pass follows the gate change",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "snapshot is still the old D7",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "latest known gate is D2",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "offline boot restores the snapshot",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "offline mode is visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cached integrity is still verified",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cached freshness is saved copy",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "offline shows the gate conflict",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "offline code is still available with a warning",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "verdict warns that the gate may have changed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "offline conclusion still says D7 (finding F1)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "offline QR still decodes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "offline QR shows a warning",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "tampered snapshot changes the gate",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "tamper is not detected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "revoked integrity is visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "revoked pass disables the code",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "revoked verdict is a hard stop",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "model claim is not promoted to a trust badge",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "model claim is labelled as untrusted",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "host reports no attestation for the forged credential",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "zh-CN locale renders block chrome",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "zh-CN primary action is localized",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "zh-CN conclusion is localized",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no page overflow at 320px",
+      "ok": true,
+      "detail": "scrollWidth=320"
+    },
+    {
+      "name": "no card overflow at 320px",
+      "ok": true,
+      "detail": "260/260"
+    },
+    {
+      "name": "primary action is at least 44px tall",
+      "ok": true,
+      "detail": "44px"
+    },
+    {
+      "name": "no page overflow at 720px",
+      "ok": true,
+      "detail": "scrollWidth=720"
+    },
+    {
+      "name": "no console errors",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "title": "Conclusion text and cached artifact can disagree",
+      "detail": "Offline answer prose still says D7 while the answer also shows \"D2\" as the last known gate. Prose is a separate op with no structured slot or freshness binding.",
+      "evidence": "You're checked in for MR 284 to Lisbon. Boarding starts at 19:05 at Gate D7.MRMeridian AirBoarding passPASScred_8f3a2c71VerifiedSaved copyOfflineChecked this minuteAMSAmsterdam19:3"
+    },
+    {
+      "id": "F2",
+      "title": "Local snapshot tampering is undetectable",
+      "detail": "Changing the gate in localStorage leaves integrity=Verified and freshness=Saved copy. Offline snapshot integrity needs a signature or host-sealed digest; the SDK has neither."
+    },
+    {
+      "id": "F3",
+      "title": "Props cannot be bound to a trusted verifier",
+      "detail": "A model can write integrity=verified, producer=issuer and any signature string. Only the host-side attestation store prevented a false badge, and it needed an explicit credentialId match to avoid lending a previous pass its status. The store is not part of the protocol; a different host would rebuild it."
+    },
+    {
+      "id": "F4",
+      "title": "Answer-level locale has no protocol carrier",
+      "detail": "The host passes locale in block props and writes a second localized conclusion op. Built-in SDK chrome and the action envelope remain English."
+    }
+  ],
+  "consoleErrors": [],
+  "finalState": {
+    "scenario": "normal",
+    "locale": "zh-CN",
+    "online": true,
+    "snapshotMode": true,
+    "walletState": "idle",
+    "pass": {
+      "kind": "boarding-pass",
+      "credentialId": "cred_8f3a2c71",
+      "issuer": {
+        "id": "meridian-air",
+        "name": "Meridian Air",
+        "keyId": "meridian-2026-11",
+        "algorithm": "ES256"
+      },
+      "holder": {
+        "name": "Kairos"
+      },
+      "bookingRef": "X7K2QP",
+      "cabin": "Economy",
+      "flight": "MR 284",
+      "route": {
+        "from": {
+          "code": "AMS",
+          "city": "Amsterdam"
+        },
+        "to": {
+          "code": "LIS",
+          "city": "Lisbon"
+        }
+      },
+      "departAt": "2026-11-04T18:35:00.000Z",
+      "arriveAt": "2026-11-04T20:20:00.000Z",
+      "boardingAt": "2026-11-04T18:05:00.000Z",
+      "validUntil": "2026-11-04T20:35:00.000Z",
+      "departTimeZone": "Europe/Amsterdam",
+      "arriveTimeZone": "Europe/Lisbon",
+      "terminal": "1",
+      "gate": "D7",
+      "seat": "14A",
+      "boardingGroup": "2",
+      "qr": {
+        "format": "qr",
+        "payload": "IUI1:MR284:AMS-LIS:2026-11-04T18:35:00.000Z:14A:X7K2QP:cred_8f3a2c71"
+      },
+      "validFrom": "2026-11-03T13:13:14.717Z"
+    },
+    "attestation": {
+      "credentialId": "cred_8f3a2c71",
+      "integrity": "verified",
+      "observedAt": "2026-11-03T14:13:14.717Z",
+      "checkedAt": "2026-11-03T14:13:14.717Z",
+      "validUntil": "2026-11-04T20:35:00.000Z",
+      "staleAfter": "2026-11-03T14:28:14.717Z",
+      "source": {
+        "id": "meridian-air/status",
+        "kind": "issuer_api",
+        "url": "https://issuer.example/status/cred_8f3a2c71"
+      }
+    },
+    "latestKnown": {
+      "gate": "D7",
+      "observedAt": "2026-11-03T14:13:14.717Z"
+    },
+    "snapshot": {
+      "schemaVersion": 1,
+      "savedAt": "2026-11-03T14:13:12.742Z",
+      "pass": {
+        "kind": "boarding-pass",
+        "credentialId": "cred_8f3a2c71",
+        "issuer": {
+          "id": "meridian-air",
+          "name": "Meridian Air",
+          "keyId": "meridian-2026-11",
+          "algorithm": "ES256"
+        },
+        "holder": {
+          "name": "Kairos"
+        },
+        "bookingRef": "X7K2QP",
+        "cabin": "Economy",
+        "flight": "MR 284",
+        "route": {
+          "from": {
+            "code": "AMS",
+            "city": "Amsterdam"
+          },
+          "to": {
+            "code": "LIS",
+            "city": "Lisbon"
+          }
+        },
+        "departAt": "2026-11-04T18:35:00.000Z",
+        "arriveAt": "2026-11-04T20:20:00.000Z",
+        "boardingAt": "2026-11-04T18:05:00.000Z",
+        "validUntil": "2026-11-04T20:35:00.000Z",
+        "departTimeZone": "Europe/Amsterdam",
+        "arriveTimeZone": "Europe/Lisbon",
+        "terminal": "1",
+        "gate": "D9",
+        "seat": "14A",
+        "boardingGroup": "2",
+        "qr": {
+          "format": "qr",
+          "payload": "IUI1:MR284:AMS-LIS:2026-11-04T18:35:00.000Z:14A:X7K2QP:cred_8f3a2c71"
+        },
+        "validFrom": "2026-11-03T13:13:11.949Z"
+      },
+      "attestation": {
+        "credentialId": "cred_8f3a2c71",
+        "integrity": "verified",
+        "observedAt": "2026-11-03T14:13:11.949Z",
+        "checkedAt": "2026-11-03T14:13:11.949Z",
+        "validUntil": "2026-11-04T20:35:00.000Z",
+        "staleAfter": "2026-11-03T14:28:11.949Z",
+        "source": {
+          "id": "meridian-air/status",
+          "kind": "issuer_api",
+          "url": "https://issuer.example/status/cred_8f3a2c71"
+        }
+      }
+    },
+    "offlineOverride": false,
+    "capabilities": {
+      "canOpenWallet": true,
+      "canRefresh": true,
+      "canNotify": false,
+      "canPersist": true
+    }
+  }
+}

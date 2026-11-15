@@ -1,6 +1,7 @@
 import {
   createIntelligentUI,
   encodeOps,
+  type HostCapabilityManifest,
   type IntelligentUIOptions,
   type IuiEvent,
 } from "./sdk/index";
@@ -770,6 +771,178 @@ await test("mount errors become IuiEvent errors", () => {
   assert(error.error.message === "boom", "wrong mount error message");
   ui.destroy();
   return "mount phase error emitted";
+});
+
+const selftestManifest: HostCapabilityManifest = {
+  schemaVersion: "1.0",
+  hostId: "selftest",
+  capabilities: {
+    canNotify: false,
+    canPersist: true,
+    canOpenWallet: true,
+    canVerifyPass: true,
+    canWriteCalendar: false,
+    canDeepLink: true,
+  },
+  actions: [
+    {
+      name: "open_qr",
+      description: "Show QR",
+      risk: "read",
+      requiresConfirmation: false,
+      idempotent: true,
+      compensation: "none",
+      timeoutMs: 5000,
+    },
+  ],
+};
+
+await test("answer envelope: slots, locale, and action bar", () => {
+  const events: IuiEvent[] = [];
+  const { host, ui } = mount({
+    capabilities: selftestManifest,
+    onEvent: (event) => events.push(event),
+  });
+  ui.ingest(
+    encodeOps([
+      {
+        t: "answer",
+        schemaVersion: "1.0",
+        locale: "zh-CN",
+        timeZone: "Asia/Shanghai",
+        currency: "CNY",
+        slots: {
+          conclusion: { kind: "op", id: "conclusion" },
+          primaryArtifact: { kind: "comp", id: "c1" },
+          primaryAction: { kind: "action", id: "a1" },
+        },
+        actions: [{ id: "a1", name: "open_qr", args: { passId: "p1" } }],
+        provenance: {
+          authority: "claimed",
+          source: { id: "issuer", kind: "issuer" },
+          retrievedAt: "2026-11-04T00:00:00Z",
+          verification: {
+            sourceIdentity: "unverified",
+            integrity: "unverified",
+            schema: "valid",
+            crossSource: "not_checked",
+          },
+        },
+      },
+      { t: "p", lvl: 2, id: "conclusion" },
+      { t: "md", v: "Gate D7" },
+      { t: "comp", id: "c1", type: "card", props: { title: "Boarding pass" } },
+      { t: "done" },
+    ]),
+  );
+  const answer = ui.answers[0];
+  assert(answer.envelope?.locale === "zh-CN", "envelope was not attached");
+  assert(ui.answers[0].el.dataset.iuiLocale === "zh-CN", "locale dataset missing");
+  assert(host.querySelector('[data-iui-slot="conclusion"]'), "conclusion slot missing");
+  assert(host.querySelector('[data-iui-slot="primaryArtifact"]'), "artifact slot missing");
+  const action = host.querySelector<HTMLButtonElement>('[data-iui-slot="primaryAction"]');
+  assert(action, "primary action missing");
+  action.click();
+  const emitted = events.find((event) => event.type === "action");
+  assert(emitted && emitted.type === "action" && emitted.name === "open_qr", "action event missing");
+  ui.destroy();
+  return "slots marked · action emitted";
+});
+
+await test("legacy answers stay renderable and marked", () => {
+  const { host, ui } = mount();
+  ui.ingest(
+    encodeOps([
+      { t: "p" },
+      { t: "md", v: "Legacy answer" },
+      { t: "done" },
+    ]),
+  );
+  assert(ui.answers[0].legacy === true, "legacy flag missing");
+  assert(ui.answers[0].el.dataset.iuiLegacy === "true", "legacy dataset missing");
+  assert(host.textContent?.includes("Legacy answer"), "legacy content missing");
+  ui.destroy();
+  return "legacy dataset + content";
+});
+
+await test("answer locale drives number formatting", () => {
+  const { host, ui } = mount();
+  ui.ingest(
+    encodeOps([
+      {
+        t: "answer",
+        schemaVersion: "1.0",
+        locale: "de-DE",
+        timeZone: "Europe/Berlin",
+        slots: { conclusion: { kind: "op", id: "conclusion" } },
+      },
+      { t: "p", id: "conclusion" },
+      { t: "md", v: "Locale check" },
+      {
+        t: "comp",
+        id: "stats1",
+        type: "stats",
+        props: { items: [{ label: "Total", value: 1234.5 }] },
+      },
+      { t: "done" },
+    ]),
+  );
+  assert(host.textContent?.includes("1.234,5"), "German number formatting missing");
+
+  ui.ingest(
+    encodeOps([
+      {
+        t: "answer",
+        schemaVersion: "1.0",
+        locale: "zh-CN",
+        timeZone: "Asia/Shanghai",
+        slots: { conclusion: { kind: "op", id: "conclusion2" } },
+      },
+      { t: "p", id: "conclusion2" },
+      { t: "md", v: "Chrome check" },
+      {
+        t: "comp",
+        id: "looks2",
+        type: "outfitGrid",
+        props: {
+          items: [{ img: "data:image/png;base64,iVBORw0KGgo=", title: "Look" }],
+        },
+      },
+      { t: "done" },
+    ]),
+  );
+  host.querySelector<HTMLButtonElement>(".iui-enlarge")?.click();
+  const close = host.querySelector<HTMLButtonElement>("dialog.iui-lightbox .iui-lightbox-x");
+  assert(close?.getAttribute("aria-label") === "关闭", "localized lightbox chrome missing");
+  close?.click();
+  ui.destroy();
+  return "de-DE number + zh-CN chrome";
+});
+
+await test("an answer envelope that is not first falls back to legacy", () => {
+  const { host, ui } = mount();
+  ui.ingest(
+    encodeOps([
+      { t: "p" },
+      { t: "md", v: "Legacy lead" },
+      {
+        t: "answer",
+        schemaVersion: "1.0",
+        locale: "zh-CN",
+        timeZone: "Asia/Shanghai",
+        slots: { conclusion: { kind: "op", id: "conclusion" } },
+      },
+      { t: "p", id: "conclusion" },
+      { t: "md", v: "Conclusion" },
+      { t: "done" },
+    ]),
+  );
+  assert(ui.answers[0].envelope === null, "late envelope was accepted");
+  assert(ui.answers[0].legacy === true, "late envelope did not fall back");
+  assert(ui.answers[0].el.dataset.iuiLegacy === "true", "legacy dataset missing");
+  assert(host.textContent?.includes("Legacy lead"), "legacy content missing");
+  ui.destroy();
+  return "late envelope ignored";
 });
 
 const passed = results.filter((r) => r.ok).length;

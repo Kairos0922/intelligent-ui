@@ -26,8 +26,10 @@ const untracked = execFileSync(
   .split("\0")
   .filter(Boolean);
 
+// Documented exception (2026-11-03): Chinese working drafts are exempt until
+// translated. See specs/README.md "Language and repo guardrail".
 const files = [...new Set([...tracked, ...untracked])]
-  .filter((file) => !/^(rea|recon|report)\//.test(file))
+  .filter((file) => !/^(rea|recon|report|specs|experiments|\.workbuddy-ai)\//.test(file) && file !== "INTELLIGENT-UI-PLAN.md")
   .filter((file) => existsSync(file))
   .sort();
 

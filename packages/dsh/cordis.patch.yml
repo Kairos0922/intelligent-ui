@@ -1,0 +1,5 @@
+# DSH profile layer: mount the Intelligent UI server tool (and its web client)
+# after the host's base and web layers.
+- insert:
+    - id: intelligent-ui
+      name: '@intelligent-ui/dsh'

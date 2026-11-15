@@ -15,6 +15,7 @@
 import {
   BLOCK_TYPES,
   parseAgentText,
+  validateAnswerOps,
   validateOps,
 } from "../../clone/dist-lib/agent.js";
 
@@ -32,7 +33,7 @@ function everyItem(value, min, check) {
 
 export const BLOCK_SHAPES = {
   chart: (props) =>
-    hasItems(props.labels, 3) &&
+    hasItems(props.labels, 2) &&
     hasItems(props.series, 1) &&
     props.series.every(
       (series) =>
@@ -100,6 +101,43 @@ export const BLOCK_SHAPES = {
     (isNonEmptyString(props.result) || hasItems(props.steps, 1)),
   flashcards: (props) =>
     everyItem(props.cards, 2, (card) => isNonEmptyString(card.front) && isNonEmptyString(card.back)),
+  map: (props) =>
+    hasItems(props.groups, 2) &&
+    props.groups.every((group) => isObject(group) && isNonEmptyString(group.id) && isNonEmptyString(group.label)) &&
+    everyItem(
+      props.places,
+      2,
+      (place) =>
+        isNonEmptyString(place.id) &&
+        isNonEmptyString(place.name) &&
+        isNonEmptyString(place.group) &&
+        typeof place.x === "number" &&
+        typeof place.y === "number",
+    ),
+  steps: (props) =>
+    everyItem(
+      props.steps,
+      2,
+      (step) =>
+        isNonEmptyString(step.title) &&
+        isNonEmptyString(step.body) &&
+        isObject(step.check) &&
+        isNonEmptyString(step.check.title),
+    ),
+  form: (props) =>
+    everyItem(
+      props.fieldsets,
+      1,
+      (fieldset) =>
+        isNonEmptyString(fieldset.legend) &&
+        hasItems(fieldset.options, 2) &&
+        fieldset.options.every((option) => isNonEmptyString(option)),
+    ) && isNonEmptyString(props.cta),
+  tiles: (props) =>
+    everyItem(props.tiles, 2, (tile) => isNonEmptyString(tile.label) && isNonEmptyString(tile.bg)),
+  menu: (props) =>
+    everyItem(props.items, 2, (item) => isNonEmptyString(item.title) && isNonEmptyString(item.body)),
+  outfitGrid: (props) => everyItem(props.items, 2, (item) => isNonEmptyString(item.title)),
 };
 
 const TABLE_SHAPE = (op) => hasItems(op.head, 1) && hasItems(op.rows, 2);
@@ -136,13 +174,17 @@ function extractRaw({ mode, answer = "", toolArgs = "" }) {
   return { raw: parsed.ops, issues: parsed.issues };
 }
 
-function countOps(raw) {
+function countOps(raw, task) {
   let valid = 0;
   let repaired = 0;
   let dropped = 0;
   const issues = [];
   for (const op of raw) {
-    const result = validateOps([op], { blocks: BLOCK_TYPES, sanitize: true });
+    const result = validateOps([op], {
+      blocks: BLOCK_TYPES,
+      capabilities: task.capabilities ?? null,
+      sanitize: true,
+    });
     for (const issue of result.issues) issues.push(issue);
     if (!result.ops.length) dropped += 1;
     else if (result.issues.length) repaired += 1;
@@ -154,7 +196,16 @@ function countOps(raw) {
 function keywordHit(task, content) {
   if (!Array.isArray(task.keywords) || !task.keywords.length) return true;
   const haystack = content.toLowerCase();
-  return task.keywords.some((keyword) => haystack.includes(String(keyword).toLowerCase()));
+  return task.keywords.some((keyword) => {
+    const needle = String(keyword).toLowerCase();
+    if (haystack.includes(needle)) return true;
+    // Match a plain singular/plural variant so a correct answer is not
+    // rejected because it said "segment" instead of "segments".
+    if (needle.endsWith("s") && needle.length > 4 && haystack.includes(needle.slice(0, -1))) {
+      return true;
+    }
+    return !needle.endsWith("s") && haystack.includes(`${needle}s`);
+  });
 }
 
 /**
@@ -170,10 +221,15 @@ function keywordHit(task, content) {
 export function scoreResponse({ task, mode, answer = "", toolArgs = "", response }) {
   const extracted = extractRaw({ mode, answer, toolArgs });
   const raw = extracted.raw;
-  const opStats = countOps(raw);
-  const validated = validateOps(raw, { blocks: BLOCK_TYPES, sanitize: true });
+  const opStats = countOps(raw, task);
+  const validated = validateAnswerOps(raw, {
+    blocks: BLOCK_TYPES,
+    capabilities: task.capabilities ?? null,
+    sanitize: true,
+  });
   const rendered = validated.ops;
   const comps = rendered.filter((op) => op.t === "comp");
+  const envelope = validated.envelope;
   const reasons = [];
 
   if (!raw.length) reasons.push("no ops");
@@ -182,6 +238,19 @@ export function scoreResponse({ task, mode, answer = "", toolArgs = "", response
 
   for (const type of task.required ?? []) {
     if (!rendered.some((op) => wantedShape(type, op))) reasons.push(`missing usable ${type}`);
+  }
+
+  if (task.requireAnswer && !envelope) {
+    reasons.push("missing answer envelope");
+  }
+  if (task.requireAnswer && envelope && !envelope.provenance) {
+    reasons.push("missing answer provenance");
+  }
+  if (task.requireAction) {
+    const names = envelope?.actions?.map((action) => action.name) ?? [];
+    if (!names.includes(task.requireAction)) {
+      reasons.push(`missing declared action "${task.requireAction}"`);
+    }
   }
 
   const ids = comps.map((op) => op.id);
@@ -199,7 +268,8 @@ export function scoreResponse({ task, mode, answer = "", toolArgs = "", response
 
   return {
     taskId: task.id,
-    category: task.category,
+    category: task.category ?? task.scenario,
+    scenario: task.scenario,
     mode,
     rawOps: raw.length,
     renderedOps: rendered.length,
@@ -207,6 +277,10 @@ export function scoreResponse({ task, mode, answer = "", toolArgs = "", response
     repairedOps: opStats.repaired,
     droppedOps: opStats.dropped,
     components: comps.length,
+    hasEnvelope: Boolean(envelope),
+    legacy: validated.legacy,
+    actionNames: envelope?.actions?.map((action) => action.name) ?? [],
+    provenanceAuthority: envelope?.provenance?.authority ?? null,
     issues: [...extracted.issues, ...validated.issues],
     taskSuccess: reasons.length === 0,
     reasons,

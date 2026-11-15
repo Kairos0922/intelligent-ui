@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  actionFromAnswerEvent,
   actionFromBlockEvent,
   formatIuiActionMessage,
   shouldSendAction,
@@ -41,4 +42,49 @@ test("prompt actions stay plain text", () => {
     formatIuiActionMessage({ kind: "prompt", text: "Make day 2 easier" }),
     "Make day 2 easier",
   );
+});
+
+
+test("manifest-declared actions are forwarded under the agent policy", () => {
+  const manifest = {
+    schemaVersion: "1.0",
+    hostId: "test",
+    capabilities: {
+      canNotify: false,
+      canPersist: false,
+      canOpenWallet: true,
+      canVerifyPass: true,
+      canWriteCalendar: false,
+      canDeepLink: true,
+    },
+    actions: [
+      {
+        name: "refresh",
+        description: "Refresh",
+        risk: "reversible",
+        requiresConfirmation: true,
+        idempotent: true,
+        compensation: "reversible",
+        timeoutMs: 5000,
+      },
+    ],
+  };
+  const event = { ...selectEvent, name: "refresh" };
+  assert.equal(shouldSendAction(event), false);
+  assert.equal(shouldSendAction(event, "agent", manifest), true);
+});
+
+test("answer actions become a host action", () => {
+  const action = actionFromAnswerEvent({
+    type: "action",
+    answerId: "a1",
+    actionId: "act1",
+    name: "open_qr",
+    args: { passId: "p1" },
+    riskHint: "read",
+  });
+  assert.equal(action.kind, "action");
+  assert.equal(action.actionId, "act1");
+  assert.match(formatIuiActionMessage(action), /^\[iui-action\] /);
+  assert.match(formatIuiActionMessage(action), /open_qr/);
 });

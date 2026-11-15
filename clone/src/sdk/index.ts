@@ -3,6 +3,8 @@ import "../iui/components/index";
 
 import { disposeLightboxes } from "../iui/components/lightbox";
 import { Compiler } from "../iui/compiler";
+import type { AnswerOp, HostCapabilityManifest, ProposedAction, RiskLevel } from "../iui/contracts";
+import { createI18n } from "../iui/i18n";
 import type { Op } from "../iui/protocol";
 import {
   blockTypes,
@@ -11,10 +13,12 @@ import {
   type Ctx,
   type Mount,
 } from "../iui/registry";
+import { ActionRuntime, ActionRuntimeError, createActionRuntime } from "../iui/action-machine";
 import { BLOCK_CATALOG, BLOCK_TYPES, registerBlockSpec } from "./catalog";
 import { connectSource, type ConnectOptions, type StreamSource } from "./transport";
 import {
   VALIDATION_LIMITS,
+  validateAnswerOps,
   validateOp,
   type ValidationIssue,
 } from "./validate";
@@ -25,8 +29,16 @@ export type ThemeMode = "light" | "dark" | "auto" | "inherit";
 
 export type IuiEvent =
   | { type: "answer-start"; answerId: string }
-  | { type: "answer-end"; answerId: string; ops: number; ms: number }
+  | { type: "answer-end"; answerId: string; ops: number; ms: number; legacy: boolean }
   | { type: "prompt"; answerId: string; prompt: string }
+  | {
+      type: "action";
+      answerId: string;
+      actionId: string;
+      name: string;
+      args?: Record<string, unknown>;
+      riskHint?: RiskLevel;
+    }
   | {
       type: "block";
       answerId: string;
@@ -36,6 +48,8 @@ export type IuiEvent =
   | { type: "unknown-block"; answerId: string; id: string; blockType: string }
   | { type: "validation"; answerId: string; issues: ValidationIssue[] }
   | { type: "error"; answerId: string | null; phase: "stream" | "mount" | "render"; error: Error };
+
+export type IuiAnswerAction = Extract<IuiEvent, { type: "action" }>;
 
 export interface IntelligentUIOptions {
   container: HTMLElement;
@@ -59,8 +73,20 @@ export interface IntelligentUIOptions {
   sanitize?: boolean;
   /** accessible label for the answer log */
   ariaLabel?: string;
+  /** default locale context for legacy answers that have no `answer` op */
+  locale?: string;
+  /** default IANA time zone for legacy answers */
+  timeZone?: string;
+  /** default ISO 4217 currency for legacy answers */
+  currency?: string;
+  /** default display units for legacy answers */
+  units?: "metric" | "imperial";
+  /** host capability manifest; required to render or validate answer actions */
+  capabilities?: HostCapabilityManifest;
   /** suggestion chip / form CTA clicked */
   onPrompt?: (prompt: string, ui: IntelligentUI) => void;
+  /** an answer action button was activated after host-side confirmation */
+  onAction?: (action: IuiAnswerAction, ui: IntelligentUI) => void;
   /** all SDK events (block interactions, lifecycle, validation) */
   onEvent?: (event: IuiEvent) => void;
   onError?: (error: Error, event: IuiEvent & { type: "error" }) => void;
@@ -71,6 +97,10 @@ export interface Answer {
   readonly el: HTMLElement;
   readonly done: boolean;
   readonly opCount: number;
+  /** validated Answer Envelope, or null in legacy mode */
+  readonly envelope: AnswerOp | null;
+  /** true when the answer had no valid `answer` op */
+  readonly legacy: boolean;
   /** feed raw IUI-1 text (may split mid-line) */
   write(chunk: string | Uint8Array): void;
   /** flush the final partial line and finalize blocks */
@@ -117,6 +147,7 @@ class AnswerImpl implements Answer {
   private compiler: Compiler;
   private cleanups: Array<() => void> = [];
   private budget: Budget = { ops: 0, bytes: 0, blocked: false };
+  private validatedOps: Op[] = [];
   private _done = false;
   private decoder = new TextDecoder();
 
@@ -129,11 +160,17 @@ class AnswerImpl implements Answer {
     this.el = host;
     const ctx = ui.makeCtx(id, this.cleanups);
     this.compiler = new Compiler(ctx, host, {
-      beforeApply: (op) => ui.validate(op, id, this.budget),
+      beforeApply: (op) => {
+        const kept = ui.validate(op, id, this.budget);
+        if (kept) this.validatedOps.push(kept);
+        return kept;
+      },
       onUnknown: (opId, type) => ui.emit({ type: "unknown-block", answerId: id, id: opId, blockType: type }),
       onIssue: (path, message) =>
         ui.emit({ type: "validation", answerId: id, issues: [{ path, message }] }),
       onError: (error, phase) => ui.reportError(id, phase, error),
+      capabilities: ui.capabilities(),
+      onAction: (action, actionId) => ui.emitAnswerAction(id, action, actionId),
     });
     ui.emit({ type: "answer-start", answerId: id });
   }
@@ -144,6 +181,14 @@ class AnswerImpl implements Answer {
 
   get opCount() {
     return this.compiler.opCount;
+  }
+
+  get envelope(): AnswerOp | null {
+    return this.compiler.answer;
+  }
+
+  get legacy(): boolean {
+    return this._done && !this.compiler.answer;
   }
 
   write(chunk: string | Uint8Array): void {
@@ -168,11 +213,31 @@ class AnswerImpl implements Answer {
   private finish() {
     if (this._done) return;
     this._done = true;
+    const envelope = this.compiler.answer;
+    if (envelope) {
+      const result = validateAnswerOps(this.validatedOps, {
+        sanitize: false,
+        blocks: new Set([...BLOCK_TYPES, ...blockTypes()]),
+        capabilities: this.ui.capabilities() ?? null,
+      });
+      if (result.issues.length) {
+        this.ui.emit({ type: "validation", answerId: this.id, issues: result.issues });
+      }
+      this.el.dataset.iuiLocale = envelope.locale;
+      this.el.dataset.iuiTimeZone = envelope.timeZone;
+      if (envelope.currency) this.el.dataset.iuiCurrency = envelope.currency;
+      this.el.dataset.iuiLegacy = "false";
+    } else {
+      this.el.dataset.iuiLegacy = "true";
+      this.el.dataset.iuiLocale = this.compiler.ctx.i18n?.locale ?? "en-US";
+      this.el.dataset.iuiTimeZone = this.compiler.ctx.i18n?.timeZone ?? "UTC";
+    }
     this.ui.emit({
       type: "answer-end",
       answerId: this.id,
       ops: this.compiler.opCount,
       ms: Math.round(performance.now() - this.startedAt),
+      legacy: !envelope,
     });
   }
 
@@ -376,6 +441,25 @@ class IntelligentUIInternal implements IntelligentUI {
   }
 
   /** @internal */
+  capabilities(): HostCapabilityManifest | null {
+    return this.opts.capabilities ?? null;
+  }
+
+  /** @internal */
+  emitAnswerAction(answerId: string, action: ProposedAction, actionId: string) {
+    const event = {
+      type: "action" as const,
+      answerId,
+      actionId,
+      name: action.name,
+      ...(action.args ? { args: action.args } : {}),
+      ...(action.riskHint ? { riskHint: action.riskHint } : {}),
+    };
+    this.emit(event);
+    this.opts.onAction?.(event, this);
+  }
+
+  /** @internal */
   emit(event: IuiEvent) {
     try {
       this.opts.onEvent?.(event);
@@ -399,7 +483,11 @@ class IntelligentUIInternal implements IntelligentUI {
       return null;
     }
     const blocks = new Set([...BLOCK_TYPES, ...blockTypes()]);
-    const result = validateOp(op, { sanitize: true, blocks });
+    const result = validateOp(op, {
+      sanitize: true,
+      blocks,
+      capabilities: this.opts.capabilities ?? null,
+    });
     if (result.issues.length) {
       this.emit({ type: "validation", answerId, issues: result.issues });
     }
@@ -436,6 +524,12 @@ class IntelligentUIInternal implements IntelligentUI {
 
   /** @internal */
   makeCtx(answerId: string, cleanups: Array<() => void>): Ctx {
+    const i18n = createI18n({
+      locale: this.opts.locale,
+      timeZone: this.opts.timeZone,
+      currency: this.opts.currency,
+      units: this.opts.units,
+    });
     return {
       scrollToBottom: () => this.scheduleScroll(),
       onPrompt: (prompt) => {
@@ -448,6 +542,10 @@ class IntelligentUIInternal implements IntelligentUI {
         this.opts.animate !== false &&
         !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
       emit: (name, detail) => this.emit({ type: "block", answerId, name, detail: detail ?? {} }),
+      i18n,
+      locale: i18n.locale,
+      timeZone: i18n.timeZone,
+      t: i18n.t,
     };
   }
 
@@ -504,3 +602,45 @@ export function encodeOps(ops: Op[]): string {
 export { defineBlock, BLOCK_CATALOG, registerBlockSpec };
 export type { Op, Mount, ValidationIssue };
 export type { ConnectOptions, StreamSource } from "./transport";
+export {
+  ANSWER_SCHEMA_VERSION,
+  canonicalJson,
+  findAction,
+  idempotencyKeyFor,
+  isP0Risk,
+  isTerminalActionState,
+  sha256Hex,
+  validateCapabilityManifest,
+  validateJsonSchema,
+} from "../iui/contracts";
+export type {
+  ActionDescriptor,
+  ActionError,
+  ActionErrorCode,
+  ActionEvent,
+  ActionEventType,
+  ActionIntent,
+  ActionState,
+  ActionStatus,
+  AnswerOp,
+  AnswerSlots,
+  AuditEvent,
+  AuthorizationDecision,
+  CompensationRecord,
+  ContractIssue,
+  HostCapabilityManifest,
+  JsonSchema,
+  ProposedAction,
+  ProvenanceRecord,
+  ProvenanceSummary,
+  ReconciliationRecord,
+  RiskLevel,
+  SlotRef,
+  Verification,
+} from "../iui/contracts";
+export { ActionRuntime, ActionRuntimeError, createActionRuntime, errorFor } from "../iui/action-machine";
+export type { ActionRuntimeOptions, AuditVerification, ProposalResult } from "../iui/action-machine";
+export { createI18n, formatCurrency, formatDate, formatNumber, resolveLocaleContext, translate } from "../iui/i18n";
+export type { I18n, LocaleContext, ResolvedLocaleContext } from "../iui/i18n";
+export { validateAnswerOps };
+export type { AnswerValidationResult } from "./validate";

@@ -8,6 +8,7 @@ import {
 import type { Op } from "@intelligent-ui/core";
 import { formatIuiAction } from "@intelligent-ui/core/agent";
 import coreCss from "@intelligent-ui/core/styles.css?raw";
+import { DSH_MANIFEST, dshAction } from "./manifest.js";
 
 export const name = "intelligent-ui";
 
@@ -161,8 +162,58 @@ function createToolView(ctx: Context) {
         tokens: DSH_TOKENS,
         scroll: "none",
         animate: true,
+        capabilities: DSH_MANIFEST,
         onAction: async (action) => {
           try {
+            // Answer actions are confirmed by the core runtime's dialog before
+            // onAction fires. A declared block action has no such dialog, so
+            // confirm it here before it reaches the session. A cancelled
+            // confirmation leaves the current interface untouched and the
+            // control can be used again.
+            const actionName =
+              action.kind === "block"
+                ? action.envelope.action
+                : action.kind === "action"
+                  ? action.name
+                  : null;
+            const descriptor = actionName ? dshAction(actionName) : null;
+            if (
+              action.kind === "block" &&
+              descriptor?.requiresConfirmation
+            ) {
+              const confirmed =
+                typeof window !== "undefined" &&
+                window.confirm(`Allow this action?\n\n${descriptor.description}`);
+              if (!confirmed) {
+                setSendError("Action cancelled. Nothing was sent.");
+                return;
+              }
+            }
+            if (action.kind === "action" && !descriptor) {
+              throw new Error(`Unsupported action: ${action.name}`);
+            }
+            if (action.kind === "action" && descriptor) {
+              const args = action.args ?? {};
+              if (descriptor.name === "copy_text" && typeof args.text === "string") {
+                await navigator.clipboard?.writeText(args.text);
+              } else if (
+                descriptor.name === "open_link" &&
+                typeof args.url === "string" &&
+                args.url.startsWith("https://")
+              ) {
+                window.open(args.url, "_blank", "noopener,noreferrer");
+              } else if (descriptor.name === "save_note") {
+                const key = "intelligent-ui:dsh:notes";
+                const stored = window.localStorage.getItem(key);
+                const notes = stored ? JSON.parse(stored) : [];
+                notes.push({
+                  title: typeof args.title === "string" ? args.title : "Saved note",
+                  body: typeof args.body === "string" ? args.body : "",
+                  savedAt: new Date().toISOString(),
+                });
+                window.localStorage.setItem(key, JSON.stringify(notes));
+              }
+            }
             // DSH teaches the model that every interaction arrives as an
             // `[iui-action]` envelope, including suggestion chips and form
             // CTAs, so keep prompts structured instead of sending raw text.

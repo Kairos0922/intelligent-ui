@@ -16,7 +16,7 @@ The name separates two responsibilities. The model supplies the intelligence. Th
 - The agent contract supplies a system prompt and the `render_iui` tool.
 - The adapter layer gives one action format and one lifecycle to all hosts.
 - The host adapters connect MCP Apps, React, the Vercel AI SDK, and DeepSeek Harness (DSH).
-- A 25-task benchmark measures the model-facing contract.
+- A 25-task benchmark and a 60-task three-scenario suite measure the model-facing contract.
 
 The core does not depend on DSH or on a browser chat shell. The agent entry point can operate on a server.
 
@@ -29,7 +29,7 @@ The core does not depend on DSH or on a browser chat shell. The agent entry poin
 | `@intelligent-ui/react` | React component and imperative handle | Ready |
 | `@intelligent-ui/ai-sdk` | Vercel AI SDK tool-part renderer | Ready |
 | `@intelligent-ui/mcp-apps` | MCP server helper and self-contained MCP App | Ready |
-| `@intelligent-ui/dsh` | DSH tool and web client adapter | Live model and action pass on DSH `0.2.1-rc.2` and `0.2.1-rc.3`. Deterministic pass on `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4`. |
+| `@intelligent-ui/dsh` | DSH tool and web client adapter | Adapter 0.2.2 targets DSH `0.2.2-rc.1`. Earlier live and deterministic passes cover `0.2.1-rc.2` through `0.2.1-rc.4`. Hosted DeepSeek smoke passed on `0.2.2-rc.1` with explicit complete-ops recovery. |
 
 The root package is private. Do not install the root package from a Git URL. Build the six package tarballs and install the packages that your host needs.
 
@@ -88,7 +88,7 @@ Then install the `ai` package and the React packages in your application, if the
 
 ### 3. Install in DSH
 
-The DSH adapter supports DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4`. It uses a self-contained tarball. It is not an npm dependency of your application.
+The DSH adapter targets DSH `0.2.2-rc.1`. The peer range accepts `0.2.1-rc.2` and later. It uses a self-contained tarball and is not an npm dependency of your application.
 
 Download `intelligent-ui-dsh-0.2.2.tgz` from the [v0.2.2 release](https://github.com/Kairos0922/intelligent-ui/releases/tag/v0.2.2). You can also use the tarball in `dist-pkg/` after step 1.
 
@@ -98,19 +98,38 @@ Install the tarball in the DSH web profile:
 dsh plugin --profile web add /absolute/path/to/intelligent-ui-dsh-0.2.2.tgz
 ```
 
-Open `$DSH_HOME/profiles/web/cordis.patch.yml`. Add these items to the existing list:
+DSH `0.2.2-rc.1` reads the `dsh.bundle.patch` field and appends `@intelligent-ui/dsh` to `$DSH_HOME/profiles/web/package.json` under `dsh.profile.bundles`. Check that the list contains the package. If it does not, add it:
+
+```json
+{
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "@intelligent-ui/dsh"
+      ]
+    }
+  }
+}
+```
+
+For older hosts, add the plugin to `$DSH_HOME/profiles/web/cordis.patch.yml`:
 
 ```yaml
 - insert:
     - id: intelligent-ui
       name: "@intelligent-ui/dsh"
+```
+
+Keep the other items in the file. The `- insert:` wrapper is necessary. To keep the keyed tool row open after a turn, set `transcriptView: verbose` on the existing `ui-chat` item:
+
+```yaml
 - id: ui-chat
   name: "@deepseek-ai/dsh-client-ui-chat"
   config:
     transcriptView: verbose
 ```
-
-Keep the other items in the file. The `- insert:` wrapper is necessary. The `transcriptView: verbose` setting keeps the keyed tool row open after a turn.
 
 Restart the DSH web app:
 
@@ -206,16 +225,23 @@ The default action policy is `agent`. It sends prompts and meaningful block even
 
 | Check | Result |
 |---|---|
-| Unit tests | 21 of 21 pass |
+| Unit tests | 64 of 64 pass |
 | Playwright host tests | 2 of 2 pass |
-| SDK browser self-test | 25 of 25 pass |
+| SDK browser self-test | 29 of 29 pass |
 | Benchmark harness self-check | 25 of 25 tasks pass with the mock provider |
+| 60-task scenario fixture | 60 of 60 tasks pass (20 of 20 per scenario) |
+| Real model scenario coverage | data-analysis 19/20 (95.0%), daily-travel 20/20, daily-life 20/20. Hosted DeepSeek V4.1 Flash. Overall 59/60 |
+| Local Qwen comparison | data-analysis 19/20, daily-travel 19/20, daily-life 19/20 (historical `qwen2.5:14b`, model deleted) |
+| DSH hosted-provider web smoke | Pass on DSH `0.2.2-rc.1` with `deepseek-flash`. First render, cancel/confirm, `[iui-action]`, exact complete-ops second update, invalid-op guard, no console errors |
 | DSH web smoke test | Pass with a synthetic replay |
 | Live DSH model update | Pass on DSH `0.2.1-rc.2` and `0.2.1-rc.3` with a signed-in profile |
 | DSH deterministic update | Pass on DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` with a local Messages server and the self-contained tarball |
-| Real model benchmark | Not run. No provider credentials were available. |
 
-The mock benchmark result is not a model result. The DSH live test checks a signed-in model call, a keyed tool row, and a same-block action update in both host versions. The deterministic test checks the same toolview and action path on all three host versions without an account. The DSH synthetic replay also checks the client, the styles, and the theme bridge.
+The mock benchmark result is not a model result. The scenario fixture is a contract check, not model coverage. The hosted row uses DeepSeek `deepseek-flash` (served by `DeepSeek-V4.1-Flash-1017`). It reports each scenario on its own 20-task registry. The local Qwen row is historical comparison only.
+
+The DSH hosted smoke passes the real web host path. The second turn used an explicit complete-ops recovery. The model's automatic action turn was prose-only. The deliberately invalid op was refused before the tool call. Read [specs/SCENARIO-COVERAGE.md](specs/SCENARIO-COVERAGE.md) and [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md) for the exact caveats.
+
+The DSH live test checks a signed-in model call, a keyed tool row, and a same-block action update in both host versions. The deterministic test checks the same toolview and action path on all three host versions without an account. The DSH synthetic replay also checks the client, the styles, and the theme bridge.
 
 ## Repository layout
 
@@ -223,7 +249,7 @@ The mock benchmark result is not a model result. The DSH live test checks a sign
 clone/             Core package source and browser self-test
 packages/          Adapter and host packages
 tests/             Node and Playwright tests
-bench/             25-task structural benchmark
+bench/             25-task benchmark and 60-task scenario suite
 docs/              Style and release guides
 ```
 
@@ -233,6 +259,7 @@ docs/              Style and release guides
 
 - [SDK.md](SDK.md) gives the protocol, API, blocks, state, and security model.
 - [ADAPTERS.md](ADAPTERS.md) gives the adapter contract and host notes.
+- [specs/SCENARIO-COVERAGE.md](specs/SCENARIO-COVERAGE.md) gives the three-scenario real-model coverage report.
 - [SDK.md#blocks](SDK.md#blocks) lists the default blocks.
 - [docs/STE.md](docs/STE.md) gives the documentation rules.
 - [docs/RELEASE.md](docs/RELEASE.md) gives the release steps.

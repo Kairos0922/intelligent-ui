@@ -2818,3 +2818,61 @@ svg.iui-bike .callout text {
     font-size: 18px;
   }
 }
+
+.iui-answer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 4px;
+}
+
+.iui-answer-action {
+  border: 1px solid var(--iui-border);
+  background: var(--iui-text);
+  color: var(--iui-bg);
+  border-radius: 18px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  max-width: 100%;
+}
+
+.iui-answer-action:hover {
+  opacity: 0.86;
+}
+
+.iui-answer-action[data-risk="reversible"] {
+  background: transparent;
+  color: var(--iui-text);
+}
+
+.iui-confirm-dialog {
+  border: 1px solid var(--iui-border);
+  border-radius: 16px;
+  background: var(--iui-bg);
+  color: var(--iui-text);
+  padding: 20px;
+  max-width: min(420px, calc(100vw - 32px));
+}
+
+.iui-confirm-dialog::backdrop {
+  background: rgb(0 0 0 / 40%);
+}
+
+.iui-confirm-dialog h4 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.iui-confirm-dialog p {
+  margin: 0 0 16px;
+  color: var(--iui-muted);
+}
+
+.iui-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

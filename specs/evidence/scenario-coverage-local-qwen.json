@@ -1,0 +1,1321 @@
+{
+  "schema": "iui-scenario-coverage-evidence-v1",
+  "generatedAt": "2026-11-11T14:32:04.172Z",
+  "provider": "ollama",
+  "model": "qwen2.5:14b",
+  "note": "Sanitized summary. Full model responses remain in local bench/results/scenarios (ignored by Git).",
+  "method": {
+    "registeredPerScenario": 20,
+    "repeat": 1,
+    "repairLimit": 2,
+    "threshold": 0.9
+  },
+  "scenarios": [
+    {
+      "id": "data-analysis",
+      "title": "Data analysis",
+      "registered": 20,
+      "completed": 19,
+      "coverage": 0.95,
+      "answer": {
+        "completed": 19,
+        "total": 20
+      },
+      "action": {
+        "completed": 3,
+        "total": 3
+      },
+      "interaction": {
+        "completed": 1,
+        "total": 2
+      },
+      "repairs": 3,
+      "failures": [
+        {
+          "taskId": "data-churn",
+          "attempts": 1,
+          "reasons": [
+            "turn 2 does not contain the selected value \"Qualitative\""
+          ]
+        }
+      ]
+    },
+    {
+      "id": "daily-travel",
+      "title": "Daily travel planning",
+      "registered": 20,
+      "completed": 19,
+      "coverage": 0.95,
+      "answer": {
+        "completed": 2,
+        "total": 2
+      },
+      "action": {
+        "completed": 2,
+        "total": 2
+      },
+      "interaction": {
+        "completed": 3,
+        "total": 3
+      },
+      "repairs": 10,
+      "failures": [
+        {
+          "taskId": "travel-hike",
+          "attempts": 1,
+          "reasons": [
+            "missing usable dayList"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "daily-life",
+      "title": "Daily life",
+      "registered": 20,
+      "completed": 19,
+      "coverage": 0.95,
+      "answer": {
+        "completed": 5,
+        "total": 6
+      },
+      "action": {
+        "completed": 5,
+        "total": 6
+      },
+      "interaction": {
+        "completed": 1,
+        "total": 1
+      },
+      "repairs": 3,
+      "failures": [
+        {
+          "taskId": "life-emergency",
+          "attempts": 1,
+          "reasons": [
+            "invalid JSON",
+            "missing usable packing"
+          ]
+        }
+      ]
+    }
+  ],
+  "overall": {
+    "registered": 60,
+    "completed": 57,
+    "coverage": 0.95
+  },
+  "tasks": [
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-revenue",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 78400,
+      "hasEnvelope": true,
+      "actionNames": [
+        "export_report"
+      ],
+      "rawOps": 7,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-cohort",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 106201,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 5,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[2].id",
+          "message": "duplicate id \"conclusion\" (already used by op)",
+          "code": "duplicate_id"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-campaign",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 68464,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 9,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[2].id",
+          "message": "duplicate id \"summary\" (already used by op)",
+          "code": "duplicate_id"
+        },
+        {
+          "path": "$[6].id",
+          "message": "duplicate id \"conclusion\" (already used by op)",
+          "code": "duplicate_id"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-tickets",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 63449,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-churn",
+      "complete": false,
+      "taskSuccess": true,
+      "interactionOk": false,
+      "interactionReasons": [
+        "turn 2 does not contain the selected value \"Qualitative\""
+      ],
+      "reasons": [],
+      "repairs": 2,
+      "durationMs": 187918,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-region",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 40407,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 5,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[2].id",
+          "message": "duplicate id \"conclusion\" (already used by op)",
+          "code": "duplicate_id"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-experiment",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 43768,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 5,
+      "renderedOps": 5,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "slots.conclusion",
+          "message": "slot references unknown op \"conclusion\"",
+          "code": "invalid_slot"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-funnel",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 40136,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 7,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-budget",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 1,
+      "durationMs": 99268,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 5,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[2].id",
+          "message": "duplicate id \"conclusion\" (already used by op)",
+          "code": "duplicate_id"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-inventory",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 57677,
+      "hasEnvelope": true,
+      "actionNames": [
+        "filter_segment"
+      ],
+      "rawOps": 7,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[0].actions[0].args.segment",
+          "message": "required field is missing",
+          "code": "invalid_args"
+        },
+        {
+          "path": "$[2].id",
+          "message": "duplicate id \"conclusion\" (already used by op)",
+          "code": "duplicate_id"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-nps",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 51561,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 7,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "slots.conclusion",
+          "message": "slot references unknown op \"conclusion\"",
+          "code": "invalid_slot"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-segments",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 43593,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-kpi",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 171430,
+      "hasEnvelope": true,
+      "actionNames": [
+        "export_report"
+      ],
+      "rawOps": 8,
+      "renderedOps": 8,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[0].actions[0].riskHint",
+          "message": "riskHint must be read, reversible, or irreversible",
+          "code": "invalid_intent"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-anomaly",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 84608,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 10,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[2].id",
+          "message": "duplicate id \"timeline_heading\" (already used by op)",
+          "code": "duplicate_id"
+        },
+        {
+          "path": "$[5].id",
+          "message": "duplicate id \"table_heading\" (already used by op)",
+          "code": "duplicate_id"
+        },
+        {
+          "path": "$[8].id",
+          "message": "duplicate id \"conclusion\" (already used by op)",
+          "code": "duplicate_id"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-elasticity",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 63294,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 4,
+      "renderedOps": 4,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "slots.conclusion",
+          "message": "slot references unknown op \"conclusion\"",
+          "code": "invalid_slot"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-pipeline",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 51417,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 8,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[2].id",
+          "message": "duplicate id \"conclusion\" (already used by op)",
+          "code": "duplicate_id"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-quality",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 45196,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 5,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[2].id",
+          "message": "duplicate id \"conclusion\" (already used by op)",
+          "code": "duplicate_id"
+        }
+      ]
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-clv",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 57896,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 7,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-spend",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 56937,
+      "hasEnvelope": true,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "data-analysis",
+      "taskId": "data-exec",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 48050,
+      "hasEnvelope": true,
+      "actionNames": [
+        "export_report"
+      ],
+      "rawOps": 9,
+      "renderedOps": 8,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[2].id",
+          "message": "duplicate id \"conclusion\" (already used by op)",
+          "code": "duplicate_id"
+        }
+      ]
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-weekend",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 28384,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-city",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 1,
+      "durationMs": 178380,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 14,
+      "renderedOps": 14,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-rain",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 29665,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-budget",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 25315,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-family",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 1,
+      "durationMs": 113738,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 3,
+      "renderedOps": 3,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-food",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 32269,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-train",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 1,
+      "durationMs": 57644,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 5,
+      "renderedOps": 5,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-packing",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 106003,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 3,
+      "renderedOps": 3,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-bookable",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 1,
+      "durationMs": 217669,
+      "hasEnvelope": true,
+      "actionNames": [
+        "add_to_calendar"
+      ],
+      "rawOps": 7,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[0].actions[0].riskHint",
+          "message": "riskHint must be read, reversible, or irreversible",
+          "code": "invalid_intent"
+        }
+      ]
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-road",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 104172,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 3,
+      "renderedOps": 3,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-hotel",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 65868,
+      "hasEnvelope": true,
+      "actionNames": [
+        "check_availability"
+      ],
+      "rawOps": 7,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[0].actions[0].args.option",
+          "message": "required field is missing",
+          "code": "invalid_args"
+        }
+      ]
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-events",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 1,
+      "durationMs": 211628,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 4,
+      "renderedOps": 4,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-museum",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 58908,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-hike",
+      "complete": false,
+      "taskSuccess": false,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [
+        "missing usable dayList"
+      ],
+      "repairs": 2,
+      "durationMs": 109182,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 4,
+      "renderedOps": 4,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-nighttrain",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 35136,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 9,
+      "renderedOps": 9,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-visa",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 1,
+      "durationMs": 85420,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 7,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-tracker",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 27923,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 7,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-accessible",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 1,
+      "durationMs": 100133,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-multicity",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 1,
+      "durationMs": 201130,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-travel",
+      "taskId": "travel-debrief",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 50880,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 13,
+      "renderedOps": 13,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-morning",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 64941,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-meals",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 56282,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 3,
+      "renderedOps": 3,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-grocery",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 57904,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-bills",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 89417,
+      "hasEnvelope": true,
+      "actionNames": [
+        "create_reminder"
+      ],
+      "rawOps": 7,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[0].actions[0].args.title",
+          "message": "required field is missing",
+          "code": "invalid_args"
+        },
+        {
+          "path": "$[0].actions[0].args.at",
+          "message": "required field is missing",
+          "code": "invalid_args"
+        }
+      ]
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-workout",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 136988,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 3,
+      "renderedOps": 3,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-cleaning",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 50476,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-habits",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 43452,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 3,
+      "renderedOps": 3,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-weekly",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 49892,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 8,
+      "renderedOps": 8,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-moving",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 118508,
+      "hasEnvelope": true,
+      "actionNames": [
+        "save_list"
+      ],
+      "rawOps": 7,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[2].id",
+          "message": "duplicate id \"conclusion\" (already used by op)",
+          "code": "duplicate_id"
+        }
+      ]
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-pet",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 114835,
+      "hasEnvelope": true,
+      "actionNames": [
+        "create_reminder"
+      ],
+      "rawOps": 7,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[0].actions[0].args.at",
+          "message": "required field is missing",
+          "code": "invalid_args"
+        }
+      ]
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-study",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 71012,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 5,
+      "renderedOps": 5,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-budget",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 42242,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 3,
+      "renderedOps": 3,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-gifts",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 82640,
+      "hasEnvelope": true,
+      "actionNames": [
+        "save_list"
+      ],
+      "rawOps": 7,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[2].id",
+          "message": "duplicate id \"conclusion\" (already used by op)",
+          "code": "duplicate_id"
+        }
+      ]
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-appointment",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 1,
+      "durationMs": 111003,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 13,
+      "renderedOps": 13,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-commute",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 41454,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 5,
+      "renderedOps": 5,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-errands",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 46312,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 3,
+      "renderedOps": 3,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-family",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 106525,
+      "hasEnvelope": true,
+      "actionNames": [
+        "create_reminder"
+      ],
+      "rawOps": 7,
+      "renderedOps": 7,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "$[0].actions[0].args.title",
+          "message": "required field is missing",
+          "code": "invalid_args"
+        },
+        {
+          "path": "$[0].actions[0].args.at",
+          "message": "required field is missing",
+          "code": "invalid_args"
+        }
+      ]
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-okr",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 55259,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 3,
+      "renderedOps": 3,
+      "droppedOps": 0,
+      "issues": []
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-emergency",
+      "complete": false,
+      "taskSuccess": false,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [
+        "invalid JSON",
+        "missing usable packing"
+      ],
+      "repairs": 2,
+      "durationMs": 314828,
+      "hasEnvelope": true,
+      "actionNames": [
+        "save_list"
+      ],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": [
+        {
+          "path": "line[4]",
+          "message": "invalid JSON"
+        },
+        {
+          "path": "slots.primaryArtifact",
+          "message": "slot references unknown comp \"c1\"",
+          "code": "invalid_slot"
+        }
+      ]
+    },
+    {
+      "scenario": "daily-life",
+      "taskId": "life-winddown",
+      "complete": true,
+      "taskSuccess": true,
+      "interactionOk": true,
+      "interactionReasons": [],
+      "reasons": [],
+      "repairs": 0,
+      "durationMs": 34269,
+      "hasEnvelope": false,
+      "actionNames": [],
+      "rawOps": 6,
+      "renderedOps": 6,
+      "droppedOps": 0,
+      "issues": []
+    }
+  ]
+}

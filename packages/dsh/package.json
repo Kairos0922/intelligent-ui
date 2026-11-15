@@ -25,6 +25,7 @@
   "types": "./lib/index.d.ts",
   "files": [
     "lib",
+    "cordis.patch.yml",
     "README.md"
   ],
   "exports": {
@@ -39,6 +40,10 @@
     "./package.json": "./package.json"
   },
   "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "inject": [
         "@deepseek-ai/dsh-api-session-controller",

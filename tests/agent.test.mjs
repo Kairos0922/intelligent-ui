@@ -14,6 +14,7 @@ import {
   registerBlockSpec,
   selectPromptBlocks,
   validateNdjson,
+  validateAnswerOps,
   validateOps,
 } from "../clone/dist-lib/agent.js";
 
@@ -194,4 +195,43 @@ test("markdown fallback preserves prose and tables", () => {
   assert.match(markdown, /\| A \| B \|/);
   assert.match(markdown, /\[Interactive dayList\]/);
   assert.match(markdown, /Suggested replies/);
+});
+
+test("capability manifest teaches the answer envelope and declared actions", () => {
+  const capabilities = {
+    schemaVersion: "1.0",
+    hostId: "test",
+    capabilities: {
+      canNotify: false,
+      canPersist: false,
+      canOpenWallet: true,
+      canVerifyPass: true,
+      canWriteCalendar: false,
+      canDeepLink: true,
+    },
+    actions: [
+      {
+        name: "open_qr",
+        description: "Show QR",
+        risk: "read",
+        requiresConfirmation: false,
+        idempotent: true,
+        compensation: "none",
+        timeoutMs: 5000,
+      },
+    ],
+  };
+  const prompt = iuiSystemPrompt({ capabilities });
+  assert.match(prompt, /"t":"answer"/);
+  assert.match(prompt, /open_qr/);
+  assert.match(prompt, /Do not invent action names/);
+  const tool = iuiTool({ capabilities });
+  assert.ok(tool.function.parameters.properties.ops.items.properties.t.enum.includes("answer"));
+  assert.doesNotMatch(iuiSystemPrompt(), /"t":"answer"/);
+  assert.doesNotMatch(iuiTool().function.parameters.properties.ops.items.properties.t.enum.join(","), /answer/);
+});
+
+test("validateAnswerOps is exported from the agent entry", () => {
+  const result = validateAnswerOps([{ t: "p" }, { t: "md", v: "x" }, { t: "done" }]);
+  assert.equal(result.legacy, true);
 });

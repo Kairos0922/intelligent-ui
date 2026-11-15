@@ -29,6 +29,10 @@ test-results/
 blob-report/
 coverage/
 
+# local benchmark and DSH smoke state
+.dsh-home/
+.dsh-smoke/
+
 # editors / env
 .vscode/
 .idea/
