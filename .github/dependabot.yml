@@ -5,6 +5,13 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      modelcontextprotocol:
+        patterns:
+          - "@modelcontextprotocol/*"
+      deepseek:
+        patterns:
+          - "@deepseek-ai/*"
     ignore:
       - dependency-name: "typescript"
         update-types:
@@ -17,3 +24,7 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
