@@ -29,7 +29,7 @@ The core does not depend on DSH or on a browser chat shell. The agent entry poin
 | `@intelligent-ui/react` | React component and imperative handle | Ready |
 | `@intelligent-ui/ai-sdk` | Vercel AI SDK tool-part renderer | Ready |
 | `@intelligent-ui/mcp-apps` | MCP server helper and self-contained MCP App | Ready |
-| `@intelligent-ui/dsh` | DSH tool and web client adapter | Adapter 0.2.2 targets DSH `0.2.2-rc.1`. Earlier live and deterministic passes cover `0.2.1-rc.2` through `0.2.1-rc.4`. Hosted DeepSeek smoke passed on `0.2.2-rc.1` with explicit complete-ops recovery. |
+| `@intelligent-ui/dsh` | DSH tool and web client adapter | Adapter 0.2.2 targets DSH `0.2.2-rc.3`, which uses `zod 4.6.6`. Earlier live and deterministic passes cover `0.2.1-rc.2` through `0.2.1-rc.4`. Hosted DeepSeek smoke passed on `0.2.2-rc.1` with explicit complete-ops recovery. The rc.3 release has package-level verification, not a new hosted smoke. |
 
 The root package is private. Do not install the root package from a Git URL. Build the six package tarballs and install the packages that your host needs.
 
@@ -88,7 +88,7 @@ Then install the `ai` package and the React packages in your application, if the
 
 ### 3. Install in DSH
 
-The DSH adapter targets DSH `0.2.2-rc.1`. The peer range accepts `0.2.1-rc.2` and later. It uses a self-contained tarball and is not an npm dependency of your application.
+The DSH adapter targets DSH `0.2.2-rc.3`. The peer range requires `0.2.2-rc.3` or later within the `0.2.x` line. It uses a self-contained tarball and is not an npm dependency of your application.
 
 Download `intelligent-ui-dsh-0.2.2.tgz` from the [v0.2.2 release](https://github.com/Kairos0922/intelligent-ui/releases/tag/v0.2.2). You can also use the tarball in `dist-pkg/` after step 1.
 
@@ -98,7 +98,7 @@ Install the tarball in the DSH web profile:
 dsh plugin --profile web add /absolute/path/to/intelligent-ui-dsh-0.2.2.tgz
 ```
 
-DSH `0.2.2-rc.1` reads the `dsh.bundle.patch` field and appends `@intelligent-ui/dsh` to `$DSH_HOME/profiles/web/package.json` under `dsh.profile.bundles`. Check that the list contains the package. If it does not, add it:
+The DSH `0.2.2` release line reads the `dsh.bundle.patch` field and appends `@intelligent-ui/dsh` to `$DSH_HOME/profiles/web/package.json` under `dsh.profile.bundles`. Check that the list contains the package. If it does not, add it:
 
 ```json
 {

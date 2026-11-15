@@ -13,11 +13,17 @@ Environment:
 
 The repository contains no credential, token, screenshot, or session data.
 
+## 2026-11-16 security update
+
+The adapter now requires DSH `0.2.2-rc.3` and Cordis `4.1.0`. DSH 0.2.1 pins `zod 4.4.3`, which is affected by [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5). DSH 0.2.2-rc.3 pins `zod 4.6.6`, and `npm audit` reports no vulnerabilities. Build, typecheck, the 64 Node tests, and the two Playwright tests pass on this tree. The live and deterministic records below were collected on the older hosts. They are not an rc.3 web smoke.
+
 ## Why DSH rejected 0.2.0
 
 DSH reads each `@deepseek-ai/dsh` or `@deepseek-ai/dsh-*` peer range. It compares the range with the runtime version and includes prerelease versions. Version 0.2.0 declared `@deepseek-ai/dsh-tools` `0.2.1-rc.2` exactly. That range does not include `0.2.1-rc.3`. DSH stops the profile resolution before it loads the plugin. The exact-version exemption is the only override.
 
 Version 0.2.1 changed the peer to `>=0.2.1-rc.2 <0.3.0`. DSH accepts rc.2, rc.3, and rc.4 without an exemption. The install log has no `incompatible` or `exemption` message.
+
+The current peer range is `>=0.2.2-rc.3 <0.3.0`. The 0.2.1 line is no longer supported because DSH 0.2.1 pins `zod 4.4.3`, which is affected by GHSA-mrhx-c7xc-m3w5. DSH 0.2.2-rc.3 pins `zod 4.6.6`.
 
 ## Result
 
@@ -138,7 +144,7 @@ token.
 - The live runs used one model and one click for each host version. They do not cover every block or model.
 - The rc.3 live model made one malformed op and corrected it. Another model can make a different error.
 - The tests check the DSH web profile only. They do not check the DSH desktop profile.
-- DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` are release candidates. Run the tests after each DSH upgrade.
+- DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` are release candidates. DSH `0.2.2-rc.3` is also a release candidate. Package-level tests pass, but no new live web smoke was recorded. Run the tests after each DSH upgrade.
 - The tests kept screenshots and session records in a local temporary directory. The repository contains no screenshot or session data.
 
 ## Test files
