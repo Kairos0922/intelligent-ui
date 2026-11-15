@@ -16,6 +16,9 @@ All notable changes to this project are documented in this file.
 - The scenario runner supports validation-feedback repair calls, conservative JSON wrapping, interaction replay, per-scenario release gates, and a hosted DeepSeek OpenAI-compatible provider.
 - The DSH adapter declares only `copy_text`, `open_link`, and `save_note`. It rejects undeclared actions and tells the model to resend a complete interface after an `[iui-action]` message.
 - The DSH package carries a `dsh.bundle.patch` layer for DSH `0.2.2-rc.1`.
+- The travel `pass` profile adds a host-verified boarding pass block, real QR rendering, Ed25519 issuer verification, a 24h sealed snapshot, and refresh/verification actions.
+- DSH declares `canVerifyPass: true` plus read-only `show_code`, `refresh`, `request_verification`, and `open_issuer_link` actions.
+- A standalone test issuer signs payloads with an in-process Ed25519 key. The browser receives only the public key and signed feed.
 
 ### Fixed
 
@@ -38,6 +41,7 @@ All notable changes to this project are documented in this file.
 - The DSH hosted-provider web smoke passed on `0.2.2-rc.1` with `deepseek-flash`. The second turn used an explicit complete-ops recovery. The invalid-op attempt was refused before the tool call.
 - A historical local Ollama `qwen2.5:14b` run completed 19 of 20 tasks in each scenario. The local model was deleted after the run.
 - The reference fixture completed 60 of 60 tasks. This is contract coverage, not model coverage.
+- The pass profile tests cover Ed25519 verification, HMAC snapshot seals, stale/revoked snapshots in IndexedDB, QR dialog, DSH manifest actions, and a live test issuer. No real issuer or Wallet was used.
 
 ## [0.2.2] - 2026-10-28
 

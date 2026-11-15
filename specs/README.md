@@ -1,10 +1,13 @@
 # Spec drafts
 
-**Status: Protocol 0.3-draft, Evaluation 0.2-draft, Domain 0.1-draft.**
+**Status: Protocol 0.3-draft, Evaluation 0.2-draft, Domain 0.2-implemented-slice.**
 **Decision basis approved 2026-11-04** (user-delegated authority; adversarial
 review passed with all four findings dispositioned — see Plan §7.6.1).
-Stage 1a core contracts are implemented in `clone/src` (2026-11-04). The plan
-remains the decision source of truth. Stage 1b/2 stay gated by the issuer check.
+Stage 1a core contracts are implemented in `clone/src` (2026-11-04).
+The Stage 1b pass vertical slice is implemented against a self-built test issuer
+(2026-11-13) under an explicit issuer-gate override. A real external issuer is
+still not connected and remains a Stage 2 gate. The plan remains the decision
+source of truth.
 
 The three P0 verticals have a real-model coverage report in
 [`SCENARIO-COVERAGE.md`](SCENARIO-COVERAGE.md). It reports the hosted DeepSeek
@@ -20,6 +23,8 @@ This directory contains the two beachhead-independent specifications called for 
 | [`PROTOCOL-SPEC.md`](PROTOCOL-SPEC.md) | Answer Envelope, action lifecycle, authorization, idempotency, reconciliation, compensation, audit, provenance, capability manifest, pass/storage profiles | `INTELLIGENT-UI-PLAN.md` §6.3; `experiments/pass-spike/` |
 | [`EVALUATION-SPEC.md`](EVALUATION-SPEC.md) | L1–L4 + security metrics, gates, fixtures, evidence package, reporting | Plan §6.6–§6.7; Protocol Spec |
 | [`DOMAIN-ARTIFACT-SPEC.md`](DOMAIN-ARTIFACT-SPEC.md) | Travel/pass: fields, validation, two-axis states, actions, degradation, privacy, test-issuer spec, C26–C32 | Plan §6.4/§7.6.1; Protocol Spec §15; experiment pass-model |
+| [`STAGE-1A-IMPLEMENTATION-PLAN.md`](STAGE-1A-IMPLEMENTATION-PLAN.md) | Stage 1a contracts, tests, limits, and hosted scenario results | Plan §6.3/§6.5; Protocol Spec |
+| [`STAGE-1B-IMPLEMENTATION-PLAN.md`](STAGE-1B-IMPLEMENTATION-PLAN.md) | Stage 1b pass slice, issuer-gate override, test issuer, conformance gaps | Plan §6.4/§6.7; Domain Artifact Spec; Protocol Spec §15 |
 
 The plan remains the decision source of truth. These files are subordinate drafts:
 if they conflict with the plan, the plan wins until both are revised.
@@ -27,8 +32,8 @@ if they conflict with the plan, the plan wins until both are revised.
 ## What these drafts do not do
 
 - They do not select a beachhead.
-- They do not start travel-specific work before the issuer gate. Stage 1a is beachhead-neutral.
-- They do not claim that the beachhead passes. Only stage 1a contract tests are implemented.
+- They do not claim the real issuer gate passed. Stage 1b uses a self-built test issuer only.
+- They do not claim that the beachhead passes. Only contract, host, and test-issuer checks are implemented.
 - They do not replace user research, a real-host experiment, or a security audit.
 
 ## Language and repo guardrail

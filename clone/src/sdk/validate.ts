@@ -24,6 +24,7 @@ import {
 } from "../iui/contracts";
 import { BLOCK_TYPES } from "./catalog";
 import { safeColor, safeUrl } from "../iui/security";
+import { validatePassPayload } from "../iui/pass";
 
 export interface ValidationIssue {
   path: string;
@@ -759,6 +760,14 @@ export function validateOp(input: unknown, options: ValidateOptions = {}): Valid
       }
       let props = sanitizeValue(input.props, opts, "props", issues) as Record<string, unknown>;
       props = stripUntrustedFields(props, "props", issues) as Record<string, unknown>;
+      if (type === "pass") {
+        const checked = validatePassPayload(props.pass, "props.pass");
+        for (const item of checked.issues) {
+          issue(issues, item.path, item.message, item.code ?? "invalid_pass");
+        }
+        if (!checked.payload) break;
+        props = { ...props, pass: checked.payload };
+      }
       const size = jsonBytes(props);
       if (size > opts.maxPropsBytes) {
         issue(issues, "props", `props exceed ${opts.maxPropsBytes} bytes`);

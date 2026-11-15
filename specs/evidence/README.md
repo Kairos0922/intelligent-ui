@@ -10,6 +10,7 @@
 | `scenario-coverage.json` | Hosted DeepSeek 三场景 60 个预登记任务的逐任务结果、失败原因、修复次数和耗时 |
 | `scenario-coverage-local-qwen.json` | 本地 Qwen 2.5 14B 的历史对照结果 |
 | `dsh-smoke.json` | DSH 0.2.2-rc.1 浏览器 smoke 的步骤和结果；包含 DeepSeek V4.1 Flash 的 hosted-provider 验收和显式完整 ops 恢复说明 |
+| `pass-host.json` | Stage 1b pass 宿主路径：测试 issuer、Ed25519/HMAC、IndexedDB 快照、撤销/无效/过期和 DSH 只读动作；明确未接真实 issuer |
 
 `scenario-coverage.json` 由三份原始 JSON 生成。生成命令和报告口径见
 [`../SCENARIO-COVERAGE.md`](../SCENARIO-COVERAGE.md)。原始报告中的

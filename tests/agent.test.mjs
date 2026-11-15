@@ -18,10 +18,10 @@ import {
   validateOps,
 } from "../clone/dist-lib/agent.js";
 
-test("core catalog contains only general-purpose blocks", () => {
+test("core catalog contains only shipping blocks", () => {
   const blocks = selectPromptBlocks();
-  assert.equal(blocks.length, 30);
-  assert.equal(BLOCK_CATALOG.length, 30);
+  assert.equal(blocks.length, 31);
+  assert.equal(BLOCK_CATALOG.length, 31);
   assert.equal(blocks.some((block) => block.kind === "demo"), false);
   assert.equal(selectPromptBlocks({ kinds: ["demo"] }).length, 0);
   assert.equal(selectPromptBlocks({ include: ["dayList"] }).length, 1);
@@ -43,11 +43,11 @@ test("runtime registration extends prompts and validation", () => {
     kind: "content",
     props: { type: "object", properties: {} },
   });
-  assert.equal(selectPromptBlocks().length, 31);
+  assert.equal(selectPromptBlocks().length, 32);
   assert.equal(BLOCK_TYPES.has("testBlock"), true);
   assert.match(iuiTool().function.description, /testBlock/);
   dispose();
-  assert.equal(selectPromptBlocks().length, 30);
+  assert.equal(selectPromptBlocks().length, 31);
   assert.equal(BLOCK_TYPES.has("testBlock"), false);
 });
 
@@ -67,21 +67,21 @@ test("tool-mode prompt teaches tool calls, not only fences", () => {
   const prompt = iuiSystemPrompt({ mode: "tool" });
   assert.match(prompt, /Call the `render_iui` tool exactly once/);
   assert.doesNotMatch(prompt, /```iui/);
-  assert.match(prompt, /## Block catalog \(30 types\)/);
+  assert.match(prompt, /## Block catalog \(31 types\)/);
   assert.match(prompt, /\[iui-action\]/);
 });
 
 test("fence-mode prompt remains the default and has no demo blocks", () => {
   const prompt = iuiSystemPrompt();
   assert.match(prompt, /fenced code block tagged `iui`/);
-  assert.match(prompt, /## Block catalog \(30 types\)/);
+  assert.match(prompt, /## Block catalog \(31 types\)/);
   assert.doesNotMatch(prompt, /billSplitter —/);
 });
 
 test("tool description can be used without a system prompt channel", () => {
   const description = iuiToolDescription();
   assert.match(description, /Protocol:/);
-  assert.match(description, /Block catalog \(30 types\)/);
+  assert.match(description, /Block catalog \(31 types\)/);
   assert.match(description, /dayList/);
 });
 

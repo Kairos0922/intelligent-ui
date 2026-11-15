@@ -43,6 +43,7 @@ Each package lists its runtime dependencies in `package.json`. The main dependen
 | `@modelcontextprotocol/ext-apps` | MIT |
 | `@modelcontextprotocol/server` | MIT |
 | `zod` | MIT |
+| `qrcode-generator` | MIT |
 | `react` and `react-dom` | MIT |
 | `@deepseek-ai/*` | See the upstream package license |
 | `vite`, `typescript`, and `@playwright/test` | MIT or Apache-2.0 |

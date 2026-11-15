@@ -3,3 +3,4 @@ import "./basics";
 import "./bike";
 import "./insights";
 import "./map";
+import "./pass";

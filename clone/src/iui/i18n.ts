@@ -142,6 +142,36 @@ type MessageKey =
   | "actionNeedsConfirmation"
   | "showCode"
   | "refresh"
+  | "boardingPass"
+  | "flight"
+  | "date"
+  | "boarding"
+  | "departs"
+  | "gate"
+  | "seat"
+  | "group"
+  | "terminal"
+  | "passenger"
+  | "verified"
+  | "unverified"
+  | "invalid"
+  | "revoked"
+  | "expired"
+  | "snapshot"
+  | "unknown"
+  | "verify"
+  | "addToWallet"
+  | "done"
+  | "checked"
+  | "noAttestation"
+  | "passUnverified"
+  | "passRevoked"
+  | "passInvalid"
+  | "passStale"
+  | "passUnknown"
+  | "gateChanged"
+  | "interfaceUpdated"
+  | "snapshotOutdated"
   | "languageAssumed";
 
 const EN: Record<MessageKey, string> = {
@@ -179,6 +209,36 @@ const EN: Record<MessageKey, string> = {
   actionNeedsConfirmation: "Confirmation required",
   showCode: "Show code",
   refresh: "Refresh",
+  boardingPass: "Boarding pass",
+  flight: "Flight",
+  date: "Date",
+  boarding: "Boarding",
+  departs: "Departs",
+  gate: "Gate",
+  seat: "Seat",
+  group: "Group",
+  terminal: "Terminal",
+  passenger: "Passenger",
+  verified: "Verified",
+  unverified: "Unverified",
+  invalid: "Invalid",
+  revoked: "Revoked",
+  expired: "Expired",
+  snapshot: "Snapshot",
+  unknown: "Unknown",
+  verify: "Verify",
+  addToWallet: "Add to Wallet",
+  done: "Done",
+  checked: "Checked",
+  noAttestation: "No host attestation",
+  passUnverified: "The issuer has not provided a verifiable status for this pass.",
+  passRevoked: "This pass was revoked by the issuer. Do not present it.",
+  passInvalid: "The pass signature or snapshot seal is invalid. Do not present it.",
+  passStale: "Showing a saved snapshot. Refresh before boarding.",
+  passUnknown: "The current pass status is unknown. Refresh before boarding.",
+  gateChanged: "Gate changed: {from} → {to}",
+  interfaceUpdated: "The interface was updated from the issuer feed.",
+  snapshotOutdated: "The saved snapshot is out of date.",
   languageAssumed: "Language and time zone were assumed by the host",
 };
 
@@ -217,6 +277,36 @@ const ZH: Partial<Record<MessageKey, string>> = {
   actionNeedsConfirmation: "需要确认",
   showCode: "显示代码",
   refresh: "刷新",
+  boardingPass: "登机牌",
+  flight: "航班",
+  date: "日期",
+  boarding: "登机",
+  departs: "起飞",
+  gate: "登机口",
+  seat: "座位",
+  group: "分组",
+  terminal: "航站楼",
+  passenger: "乘客",
+  verified: "已验证",
+  unverified: "未验证",
+  invalid: "无效",
+  revoked: "已撤销",
+  expired: "已过期",
+  snapshot: "快照",
+  unknown: "未知",
+  verify: "验证",
+  addToWallet: "添加到 Wallet",
+  done: "完成",
+  checked: "校验于",
+  noAttestation: "无宿主校验记录",
+  passUnverified: "签发方尚未提供可验证的凭证状态。",
+  passRevoked: "签发方已撤销此凭证，请勿出示。",
+  passInvalid: "凭证签名或快照封印无效，请勿出示。",
+  passStale: "当前显示保存的快照，登机前请刷新。",
+  passUnknown: "当前凭证状态未知，登机前请刷新。",
+  gateChanged: "登机口已变更：{from} → {to}",
+  interfaceUpdated: "界面已按签发方数据更新。",
+  snapshotOutdated: "保存的快照已过时。",
   languageAssumed: "语言与时区由宿主推定",
 };
 

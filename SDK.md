@@ -354,7 +354,7 @@ The `createIuiExtractor()` `onIssue` callback does not stop the stream. Text out
 
 ## 8. Blocks
 
-The default catalog has 30 general-purpose blocks.
+The default catalog has 31 blocks: 30 general-purpose blocks and the travel `pass` profile.
 
 | Type | Kind | Function |
 |---|---|---|
@@ -388,12 +388,41 @@ The default catalog has 30 general-purpose blocks.
 | `map` | interactive | Diagram map with group filter and detail. |
 | `bike` | domain | Annotated figure with an exploded view. |
 | `steps` | interactive | Step guide with progress and checks. |
+| `pass` | domain | Boarding pass with host-verified status, QR dialog, and refresh/verification actions. |
 
 `BLOCK_CATALOG` contains the machine-readable schema for each block. Use `kind` to filter the catalog. The `domain` blocks are for travel, wardrobe, menu, and similar tasks.
 
+### 8.1 Travel pass host
+
+The `pass` block only renders the payload. It never trusts model-provided `integrity`, `freshness`, or `attestation` fields. The host supplies a `PassHost` adapter:
+
+```ts
+const ui = createIntelligentUI({
+  container,
+  passHost: {
+    ensurePass(payload) {
+      // fetch the issuer feed, verify the Ed25519 signature, persist a snapshot
+    },
+    getPayload(credentialId) {
+      return verifiedById.get(credentialId) ?? null;
+    },
+    getAttestation(credentialId) {
+      return attestationById.get(credentialId) ?? null;
+    },
+    isOnline() { return navigator.onLine; },
+    now() { return Date.now(); },
+    subscribe(listener) { /* return an unsubscribe function */ },
+  },
+});
+```
+
+The host owns the trust decision. A verified payload needs an issuer signature that matches the payload's `issuer.keyId`, a credential id that matches the attestation, and an unexpired validity window. The block turns the two axes into the status badge, warnings, and QR availability. A revoked, invalid, or expired pass cannot open the QR. A stale snapshot shows the last-checked time and a warning.
+
+The core exports `verifyPassSignature()`, `createSnapshotMetadataSeal()`, `verifySnapshotMetadata()`, and `verifySnapshotCredential()` for host adapters. The DSH adapter uses IndexedDB for sealed snapshots and a non-extractable WebCrypto HMAC key. The test issuer in `tools/test-issuer/` is an independent process. Its Ed25519 private key never enters the page.
+
 The demo blocks `billSplitter`, `rothCalc`, and `retroGame` are local test fixtures. They use the `UNLICENSED` license. They are not in this repository, `BLOCK_CATALOG`, the default prompt, the default tool schema, or a package tarball.
 
-### 8.1 Add a block
+### 8.2 Add a block
 
 ```ts
 ui.registerBlock("weather", (el, props: { city: string; temp: number }, ctx) => {
@@ -651,9 +680,9 @@ The `exports` map supplies the type declarations for `.` and `./agent`. Keep the
 | Check | Result |
 |---|---|
 | TypeScript build and type check | Pass |
-| Browser self-test | 29 of 29 pass |
-| Node tests | 64 of 64 pass |
-| Playwright tests | 2 of 2 pass |
+| Browser self-test | 30 of 30 pass |
+| Node tests | 72 of 72 pass |
+| Playwright tests | 3 of 3 pass |
 | MCP stdio integration | Pass |
 | MCP App HTML external URL scan | Pass |
 | Tarball audit | Pass |

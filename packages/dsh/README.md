@@ -12,7 +12,8 @@ DeepSeek Harness (DSH) adapter for Intelligent UI. It registers the `render_iui`
 ## Function
 
 - A `render_iui` tool validates and cleans each op with the core validator.
-- A capability manifest declares only read (`copy_text`, `open_link`) and reversible (`save_note`) actions. Reversible actions must opt into confirmation. Irreversible actions are never declared.
+- A capability manifest declares only read (`copy_text`, `open_link`, `show_code`, `refresh`, `request_verification`, `open_issuer_link`) and reversible (`save_note`) actions. Reversible actions must opt into confirmation. Irreversible actions are never declared.
+- The travel `pass` profile verifies Ed25519 issuer signatures in the host. Model-supplied trust fields never control the badge or QR. Sealed snapshots use IndexedDB and a non-extractable HMAC key.
 - A system prompt section tells the model when to render an interface and how to answer an `[iui-action]` message. Every render is a complete replacement. The model is told to resend all blocks with stable ids, never a patch or delta op.
 - The tool result repeats the recovery instruction when an update renders zero valid ops, so the model can retry with a complete interface.
 - A keyed `tool.call.toolview` reads ops from `presentationMeta`.
@@ -127,6 +128,16 @@ An Answer Envelope action returns its name, id, and arguments:
 ```
 
 `save_note` is reversible and asks for confirmation. The core shows the confirmation dialog before `onAction`. Cancelling sends nothing and leaves the current interface unchanged. `copy_text` and `open_link` are read-only and do not ask. The DSH adapter never declares an irreversible action.
+
+A pass interaction returns a block action or an Answer Envelope action. `show_code` opens the QR dialog locally. `refresh` and `request_verification` call the host pass controller and then send the action to the session. `open_issuer_link` accepts only an `https://` URL. None of these actions writes a wallet, sends a message outside the session, or performs an irreversible write.
+
+The DSH host controller reads an optional browser global before it loads:
+
+```js
+window.__IUI_PASS_ISSUER__ = { url: "http://127.0.0.1:4319" };
+```
+
+`npm run issuer:test` starts the Stage 1b test issuer. It is a self-built test feed, not a real airline or wallet issuer. With no issuer configured, a pass stays `unverified` and cannot claim a verified badge.
 
 The next user message contains one line with the `[iui-action]` prefix. The model must resend the complete interface with a new `render_iui` call and the same block ids. A delta or `set` op is rejected. The tool result tells the model to retry with a complete interface.
 

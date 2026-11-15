@@ -23,6 +23,7 @@
     "test": "npm run test:unit && npm run test:e2e",
     "selftest": "playwright test tests/core-selftest.spec.ts",
     "bench": "npm run build:core && node bench/run.mjs",
+    "issuer:test": "node tools/test-issuer/server.mjs",
     "bench:selfcheck": "npm run build:core && node bench/run.mjs --provider mock --mode fence --out bench/results/selfcheck.json",
     "bench:scenarios": "npm run build:core && node bench/scenario-run.mjs --provider fixture",
     "bench:scenarios:data": "npm run build:core && node bench/scenario-run.mjs --provider fixture --scenario data-analysis --require 0.9",

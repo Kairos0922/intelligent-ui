@@ -2,8 +2,8 @@
 
 | 项目 | 内容 |
 |---|---|
-| 版本 | 0.1-draft（2026-11-04） |
-| 状态 | **未批准实施细节，已批准范围**（计划 §7.6.1，2026-11-04 受托决策）。本文是阶段 1b 与阶段 2 的实现依据；阶段 1a（beachhead 无关契约）不依赖本文 |
+| 版本 | 0.2-implemented-slice（2026-11-13） |
+| 状态 | **Stage 1b 垂直切片已实现；真实 issuer 未接入**。2026-11-13 用户指示继续，因此按显式 issuer-gate override 执行；这不等同于计划 §7.6.1 的门槛通过。详见 `STAGE-1B-IMPLEMENTATION-PLAN.md` |
 | 上游 | `INTELLIGENT-UI-PLAN.md` §6.4/§7.6.1；`specs/PROTOCOL-SPEC.md` §15（pass profile）、§8（状态机）、§14（provenance）；`experiments/pass-spike/`（字段与判定函数的原型） |
 | 从属关系 | 与计划冲突时以计划为准；与 Protocol Spec 冲突时以 Protocol Spec 为准 |
 | 语言 | 中文工作稿（check:docs 豁免）；英译随 Protocol Spec 在阶段 1 退出前完成 |
@@ -34,7 +34,7 @@
 type PassPayload = {
   kind: "boarding-pass";                      // 首期唯一形态；扩展点
   credentialId: string;                       // issuer 域内唯一；attestation 归属键
-  issuer: { id: string; name: string; keyId: string; algorithm: string };
+  issuer: { id: string; name: string; keyId: string; algorithm: "Ed25519" };
   holder: { name: string };                   // PII：脱敏规则见 §11
   bookingRef: string;
   cabin: string;
@@ -43,7 +43,7 @@ type PassPayload = {
   departAt: string; arriveAt: string; boardingAt: string;   // RFC 3339 instant
   departTimeZone: string; arriveTimeZone: string;           // IANA 名称；显示层换算用
   terminal?: string; gate?: string; seat: string; boardingGroup?: string;
-  qr: { format: "qr"; payload: string };      // payload 见 §10
+  qr: { format: "qr" | "iui-pass-v1" | "pdf417" | "aztec"; payload: string }; // payload 见 §10
   validFrom: string; validUntil: string;      // 凭证有效期（instant）
 };
 ```
@@ -181,7 +181,9 @@ SDK 只渲染"添加到 Wallet"入口并做深链 handoff（capability manifest 
 
 - action 通道：`ui/message`（prompt 形态）为主；tool 形态待 DSH toolview 支持情况在阶段 1b 实测后固化。
 - 容器宽度按 DSH 实测（当前假设 320–456px），用 container queries。
-- 快照存储：DSH 环境的可用存储 API 在阶段 1b 探测后写入附录。
+- 快照存储（2026-11-13 实测）：IndexedDB 数据库 `iui-pass`，`snapshots` 存快照，`meta` 存宿主 HMAC `CryptoKey`（non-extractable）和 issuer 公钥。TTL 24h；到期降为 `unknown` 并保留记录（当前不自动删除），登出调用 `clear()` 清空两个 store。
+- Pass host：DSH 使用 `createDshPassHost()`；issuer URL 由 `window.__IUI_PASS_ISSUER__ = { url }` 配置。未配置时不发请求，pass 保持 `unverified`。
+- 动作：`show_code`、`refresh`、`request_verification`、`open_issuer_link` 均为只读；`save_note` 保持 reversible + confirmation。`canOpenWallet: false`。
 
 ## 15. Conformance 用例（本文新增；编号接续 C 矩阵）
 

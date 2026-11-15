@@ -11,7 +11,7 @@ The name separates two responsibilities. The model supplies the intelligence. Th
 ## What it does
 
 - The core runtime compiles the IUI-1 JSON Lines stream into an answer.
-- The block catalog has 30 general-purpose blocks.
+- The block catalog has 31 blocks: 30 general-purpose blocks and the travel `pass` profile.
 - The validator checks each op before it reaches the DOM.
 - The agent contract supplies a system prompt and the `render_iui` tool.
 - The adapter layer gives one action format and one lifecycle to all hosts.
@@ -24,7 +24,7 @@ The core does not depend on DSH or on a browser chat shell. The agent entry poin
 
 | Package | Function | Source status |
 |---|---|---|
-| `@intelligent-ui/core` | Runtime, protocol, 30 blocks, validator, agent contract | Ready |
+| `@intelligent-ui/core` | Runtime, protocol, 31 blocks, validator, agent contract | Ready |
 | `@intelligent-ui/adapter` | Host-neutral action, theme, and lifecycle layer | Ready |
 | `@intelligent-ui/react` | React component and imperative handle | Ready |
 | `@intelligent-ui/ai-sdk` | Vercel AI SDK tool-part renderer | Ready |
@@ -225,9 +225,9 @@ The default action policy is `agent`. It sends prompts and meaningful block even
 
 | Check | Result |
 |---|---|
-| Unit tests | 64 of 64 pass |
-| Playwright host tests | 2 of 2 pass |
-| SDK browser self-test | 29 of 29 pass |
+| Unit tests | 72 of 72 pass |
+| Playwright host tests | 3 of 3 pass |
+| SDK browser self-test | 30 of 30 pass |
 | Benchmark harness self-check | 25 of 25 tasks pass with the mock provider |
 | 60-task scenario fixture | 60 of 60 tasks pass (20 of 20 per scenario) |
 | Real model scenario coverage | data-analysis 19/20 (95.0%), daily-travel 20/20, daily-life 20/20. Hosted DeepSeek V4.1 Flash. Overall 59/60 |

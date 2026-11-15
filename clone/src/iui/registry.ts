@@ -1,4 +1,8 @@
 export interface Ctx {
+  /** host capability manifest; blocks use it to avoid rendering undeclared actions */
+  capabilities?: import("./contracts").HostCapabilityManifest;
+  /** host-owned pass trust store; absent in hosts that cannot verify passes */
+  passHost?: import("./pass").PassHost;
   /** keep the conversation pinned to the newest content */
   scrollToBottom(): void;
   /** a follow-up suggestion was clicked (or a form CTA submitted) */
