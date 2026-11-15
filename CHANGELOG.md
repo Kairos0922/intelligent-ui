@@ -15,7 +15,11 @@ All notable changes to this project are documented in this file.
 - A 60-task three-scenario suite covers data analysis, daily travel planning, and daily life. Each scenario registers 20 tasks and reports coverage on its own.
 - The scenario runner supports validation-feedback repair calls, conservative JSON wrapping, interaction replay, per-scenario release gates, and a hosted DeepSeek OpenAI-compatible provider.
 - The DSH adapter declares only `copy_text`, `open_link`, and `save_note`. It rejects undeclared actions and tells the model to resend a complete interface after an `[iui-action]` message.
-- The DSH package carries a `dsh.bundle.patch` layer for DSH `0.2.2-rc.1`.
+- The DSH package carries a `dsh.bundle.patch` layer for the DSH `0.2.2` release line.
+
+### Security
+
+- The DSH adapter now requires DSH `0.2.2-rc.3` and Cordis `4.1.0`. DSH 0.2.1 pinned `zod 4.4.3`, which is affected by [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5). DSH 0.2.2-rc.3 pins `zod 4.6.6`, and `npm audit` reports no vulnerabilities.
 
 ### Fixed
 
@@ -38,6 +42,7 @@ All notable changes to this project are documented in this file.
 - The DSH hosted-provider web smoke passed on `0.2.2-rc.1` with `deepseek-flash`. The second turn used an explicit complete-ops recovery. The invalid-op attempt was refused before the tool call.
 - A historical local Ollama `qwen2.5:14b` run completed 19 of 20 tasks in each scenario. The local model was deleted after the run.
 - The reference fixture completed 60 of 60 tasks. This is contract coverage, not model coverage.
+- The DSH `0.2.2-rc.3` dependency update passed build, typecheck, 64 Node tests, and 2 Playwright tests on 2026-11-16. A new hosted web smoke on rc.3 was not run.
 
 ## [0.2.2] - 2026-10-28
 
