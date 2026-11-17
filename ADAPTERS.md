@@ -293,7 +293,9 @@ A deterministic web test passed on DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc
 
 The adapter declares only read actions (`copy_text`, `open_link`, `show_code`, `refresh`, `request_verification`, `open_issuer_link`) and the reversible `save_note`. `save_note` requires confirmation. Every `render_iui` call is a complete replacement, and the model is told to resend all blocks with stable ids after an `[iui-action]` message. The DSH `0.2.2-rc.1` bundle patch adds the plugin to the profile through `dsh.bundle.patch`.
 
-Stage 1b adds the travel `pass` profile to the same host. DSH verifies Ed25519 signatures from the configured issuer, stores a sealed snapshot in IndexedDB, and disables the QR for revoked, invalid, or expired passes. `npm run issuer:test` starts a self-built test issuer. No real airline or wallet issuer is connected.
+Stage 1b adds the travel `pass` profile to the same host. DSH verifies Ed25519 signatures from the configured issuer, stores a sealed snapshot in IndexedDB, and disables the QR for revoked, invalid, or expired passes. URL QR payloads and issuer links require an exact `https` origin from the host allowlist. Refresh actions use the action runtime and reconcile a timeout without retrying. Session disposal clears sealed snapshots and the action ledger.
+
+`npm run issuer:test` starts a self-built test issuer. No real airline or wallet issuer is connected.
 
 Each live run made one click. The tests do not cover every block or model. The validator keeps the valid ops if a model makes a malformed op.
 

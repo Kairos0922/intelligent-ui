@@ -90,5 +90,24 @@ test("DSH pass host verifies, seals, restores, and revokes in a browser", async 
   expect(invalid.attestation.integrity).toBe("invalid");
 
   await page.evaluate(async () => (window as any).__passTest.clear());
+
+  const residual = await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("iui-pass");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const count = (store: string) =>
+      new Promise<number>((resolve, reject) => {
+        const tx = db.transaction(store, "readonly");
+        const request = tx.objectStore(store).count();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    const result = { snapshots: await count("snapshots"), meta: await count("meta") };
+    db.close();
+    return result;
+  });
+  expect(residual).toEqual({ snapshots: 0, meta: 0 });
   expect(errors).toEqual([]);
 });

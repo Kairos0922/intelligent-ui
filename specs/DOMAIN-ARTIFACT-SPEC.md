@@ -181,8 +181,8 @@ SDK 只渲染"添加到 Wallet"入口并做深链 handoff（capability manifest 
 
 - action 通道：`ui/message`（prompt 形态）为主；tool 形态待 DSH toolview 支持情况在阶段 1b 实测后固化。
 - 容器宽度按 DSH 实测（当前假设 320–456px），用 container queries。
-- 快照存储（2026-11-13 实测）：IndexedDB 数据库 `iui-pass`，`snapshots` 存快照，`meta` 存宿主 HMAC `CryptoKey`（non-extractable）和 issuer 公钥。TTL 24h；到期降为 `unknown` 并保留记录（当前不自动删除），登出调用 `clear()` 清空两个 store。
-- Pass host：DSH 使用 `createDshPassHost()`；issuer URL 由 `window.__IUI_PASS_ISSUER__ = { url }` 配置。未配置时不发请求，pass 保持 `unverified`。
+- 快照存储（2026-11-13 实测）：IndexedDB 数据库 `iui-pass`，`snapshots` 存快照，`meta` 存宿主 HMAC `CryptoKey`（non-extractable）和 issuer 公钥。TTL 24h；到期降为 `unknown` 并保留记录（当前不自动删除）。DSH `session/disposed` 与插件卸载调用 `clear()` 清空两个 store，并通过 `clearEpoch` 让已挂载块立即显示清除态。
+- Pass host：DSH 使用 `createDshPassHost()`；issuer URL 由 `window.__IUI_PASS_ISSUER__ = { url, allowedOrigins? }` 配置。`allowedOrigins` 是 https exact origin 白名单，用于 URL QR 与 `open_issuer_link`；未配置时 URL payload 拒绝，opaque `IUI1:` 仍允许。issuer URL 未配置时不发请求，pass 保持 `unverified`。
 - 动作：`show_code`、`refresh`、`request_verification`、`open_issuer_link` 均为只读；`save_note` 保持 reversible + confirmation。`canOpenWallet: false`。
 
 ## 15. Conformance 用例（本文新增；编号接续 C 矩阵）

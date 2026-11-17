@@ -129,13 +129,22 @@ An Answer Envelope action returns its name, id, and arguments:
 
 `save_note` is reversible and asks for confirmation. The core shows the confirmation dialog before `onAction`. Cancelling sends nothing and leaves the current interface unchanged. `copy_text` and `open_link` are read-only and do not ask. The DSH adapter never declares an irreversible action.
 
-A pass interaction returns a block action or an Answer Envelope action. `show_code` opens the QR dialog locally. `refresh` and `request_verification` call the host pass controller and then send the action to the session. `open_issuer_link` accepts only an `https://` URL. None of these actions writes a wallet, sends a message outside the session, or performs an irreversible write.
+A pass interaction returns a block action or an Answer Envelope action. `show_code` opens the QR dialog locally. `refresh` and `request_verification` run through the action runtime. A timeout enters reconciliation and is not retried automatically.
+
+`open_issuer_link` accepts only an allowlisted `https://` origin. URL QR payloads use the same host allowlist. Opaque `IUI1:` payloads do not need a domain. None of these actions writes a wallet, sends a message outside the session, or performs an irreversible write.
+
+On `session/disposed` and plugin unload, the adapter clears sealed snapshots, the HMAC key, in-memory pass data, and the action ledger. This profile does not expose a separate sign-out service, so session disposal is the account boundary.
 
 The DSH host controller reads an optional browser global before it loads:
 
 ```js
-window.__IUI_PASS_ISSUER__ = { url: "http://127.0.0.1:4319" };
+window.__IUI_PASS_ISSUER__ = {
+  url: "http://127.0.0.1:4319",
+  allowedOrigins: ["https://issuer.example"],
+};
 ```
+
+`allowedOrigins` is an exact-origin, https-only allowlist for URL QR payloads and `open_issuer_link`. A configured https issuer URL adds its own origin automatically. If no origin is allowed, URL payloads are rejected. Opaque `IUI1:` payloads still render.
 
 `npm run issuer:test` starts the Stage 1b test issuer. It is a self-built test feed, not a real airline or wallet issuer. With no issuer configured, a pass stays `unverified` and cannot claim a verified badge.
 

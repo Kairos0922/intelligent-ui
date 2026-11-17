@@ -306,6 +306,8 @@ await runtime.succeed(ready.operationId, { payload: { opened: true } });
 
 The default ledger is in memory. A host must persist the ledger for cross-process reconciliation.
 
+The DSH adapter's `createPassActionRunner()` wraps pass `refresh` and `request_verification` in this runtime. A timed-out refresh moves to `unknown`, enters reconciliation, and records a failed reconciliation with timeout/snapshot evidence. It calls the issuer once and never retries automatically. A second user click creates a new operation with a host-generated idempotency key.
+
 ## 7. Validation
 
 The validator repairs an op when it can. It drops an op when it cannot repair the op.
@@ -397,6 +399,7 @@ The default catalog has 31 blocks: 30 general-purpose blocks and the travel `pas
 The `pass` block only renders the payload. It never trusts model-provided `integrity`, `freshness`, or `attestation` fields. The host supplies a `PassHost` adapter:
 
 ```ts
+const allowedOrigins = new Set(["https://issuer.example"]);
 const ui = createIntelligentUI({
   container,
   passHost: {
@@ -412,6 +415,14 @@ const ui = createIntelligentUI({
     isOnline() { return navigator.onLine; },
     now() { return Date.now(); },
     subscribe(listener) { /* return an unsubscribe function */ },
+    isQrPayloadAllowed(payload) {
+      if (payload.startsWith("IUI1:")) return true;
+      try { return allowedOrigins.has(new URL(payload).origin); } catch { return false; }
+    },
+    isIssuerLinkAllowed(url) {
+      try { return allowedOrigins.has(new URL(url).origin); } catch { return false; }
+    },
+    clearEpoch() { return 0; },
   },
 });
 ```
@@ -419,6 +430,12 @@ const ui = createIntelligentUI({
 The host owns the trust decision. A verified payload needs an issuer signature that matches the payload's `issuer.keyId`, a credential id that matches the attestation, and an unexpired validity window. The block turns the two axes into the status badge, warnings, and QR availability.
 
 A revoked, invalid, or expired pass cannot open the QR. A stale snapshot shows the last-checked time and a warning. Offline without a sealed snapshot, the block shows fallback text instead of pass fields. A `set` op that replaces `pass` is validated like the initial block. The browser block renders only `qr` and `iui-pass-v1` payloads. PDF417 and Aztec payloads stay visible but cannot open a QR.
+
+URL QR payloads need a host-owned allowlist. `isQrPayloadAllowed()` must return true only for opaque `IUI1:` payloads or an exact `https` origin in `allowedOrigins`. A URL without an allowlist entry is rejected and the code button stays disabled. `isIssuerLinkAllowed()` applies the same policy to `open_issuer_link`. Never derive either allowlist from model output or feed content.
+
+The pass block reports host-owned freshness to the compiler. When a pass is stale, unknown, unverified, invalid, or revoked, the conclusion slot gets a visible warning and a `data-iui-freshness` marker. A live pass removes the marker. This marks the model conclusion as potentially outdated. It does not rewrite model prose.
+
+`clearEpoch()` supports sign-out. `clear()` increments the epoch, deletes sealed snapshots and the HMAC key, removes in-memory payloads, and blocks an in-flight load from repainting. A block records the epoch at mount and shows a cleared notice if a later clear happens. The DSH adapter binds this to `session/disposed` and plugin unload because this profile has no separate sign-out event.
 
 The core exports `verifyPassSignature()`, `createSnapshotMetadataSeal()`, `verifySnapshotMetadata()`, and `verifySnapshotCredential()` for host adapters. The DSH adapter uses IndexedDB for sealed snapshots and a non-extractable WebCrypto HMAC key. The test issuer in `tools/test-issuer/` is an independent process. Its Ed25519 private key never enters the page.
 

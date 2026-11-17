@@ -3010,6 +3010,22 @@ svg.iui-bike .callout text {
   overflow-wrap: anywhere;
 }
 
+.iui-conclusion-freshness {
+  margin: 0 0 10px;
+  border-left: 3px solid var(--iui-warning);
+  border-radius: 0 8px 8px 0;
+  padding: 8px 10px;
+  color: var(--iui-text);
+  background: color-mix(in srgb, var(--iui-warning) 9%, transparent);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.iui-conclusion-freshness--danger {
+  border-left-color: var(--iui-danger);
+  background: color-mix(in srgb, var(--iui-danger) 9%, transparent);
+}
+
 .iui-pass-notices {
   display: grid;
   gap: 8px;

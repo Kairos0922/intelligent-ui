@@ -3,8 +3,15 @@ import { findAction, isP0Risk } from "./contracts";
 import { h, append } from "./dom";
 import { createI18n, type I18n } from "./i18n";
 import { renderBlock, renderInline } from "./md";
+import type { PassFreshness, PassIntegrity } from "./pass";
 import { decode, Op } from "./protocol";
 import { mountBlock, BlockApi, Ctx } from "./registry";
+
+interface ArtifactFreshness {
+  credentialId: string;
+  integrity: PassIntegrity;
+  freshness: PassFreshness;
+}
 
 function toError(value: unknown): Error {
   return value instanceof Error ? value : new Error(String(value));
@@ -37,6 +44,8 @@ export class Compiler {
   private envelope: AnswerOp | null = null;
   private actionsRendered = false;
   private i18n: I18n = createI18n();
+  private artifactFreshness = new Map<string, ArtifactFreshness>();
+  private conclusionNotice: HTMLElement | null = null;
   /** wall-clock ms since the answer started (for diagnostics) */
   startedAt = performance.now();
 
@@ -60,6 +69,13 @@ export class Compiler {
       class: `iui-prose ${opts.className ?? ""}`.trim(),
     });
     host.append(this.prose);
+    // The pass block reports only host-owned trust state. The compiler never
+    // accepts freshness from model props, so a stale snapshot can mark or
+    // remove the model prose's claim without trusting that prose.
+    this.ctx.reportArtifactFreshness = (state) => {
+      this.artifactFreshness.set(state.credentialId, state);
+      this.renderConclusionFreshness();
+    };
   }
 
   get done() {
@@ -116,6 +132,54 @@ export class Compiler {
     this.openMd = "";
   }
 
+  private renderConclusionFreshness() {
+    const conclusion = this.prose.querySelector<HTMLElement>(
+      '[data-iui-slot~="conclusion"]',
+    );
+    if (!conclusion) return;
+    const states = [...this.artifactFreshness.values()];
+    const danger = states.some(
+      (state) =>
+        state.integrity === "invalid" ||
+        state.integrity === "revoked" ||
+        state.freshness === "expired",
+    );
+    const warning = states.some(
+      (state) =>
+        state.integrity === "unverified" ||
+        state.freshness === "stale" ||
+        state.freshness === "unknown",
+    );
+    if (!danger && !warning) {
+      delete conclusion.dataset.iuiFreshness;
+      delete conclusion.dataset.iuiIntegrity;
+      this.conclusionNotice?.remove();
+      this.conclusionNotice = null;
+      return;
+    }
+    const level = danger ? "danger" : "warning";
+    let notice = this.conclusionNotice;
+    if (!notice || !notice.isConnected) {
+      notice = h("div", {
+        class: `iui-conclusion-freshness iui-conclusion-freshness--${level}`,
+        "data-testid": "conclusion-freshness",
+        "data-level": level,
+        role: "status",
+      });
+      conclusion.before(notice);
+      this.conclusionNotice = notice;
+    }
+    notice.className = `iui-conclusion-freshness iui-conclusion-freshness--${level}`;
+    notice.dataset.level = level;
+    notice.textContent = danger
+      ? this.ctx.t?.("conclusionInvalid") ??
+        "This conclusion relies on a pass that is no longer valid. Do not use it for travel."
+      : this.ctx.t?.("conclusionStale") ??
+        "This conclusion may rely on a saved pass. Check the latest gate and boarding time with the issuer.";
+    conclusion.dataset.iuiFreshness = danger ? "danger" : "warning";
+    conclusion.dataset.iuiIntegrity = danger ? "invalid" : "unverified";
+  }
+
   private markSlot(el: HTMLElement, id: string | undefined, kind: "op" | "comp" | "action") {
     if (!id) return;
     const names = slotNames(this.envelope, id, kind);
@@ -134,6 +198,7 @@ export class Compiler {
     this.openBlockId = id ?? null;
     this.openMd = "";
     this.markSlot(el, id, "op");
+    this.renderConclusionFreshness();
     return el;
   }
 
@@ -190,6 +255,7 @@ export class Compiler {
         this.openBlock = renderBlock(this.openBlock!, this.openMd, {
           allowList: true,
         });
+        this.renderConclusionFreshness();
         break;
       }
       case "table": {
@@ -213,6 +279,7 @@ export class Compiler {
         table.append(thead, tbody);
         this.markSlot(table, op.id, "op");
         this.prose.append(table);
+        this.renderConclusionFreshness();
         break;
       }
       case "comp": {

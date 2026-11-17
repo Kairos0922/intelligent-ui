@@ -5,9 +5,10 @@
 review passed with all four findings dispositioned — see Plan §7.6.1).
 Stage 1a core contracts are implemented in `clone/src` (2026-11-04).
 The Stage 1b pass vertical slice is implemented against a self-built test issuer
-(2026-11-13) under an explicit issuer-gate override. A real external issuer is
-still not connected and remains a Stage 2 gate. The plan remains the decision
-source of truth.
+(2026-11-13) under an explicit issuer-gate override. A follow-up implements
+C26, C29, C30, and C32 for this test-issuer slice. C30 hosted sign-out remains
+partial. A real external issuer is still not connected and remains a Stage 2
+gate. The plan remains the decision source of truth.
 
 The three P0 verticals have a real-model coverage report in
 [`SCENARIO-COVERAGE.md`](SCENARIO-COVERAGE.md). It reports the hosted DeepSeek
@@ -24,7 +25,7 @@ This directory contains the two beachhead-independent specifications called for 
 | [`EVALUATION-SPEC.md`](EVALUATION-SPEC.md) | L1–L4 + security metrics, gates, fixtures, evidence package, reporting | Plan §6.6–§6.7; Protocol Spec |
 | [`DOMAIN-ARTIFACT-SPEC.md`](DOMAIN-ARTIFACT-SPEC.md) | Travel/pass: fields, validation, two-axis states, actions, degradation, privacy, test-issuer spec, C26–C32 | Plan §6.4/§7.6.1; Protocol Spec §15; experiment pass-model |
 | [`STAGE-1A-IMPLEMENTATION-PLAN.md`](STAGE-1A-IMPLEMENTATION-PLAN.md) | Stage 1a contracts, tests, limits, and hosted scenario results | Plan §6.3/§6.5; Protocol Spec |
-| [`STAGE-1B-IMPLEMENTATION-PLAN.md`](STAGE-1B-IMPLEMENTATION-PLAN.md) | Stage 1b pass slice, issuer-gate override, test issuer, conformance gaps | Plan §6.4/§6.7; Domain Artifact Spec; Protocol Spec §15 |
+| [`STAGE-1B-IMPLEMENTATION-PLAN.md`](STAGE-1B-IMPLEMENTATION-PLAN.md) | Stage 1b pass slice, issuer-gate override, test issuer, C26–C32 conformance | Plan §6.4/§6.7; Domain Artifact Spec; Protocol Spec §15 |
 
 The plan remains the decision source of truth. These files are subordinate drafts:
 if they conflict with the plan, the plan wins until both are revised.

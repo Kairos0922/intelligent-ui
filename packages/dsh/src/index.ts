@@ -11,7 +11,19 @@ import { DSH_MANIFEST } from "./manifest.js";
 
 export { DSH_ALLOWED_RISKS, DSH_MANIFEST, dshAction } from "./manifest.js";
 export { createDshPassHost } from "./pass.js";
-export type { DshPassHost, DshPassOptions } from "./pass.js";
+export type {
+  DshPassHost,
+  DshPassOptions,
+  PassRefreshResult,
+  PassRefreshStatus,
+} from "./pass.js";
+export { createPassActionRunner } from "./pass-actions.js";
+export type {
+  PassActionRunInput,
+  PassActionRunResult,
+  PassActionRunner,
+  PassActionRunnerOptions,
+} from "./pass-actions.js";
 
 export const name = "intelligent-ui";
 

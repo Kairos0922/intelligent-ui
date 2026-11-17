@@ -19,9 +19,13 @@ All notable changes to this project are documented in this file.
 - The travel `pass` profile adds a host-verified boarding pass block, real QR rendering, Ed25519 issuer verification, a 24h sealed snapshot, and refresh/verification actions.
 - DSH declares `canVerifyPass: true` plus read-only `show_code`, `refresh`, `request_verification`, and `open_issuer_link` actions.
 - A standalone test issuer signs payloads with an in-process Ed25519 key. The browser receives only the public key and signed feed.
+- Pass refresh and verification actions run through `ActionRuntime`. A timeout enters reconciliation and is not retried automatically.
+- The answer compiler marks the conclusion slot when a pass artifact is stale, unknown, unverified, invalid, or revoked. The marker is host-owned and is removed when the pass is live.
 
 ### Security
 
+- URL QR payloads and `open_issuer_link` now require an exact `https` origin from the host allowlist. Opaque `IUI1:` payloads remain allowed. URL payloads without an allowlist entry are rejected.
+- Sign-out/session disposal clears sealed pass snapshots, the HMAC key, in-memory data, and the action ledger. `clear()` invalidates in-flight loads, repaints after the first store wipe, and clears IndexedDB again after pending work settles.
 - The DSH adapter now requires DSH `0.2.2-rc.3` and Cordis `4.1.0`. DSH 0.2.1 pinned `zod 4.4.3`, which is affected by [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5). DSH 0.2.2-rc.3 pins `zod 4.6.6`, and `npm audit` reports no vulnerabilities.
 
 ### Fixed
@@ -31,6 +35,8 @@ All notable changes to this project are documented in this file.
 - The `set` op sanitizes URL values and enforces the prop byte limit.
 - A `set` op that replaces a travel-pass payload is validated like the initial block and is dropped when invalid.
 - The pass block falls back to text when offline without a sealed snapshot, and does not render PDF417/Aztec payloads as QR codes.
+- A pass block mounted before sign-out now shows a cleared state instead of model payload after the host epoch changes.
+- The conclusion slot gets a visible stale/invalid marker when its pass artifact is not live. Model prose is not rewritten.
 - Server-side validation uses the host-neutral catalog and does not import the DOM registry.
 - The `inherit` theme follows the host dark marker and sets the color scheme on the surface.
 - The runtime reports duplicate block IDs, unknown `set` targets, mount errors, and render errors.
@@ -47,7 +53,8 @@ All notable changes to this project are documented in this file.
 - The DSH hosted-provider web smoke passed on `0.2.2-rc.1` with `deepseek-flash`. The second turn used an explicit complete-ops recovery. The invalid-op attempt was refused before the tool call.
 - A historical local Ollama `qwen2.5:14b` run completed 19 of 20 tasks in each scenario. The local model was deleted after the run.
 - The reference fixture completed 60 of 60 tasks. This is contract coverage, not model coverage.
-- The pass profile tests cover Ed25519 verification, HMAC snapshot seals, stale/revoked snapshots in IndexedDB, QR dialog, DSH manifest actions, and a live test issuer. No real issuer or Wallet was used.
+- The pass profile tests cover Ed25519 verification, HMAC snapshot seals, and stale/revoked snapshots in IndexedDB. They also cover the QR dialog, DSH manifest actions, a live test issuer, URL QR/link allowlists, clear-during-refresh, and ActionRuntime timeout reconciliation. No real issuer or Wallet was used.
+- The conformance follow-up passed 77 Node tests, 30 SDK browser self-tests, and 3 Playwright tests. The pass-host browser test verifies that clear leaves no snapshot or HMAC key in IndexedDB. Hosted DSH sign-out and pass-turn smoke were not run.
 - The DSH `0.2.2-rc.3` dependency update passed build, typecheck, 64 Node tests, and 2 Playwright tests on 2026-11-16. A new hosted web smoke on rc.3 was not run.
 
 ## [0.2.2] - 2026-10-28

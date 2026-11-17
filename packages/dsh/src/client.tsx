@@ -10,21 +10,55 @@ import { formatIuiAction } from "@intelligent-ui/core/agent";
 import coreCss from "@intelligent-ui/core/styles.css?raw";
 import { DSH_MANIFEST, dshAction } from "./manifest.js";
 import { createDshPassHost, type DshPassHost } from "./pass.js";
+import {
+  createPassActionRunner,
+  type PassActionRunner,
+} from "./pass-actions.js";
 
 export const name = "intelligent-ui";
 
 /** Services this client plugin needs before `apply` runs. */
 export const inject = ["sessions", "slots"];
 
+/** Cordis event API available at runtime; DSH's type package does not widen Context here. */
+type EventContext = Context & {
+  on(
+    name: string,
+    listener: (...args: unknown[]) => void,
+    options?: { global?: boolean },
+  ): () => void;
+};
+
 const TOOL_NAME = "render_iui";
 const STYLE_ID = "iui-dsh-styles";
 
 let sharedPassHost: DshPassHost | null = null;
+let sharedPassActions: PassActionRunner | null = null;
 
 /** Lazily create one host-side pass store for the whole DSH client. */
 function getPassHost(): DshPassHost {
   sharedPassHost ??= createDshPassHost();
   return sharedPassHost;
+}
+
+/** Lazily create the Protocol §5–§13 ledger for pass actions. */
+function getPassActions(): PassActionRunner {
+  sharedPassActions ??= createPassActionRunner({
+    host: getPassHost(),
+    userId: "dsh-browser",
+    tenantId: "dsh",
+  });
+  return sharedPassActions;
+}
+
+/**
+ * Clear pass snapshots, in-memory data, and the action ledger without creating
+ * a host. The host instance stays alive so a login in another session cannot
+ * race the second IndexedDB wipe.
+ */
+function clearPassHost(): Promise<void> {
+  sharedPassActions = null;
+  return sharedPassHost?.clear() ?? Promise.resolve();
 }
 
 function actionCredentialId(action: {
@@ -236,6 +270,9 @@ function createToolView(ctx: Context) {
               if (typeof url !== "string" || !url.startsWith("https://")) {
                 throw new Error("open_issuer_link requires an https URL.");
               }
+              if (!getPassHost().isIssuerLinkAllowed(url)) {
+                throw new Error("open_issuer_link URL is not on the issuer allowlist.");
+              }
               window.open(url, "_blank", "noopener,noreferrer");
               setSendError(null);
               return;
@@ -246,7 +283,27 @@ function createToolView(ctx: Context) {
             ) {
               const credentialId = actionCredentialId(action);
               if (!credentialId) throw new Error(`${descriptor.name} requires a credentialId.`);
-              await getPassHost().refresh(credentialId);
+              const answerId =
+                action.kind === "block"
+                  ? action.envelope.answerId
+                  : action.kind === "action"
+                    ? action.answerId
+                    : undefined;
+              const blockId = action.kind === "block" ? action.envelope.blockId : undefined;
+              const run = await getPassActions().refresh({
+                credentialId,
+                answerId: answerId ?? props.callId,
+                ...(blockId ? { blockId } : {}),
+                action: descriptor.name,
+                source: action.kind === "block" ? "block" : "host",
+              });
+              if (run.state.state !== "succeeded") {
+                throw new Error(
+                  run.state.reconciliation
+                    ? "Refresh timed out. Check the pass status before travel."
+                    : "Refresh failed. The pass status is unchanged.",
+                );
+              }
             }
             if (action.kind === "action" && descriptor) {
               const args = action.args ?? {};
@@ -352,6 +409,27 @@ function createToolView(ctx: Context) {
 
 export function apply(ctx: Context): void {
   ctx.effect(() => installStyles(), "intelligent-ui: styles");
+  // DSH has no separate sign-out service in this profile. Session disposal is
+  // the available account boundary, so clear sealed snapshots and the HMAC
+  // key there. The policy is deliberately conservative: one disposed session
+  // clears the shared pass store instead of leaving PII/QR data behind.
+  ctx.effect(
+    () =>
+      (ctx as EventContext).on(
+        "session/disposed",
+        () => {
+          void clearPassHost().catch(() => {});
+        },
+        { global: true },
+      ),
+    "intelligent-ui: clear pass state on session disposal",
+  );
+  ctx.effect(
+    () => () => {
+      void clearPassHost().catch(() => {});
+    },
+    "intelligent-ui: clear pass state on unload",
+  );
   ctx.slots.inject("tool.call.toolview", () =>
     ctx.slots.register(
       { name: "tool.call.toolview", key: TOOL_NAME },

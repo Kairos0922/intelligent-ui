@@ -1,8 +1,8 @@
 {
   "schema": "iui-pass-host-evidence-v1",
-  "generatedAt": "2026-11-15T13:39:32Z",
+  "generatedAt": "2026-11-17T13:39:45Z",
   "scope": "stage-1b-travel-pass-vertical-slice",
-  "branch": "feat/stage-1b-travel-pass",
+  "branch": "fix/stage-1b-conformance-followup",
   "issuer": {
     "kind": "self-built-test-issuer",
     "realIssuerConnected": false,
@@ -15,10 +15,13 @@
     "passModel": "clone/src/iui/pass.ts",
     "passBlock": "clone/src/iui/components/pass.ts",
     "hostController": "packages/dsh/src/pass.ts",
+    "actionRunner": "packages/dsh/src/pass-actions.ts",
+    "conclusionMarker": "clone/src/iui/compiler.ts",
     "manifest": "packages/dsh/src/manifest.ts",
     "testIssuer": "tools/test-issuer/server.mjs",
     "snapshotStorage": "IndexedDB iui-pass, host HMAC CryptoKey non-extractable",
-    "snapshotTtlHours": 24
+    "snapshotTtlHours": 24,
+    "qrAllowlist": "host-owned https exact origins; issuer origin auto-added only when https"
   },
   "commands": [
     "npm run build",
@@ -31,13 +34,14 @@
     "npm run bench:selfcheck",
     "npm run pack:all",
     "npm run audit:pack",
-    "npm run check:release -- --tarballs"
+    "npm run check:release -- --tarballs",
+    "npm audit --audit-level=low"
   ],
   "result": {
     "status": "pass-host-path-only",
     "nodeTests": {
-      "passed": 72,
-      "total": 72
+      "passed": 77,
+      "total": 77
     },
     "sdkBrowserSelfTest": {
       "passed": 30,
@@ -54,7 +58,14 @@
     "revokedSnapshot": true,
     "invalidSignature": true,
     "qrDialog": true,
-    "refreshBlockAction": true
+    "refreshBlockAction": true,
+    "conclusionFreshnessMarker": true,
+    "refreshUnknownReconciliation": true,
+    "clearOnSessionDisposal": true,
+    "clearInFlightRaceGuard": true,
+    "clearRemovesIndexedDbRecords": true,
+    "urlQrDomainAllowlist": true,
+    "issuerLinkAllowlist": true
   },
   "checks": [
     {
@@ -101,20 +112,39 @@
       "id": "dsh-actions",
       "ok": true,
       "detail": "DSH declares canVerifyPass=true and read-only show_code, refresh, request_verification, and open_issuer_link. canOpenWallet remains false."
+    },
+    {
+      "id": "c26-conclusion-freshness",
+      "ok": true,
+      "detail": "The pass block reports host attestation to the compiler. A stale/unknown/unverified/invalid/revoked pass inserts a visible conclusion warning and data-iui-freshness; a live pass removes it. Model prose is not rewritten."
+    },
+    {
+      "id": "c29-refresh-reconciliation",
+      "ok": true,
+      "detail": "Refresh/request_verification run through ActionRuntime. A timed-out refresh records timeout, enters reconciliation, records a failed reconciliation with timeout/snapshot evidence, and makes exactly one host call."
+    },
+    {
+      "id": "c30-clear",
+      "ok": true,
+      "detail": "clear() bumps a UI epoch, invalidates in-flight generations, clears memory immediately, deletes IndexedDB records and the HMAC key, and clears again after in-flight tasks settle. DSH binds it to session/disposed and plugin unload."
+    },
+    {
+      "id": "c32-qr-allowlist",
+      "ok": true,
+      "detail": "URL QR payloads and open_issuer_link require an exact https origin from host config or the configured https issuer origin. Opaque IUI1 payloads remain allowed. No allowlist means URL payloads are rejected."
     }
   ],
   "notProven": [
     "A real airline, hotel, rail, Google Wallet, or Apple Wallet issuer.",
     "Real-world credential validity or airport scanner compatibility.",
     "Autonomous hosted-model pass turns or a hosted DeepSeek pass smoke.",
-    "C26 conclusion-layer rewriting when a stale snapshot disagrees with the model prose.",
-    "C29 action-runtime unknown reconciliation for a timed-out pass refresh.",
-    "C30 DSH logout hook wiring; PassHost.clear() exists but is not bound to sign-out.",
-    "C32 issuer-domain allowlist for URL QR payloads; only https or opaque payloads are enforced."
+    "A hosted DSH sign-out smoke. This profile exposes session/disposed, not a separate sign-out service; C30 is bound to session disposal and plugin unload.",
+    "A real issuer-domain allowlist or production allowlist rotation process."
   ],
   "caveats": [
     "The test issuer generates a fresh key pair on each process start. This is not production key management.",
     "The browser tests use the local test issuer and a synthetic boarding pass. They do not use passenger data from a real booking.",
+    "C30 clears on session disposal because this DSH profile has no separate sign-out event. Closing one chat clears the shared pass store conservatively.",
     "No API key, route token, session record, screenshot, private key, or real credential is included in this evidence."
   ]
 }

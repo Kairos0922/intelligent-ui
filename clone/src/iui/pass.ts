@@ -125,6 +125,20 @@ export interface PassHost {
   isOnline?(): boolean;
   now?(): number;
   subscribe?(listener: () => void): () => void;
+  /**
+   * Host policy for a URL QR payload. Opaque issuer payloads (for example
+   * `IUI1:...`) do not need a domain check. The block must not render a URL
+   * QR unless this returns true.
+   */
+  isQrPayloadAllowed?(payload: string): boolean;
+  /** Host policy for an external issuer link, normally the same allowlist. */
+  isIssuerLinkAllowed?(url: string): boolean;
+  /**
+   * Increments when the host clears pass state (for example on logout). A
+   * block records this value at mount and stops showing data after a later
+   * increment, even if the model payload is still in the answer.
+   */
+  clearEpoch?(): number;
 }
 
 const IATA_RE = /^[A-Z]{3}$/;

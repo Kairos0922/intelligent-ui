@@ -125,8 +125,14 @@ smoke above.
   then checked revoked and invalid feeds.
 - The SDK self-test renders the pass block, opens the QR dialog, emits a
   `refresh` block action, repaints to revoked, and shows a stale notice.
+- URL QR payloads and `open_issuer_link` require an exact `https` origin from
+  the host allowlist. The block disables the code when the policy rejects it.
+- Refresh and verification actions use the action runtime. A timeout enters
+  reconciliation without an automatic retry.
+- Session disposal clears sealed snapshots, the HMAC key, in-memory pass data,
+  and the action ledger. A hosted sign-out smoke was not run.
 - Node tests cover Ed25519 verification, HMAC tamper detection, validator
-  rejection, and the DSH controller.
+  rejection, allowlist behavior, clear-during-refresh, and the DSH controller.
 
 This is **host-path evidence only**. There is no real airline, Google Wallet,
 Apple Wallet, or airport scanner. No hosted DeepSeek pass turn was run. The

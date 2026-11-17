@@ -19,7 +19,12 @@ The DSH client reads the optional global below before it creates the pass
 controller. Set it in the page bootstrap or in a Playwright `addInitScript`:
 
 ```js
-window.__IUI_PASS_ISSUER__ = { url: "http://127.0.0.1:4319" };
+window.__IUI_PASS_ISSUER__ = {
+  url: "http://127.0.0.1:4319",
+  // Exact https origins for URL QR payloads / issuer links. The local test
+  // issuer uses opaque QR payloads, so it does not need an entry here.
+  allowedOrigins: ["https://issuer.example"],
+};
 ```
 
 ## Endpoints
