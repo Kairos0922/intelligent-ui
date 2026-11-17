@@ -33,15 +33,34 @@ interface PassFeedResponse {
   source?: { id?: string; url?: string };
 }
 
+interface FeedFetchResult {
+  feed: PassFeedResponse | null;
+  reason: "ok" | "timeout" | "unavailable" | "http_error" | "malformed";
+}
+
 export interface DshPassOptions {
   /** Base URL of the test/real issuer. Omit to render only unverified model data. */
   issuerUrl?: string;
   /** Optional pinned Ed25519 SPKI base64 key; otherwise /config is fetched once. */
   publicKey?: string;
+  /**
+   * Exact https origins allowed to receive QR/link navigation. The configured
+   * issuer origin is added automatically when it is https. Model output and
+   * issuer feed content never add to this list.
+   */
+  allowedOrigins?: string[];
   fetcher?: typeof fetch;
   now?: () => number;
   online?: () => boolean;
   timeoutMs?: number;
+}
+
+export type PassRefreshStatus = "succeeded" | "timeout" | "unavailable";
+
+export interface PassRefreshResult {
+  status: PassRefreshStatus;
+  reason?: string;
+  attestation?: PassAttestation | null;
 }
 
 export interface DshPassHost extends PassHost {
@@ -52,8 +71,11 @@ export interface DshPassHost extends PassHost {
   isOnline(): boolean;
   now(): number;
   subscribe(listener: () => void): () => void;
-  refresh(credentialId: string): Promise<void>;
-  refreshAll(): Promise<void>;
+  isQrPayloadAllowed(payload: string): boolean;
+  isIssuerLinkAllowed(url: string): boolean;
+  clearEpoch(): number;
+  refresh(credentialId: string): Promise<PassRefreshResult>;
+  refreshAll(): Promise<PassRefreshResult[]>;
   clear(): Promise<void>;
   dispose(): void;
 }
@@ -66,14 +88,50 @@ interface MetaRecord {
   value?: string;
 }
 
-function globalConfig(): { url?: string; publicKey?: string } {
+function globalConfig(): { url?: string; publicKey?: string; allowedOrigins?: unknown } {
   const value = (globalThis as { __IUI_PASS_ISSUER__?: unknown }).__IUI_PASS_ISSUER__;
   if (!value || typeof value !== "object") return {};
-  const raw = value as { url?: unknown; publicKey?: unknown };
+  const raw = value as { url?: unknown; publicKey?: unknown; allowedOrigins?: unknown };
   return {
     ...(typeof raw.url === "string" && raw.url ? { url: raw.url } : {}),
     ...(typeof raw.publicKey === "string" && raw.publicKey ? { publicKey: raw.publicKey } : {}),
+    ...(raw.allowedOrigins !== undefined ? { allowedOrigins: raw.allowedOrigins } : {}),
   };
+}
+
+function addHttpsOrigin(out: Set<string>, value: unknown): void {
+  if (typeof value !== "string" || !value.trim()) return;
+  try {
+    const url = new URL(value.trim());
+    if (url.protocol !== "https:") return;
+    if (url.username || url.password) return;
+    out.add(url.origin);
+  } catch {
+    // Invalid allowlist entries are ignored; they must never widen the policy.
+  }
+}
+
+function allowedOriginSet(values: unknown, issuerUrl: string): Set<string> {
+  const out = new Set<string>();
+  if (Array.isArray(values)) {
+    for (const value of values) addHttpsOrigin(out, value);
+  }
+  if (issuerUrl) addHttpsOrigin(out, issuerUrl);
+  return out;
+}
+
+function isOpaqueQrPayload(payload: string): boolean {
+  const value = payload.trim();
+  if (!value) return false;
+  if (value.toLowerCase().startsWith("iui1:")) return true;
+  if (value.startsWith("//")) return false;
+  return !/^[a-z][a-z0-9+.-]*:/i.test(value);
+}
+
+function isTimeoutError(error: unknown): boolean {
+  return !!error && typeof error === "object" && "name" in error &&
+    ((error as { name?: unknown }).name === "TimeoutError" ||
+      (error as { name?: unknown }).name === "AbortError");
 }
 
 function instant(value: unknown, fallback: string): string {
@@ -242,13 +300,20 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
   const online = options.online ?? (() => (typeof navigator === "undefined" ? true : navigator.onLine));
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const store = new PassSnapshotStore();
+  const allowedOrigins = allowedOriginSet(
+    options.allowedOrigins ?? global.allowedOrigins,
+    issuerUrl,
+  );
 
   const payloads = new Map<string, PassPayload>();
   const modelPayloads = new Map<string, PassPayload>();
   const attestations = new Map<string, PassAttestation>();
   const latest = new Map<string, PassLatestKnown>();
-  const pending = new Map<string, Promise<void>>();
+  const pending = new Map<string, Promise<PassRefreshResult>>();
   const listeners = new Set<() => void>();
+  let generation = 0;
+  let clearEpoch = 0;
+  let clearing: Promise<void> | null = null;
   let config: PassIssuerConfig | null = pinnedKey
     ? {
         issuer: { id: "issuer", name: "Issuer", keyId: "", algorithm: "Ed25519" },
@@ -266,7 +331,29 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
     }
   };
 
-  const setInvalid = (payload: PassPayload, reason: string) => {
+  const current = (run: number): boolean => run === generation;
+
+  const isAllowedHttpsUrl = (value: string): boolean => {
+    try {
+      const url = new URL(value.trim());
+      return url.protocol === "https:" &&
+        !url.username &&
+        !url.password &&
+        allowedOrigins.has(url.origin);
+    } catch {
+      return false;
+    }
+  };
+
+  const isQrPayloadAllowed = (payload: string): boolean => {
+    if (isOpaqueQrPayload(payload)) return true;
+    return isAllowedHttpsUrl(payload);
+  };
+
+  const isIssuerLinkAllowed = (url: string): boolean => isAllowedHttpsUrl(url);
+
+  const setInvalid = (payload: PassPayload, reason: string, run = generation) => {
+    if (!current(run)) return;
     payloads.set(payload.credentialId, payload);
     attestations.set(payload.credentialId, {
       credentialId: payload.credentialId,
@@ -281,7 +368,8 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
     notify();
   };
 
-  const setUnverified = (payload: PassPayload) => {
+  const setUnverified = (payload: PassPayload, run = generation) => {
+    if (!current(run)) return;
     if (!payloads.has(payload.credentialId)) {
       payloads.set(payload.credentialId, payload);
     }
@@ -323,23 +411,25 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
     }
   };
 
-  const fetchFeed = async (credentialId: string): Promise<PassFeedResponse | null> => {
-    if (!issuerUrl) return null;
+  const fetchFeed = async (credentialId: string): Promise<FeedFetchResult> => {
+    if (!issuerUrl) return { feed: null, reason: "unavailable" };
     try {
       const url = `${issuerUrl}/pass?credentialId=${encodeURIComponent(credentialId)}`;
       const response = await fetcher(url, {
         cache: "no-store",
         signal: AbortSignal.timeout(timeoutMs),
       });
-      if (!response.ok) return null;
+      if (!response.ok) return { feed: null, reason: "http_error" };
       const raw = (await response.json()) as unknown;
-      if (!raw || typeof raw !== "object") return null;
+      if (!raw || typeof raw !== "object") return { feed: null, reason: "malformed" };
       const feed = raw as PassFeedResponse;
-      if (!feed.payload || !feed.signature) return null;
-      if (feed.status !== "live" && feed.status !== "revoked") return null;
-      return feed;
-    } catch {
-      return null;
+      if (!feed.payload || !feed.signature) return { feed: null, reason: "malformed" };
+      if (feed.status !== "live" && feed.status !== "revoked") {
+        return { feed: null, reason: "malformed" };
+      }
+      return { feed, reason: "ok" };
+    } catch (error) {
+      return { feed: null, reason: isTimeoutError(error) ? "timeout" : "unavailable" };
     }
   };
 
@@ -382,23 +472,31 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
     }
   };
 
-  const applyLive = async (feed: PassFeedResponse, requested: PassPayload): Promise<boolean> => {
+  const applyLive = async (
+    feed: PassFeedResponse,
+    requested: PassPayload,
+    run: number,
+  ): Promise<boolean> => {
+    if (!current(run)) return true;
     const checked = validatePassPayload(feed.payload);
     if (!checked.payload || checked.payload.credentialId !== requested.credentialId) {
-      setInvalid(requested, "issuer payload does not match the requested credential");
+      setInvalid(requested, "issuer payload does not match the requested credential", run);
       return true;
     }
     const payload = checked.payload;
     const configValue = await loadConfig();
+    if (!current(run)) return true;
     if (!configValue) {
       return false;
     }
     const signatureOk = await verifyPassSignature(payload, feed.signature, configValue.publicKey);
+    if (!current(run)) return true;
     if (!signatureOk) {
-      setInvalid(payload, "issuer signature verification failed");
+      setInvalid(payload, "issuer signature verification failed", run);
       return true;
     }
     await store.putIssuerKey(payload.issuer.keyId, configValue.publicKey);
+    if (!current(run)) return true;
     const checkedAt = new Date(now()).toISOString();
     const maxStaleAt = Math.min(
       Date.parse(payload.validUntil),
@@ -409,6 +507,7 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
       Number.isFinite(requestedStaleAt) ? Math.min(requestedStaleAt, maxStaleAt) : maxStaleAt,
     ).toISOString();
     const integrity: PassIntegrity = feed.status === "revoked" ? "revoked" : "verified";
+    if (!current(run)) return true;
     payloads.set(payload.credentialId, payload);
     attestations.set(payload.credentialId, {
       credentialId: payload.credentialId,
@@ -426,24 +525,31 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
     if (integrity === "verified" || integrity === "revoked") {
       await saveSnapshot(payload, feed.signature, integrity, checkedAt, staleAfter);
     }
+    if (!current(run)) return true;
     notify();
     return true;
   };
 
-  const applySnapshot = async (requested: PassPayload): Promise<boolean> => {
+  const applySnapshot = async (requested: PassPayload, run: number): Promise<boolean> => {
+    if (!current(run)) return true;
     const snapshot = await store.getSnapshot(requested.credentialId);
+    if (!current(run)) return true;
     if (!snapshot) return false;
     const hostKey = await store.getHostKey();
+    if (!current(run)) return true;
     if (!hostKey || !(await verifySnapshotMetadata(snapshot, hostKey.key, hostKey.keyId))) {
-      setInvalid(snapshot.payload, "snapshot metadata seal is invalid");
+      setInvalid(snapshot.payload, "snapshot metadata seal is invalid", run);
       return true;
     }
+    if (!current(run)) return true;
     const publicKey =
       (await store.getIssuerKey(snapshot.payload.issuer.keyId)) ?? config?.publicKey ?? pinnedKey ?? null;
+    if (!current(run)) return true;
     if (!publicKey || !(await verifySnapshotCredential(snapshot, publicKey))) {
-      setInvalid(snapshot.payload, "snapshot credential seal is invalid");
+      setInvalid(snapshot.payload, "snapshot credential seal is invalid", run);
       return true;
     }
+    if (!current(run)) return true;
     payloads.set(snapshot.credentialId, snapshot.payload);
     attestations.set(snapshot.credentialId, {
       credentialId: snapshot.credentialId,
@@ -455,29 +561,67 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
       source: { id: snapshot.payload.issuer.id, kind: "issuer" },
       snapshotAt: snapshot.snapshotAt,
     });
+    if (!current(run)) return true;
     notify();
     return true;
   };
 
-  const load = async (modelPayload: PassPayload, force = false): Promise<void> => {
+  const load = async (modelPayload: PassPayload, force = false): Promise<PassRefreshResult> => {
     const credentialId = modelPayload.credentialId;
-    if (!force && (payloads.has(credentialId) || pending.has(credentialId))) return;
     modelPayloads.set(credentialId, modelPayload);
-    if (pending.has(credentialId)) return;
-    const task = (async () => {
-      const canFetch = online() && issuerUrl;
-      if (canFetch) {
-        const feed = await fetchFeed(credentialId);
-        if (feed && (await applyLive(feed, modelPayload))) return;
+    const running = pending.get(credentialId);
+    if (running) return running;
+    if (!force && payloads.has(credentialId)) {
+      return {
+        status: "succeeded",
+        reason: "already_loaded",
+        attestation: attestations.get(credentialId) ?? null,
+      };
+    }
+    // A new mount after logout must not write a snapshot while the previous
+    // clear is still removing in-flight writes.
+    if (clearing) await clearing;
+    const run = generation;
+    const task = (async (): Promise<PassRefreshResult> => {
+      const canFetch = online() && !!issuerUrl;
+      const fetched: FeedFetchResult = canFetch
+        ? await fetchFeed(credentialId)
+        : { feed: null, reason: "unavailable" };
+      if (!current(run)) return { status: "unavailable", reason: "cleared" };
+      if (fetched.feed) {
+        const applied = await applyLive(fetched.feed, modelPayload, run);
+        // applyLive may finish a snapshot write after clear started. Never
+        // report success for a result that was invalidated by logout.
+        if (!current(run)) return { status: "unavailable", reason: "cleared" };
+        if (applied) {
+          return {
+            status: "succeeded",
+            attestation: attestations.get(credentialId) ?? null,
+          };
+        }
       }
-      if (await applySnapshot(modelPayload)) return;
-      setUnverified(modelPayload);
+      if (!current(run)) return { status: "unavailable", reason: "cleared" };
+      if (await applySnapshot(modelPayload, run)) {
+        if (!current(run)) return { status: "unavailable", reason: "cleared" };
+        return {
+          status: fetched.reason === "timeout" ? "timeout" : "unavailable",
+          reason: fetched.reason,
+          attestation: attestations.get(credentialId) ?? null,
+        };
+      }
+      if (!current(run)) return { status: "unavailable", reason: "cleared" };
+      setUnverified(modelPayload, run);
+      return {
+        status: fetched.reason === "timeout" ? "timeout" : "unavailable",
+        reason: fetched.reason,
+        attestation: attestations.get(credentialId) ?? null,
+      };
     })().finally(() => {
-      pending.delete(credentialId);
-      notify();
+      if (pending.get(credentialId) === task) pending.delete(credentialId);
+      if (current(run)) notify();
     });
     pending.set(credentialId, task);
-    await task;
+    return task;
   };
 
   let onlineListener: (() => void) | null = null;
@@ -505,22 +649,52 @@ export function createDshPassHost(options: DshPassOptions = {}): DshPassHost {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
+    isQrPayloadAllowed,
+    isIssuerLinkAllowed,
+    clearEpoch() {
+      return clearEpoch;
+    },
     async refresh(credentialId) {
       const payload = payloads.get(credentialId) ?? modelPayloads.get(credentialId);
-      if (payload) await load(payload, true);
+      if (!payload) return { status: "unavailable", reason: "no_payload" };
+      return load(payload, true);
     },
     async refreshAll() {
+      const results: PassRefreshResult[] = [];
       for (const payload of modelPayloads.values()) {
-        await load(payload, true);
+        results.push(await load(payload, true));
       }
+      return results;
     },
     async clear() {
-      payloads.clear();
-      modelPayloads.clear();
-      attestations.clear();
-      latest.clear();
-      await store.clear();
-      notify();
+      if (clearing) return clearing;
+      const operation = (async () => {
+        clearEpoch++;
+        generation++;
+        const tasks = [...pending.values()];
+        payloads.clear();
+        modelPayloads.clear();
+        attestations.clear();
+        latest.clear();
+        // Repaint after the first store wipe. A new mount's load waits on
+        // `clearing`, so it cannot race the second wipe.
+        await store.clear();
+        notify();
+        await Promise.allSettled(tasks);
+        // An in-flight task can finish its IndexedDB write after the first clear;
+        // clear once more after it settles so logout leaves no snapshot or key.
+        payloads.clear();
+        modelPayloads.clear();
+        attestations.clear();
+        latest.clear();
+        await store.clear();
+        notify();
+      })();
+      const wrapped = operation.finally(() => {
+        if (clearing === wrapped) clearing = null;
+      });
+      clearing = wrapped;
+      await wrapped;
     },
     dispose() {
       listeners.clear();

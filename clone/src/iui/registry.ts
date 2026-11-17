@@ -16,6 +16,16 @@ export interface Ctx {
   /** report an interaction inside a block to the host (SDK event bridge) */
   emit?(name: string, detail?: Record<string, unknown>): void;
   /**
+   * Report the host-owned freshness of an artifact so the answer's conclusion
+   * slot can be marked when the artifact is stale or invalid. This must never
+   * be populated from model output.
+   */
+  reportArtifactFreshness?(state: {
+    credentialId: string;
+    integrity: import("./pass").PassIntegrity;
+    freshness: import("./pass").PassFreshness;
+  }): void;
+  /**
    * Answer-level locale context. Optional so existing custom blocks keep
    * compiling; the core runtime always supplies it.
    */

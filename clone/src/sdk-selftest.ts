@@ -1002,6 +1002,8 @@ await test("travel pass uses host attestation, QR dialog, refresh, and revocatio
     source: { id: "test-issuer", kind: "issuer" },
   };
   let online = true;
+  let qrAllowed = true;
+  let clearEpoch = 0;
   const listeners = new Set<() => void>();
   const events: IuiEvent[] = [];
   const passHost: PassHost = {
@@ -1021,6 +1023,12 @@ await test("travel pass uses host attestation, QR dialog, refresh, and revocatio
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);
+    },
+    isQrPayloadAllowed(qrPayload) {
+      return /^iui1:/i.test(qrPayload) || qrAllowed;
+    },
+    clearEpoch() {
+      return clearEpoch;
     },
   };
   const { host, ui } = mount({
@@ -1063,6 +1071,7 @@ await test("travel pass uses host attestation, QR dialog, refresh, and revocatio
   assert(pass.dataset.integrity === "verified", "host attestation not used");
   assert(pass.textContent?.includes("Verified"), "verified badge missing");
   assert(host.querySelector('[data-testid="pass-gate"]')?.textContent?.includes("D7"), "gate missing");
+  assert(!host.querySelector('[data-testid="conclusion-freshness"]'), "live pass marked conclusion stale");
 
   const show = host.querySelector<HTMLButtonElement>('[data-testid="pass-show-code"]');
   assert(show && !show.disabled, "show-code action missing");
@@ -1095,6 +1104,18 @@ await test("travel pass uses host attestation, QR dialog, refresh, and revocatio
   payload.qr = { ...payload.qr, format: "iui-pass-v1" };
   for (const listener of listeners) listener();
 
+  qrAllowed = false;
+  payload.qr = { format: "qr", payload: "https://phish.example/pass" };
+  for (const listener of listeners) listener();
+  assert(pass.querySelector('[data-testid="pass-qr-domain-blocked"]'), "non-allowlisted QR domain was not blocked");
+  assert(host.querySelector<HTMLButtonElement>('[data-testid="pass-show-code"]')?.disabled, "blocked domain QR is still enabled");
+  qrAllowed = true;
+  for (const listener of listeners) listener();
+  assert(!pass.querySelector('[data-testid="pass-qr-domain-blocked"]'), "allowlisted QR domain stayed blocked");
+  assert(!host.querySelector<HTMLButtonElement>('[data-testid="pass-show-code"]')?.disabled, "allowlisted domain QR stayed disabled");
+  payload.qr = { format: "iui-pass-v1", payload: "IUI1:p1:k1:D7" };
+  for (const listener of listeners) listener();
+
   attestation = {
     ...attestation,
     integrity: "revoked",
@@ -1106,6 +1127,12 @@ await test("travel pass uses host attestation, QR dialog, refresh, and revocatio
   assert(integrityAfterRevoke === "revoked", "revocation did not repaint");
   assert(pass.textContent?.includes("Revoked"), "revoked label missing");
   assert(host.querySelector<HTMLButtonElement>('[data-testid="pass-show-code"]')?.disabled, "revoked QR is still enabled");
+  assert(
+    host.querySelector('[data-testid="conclusion-freshness"]')?.classList.contains(
+      "iui-conclusion-freshness--danger",
+    ),
+    "revoked pass did not escalate the conclusion marker",
+  );
 
   online = false;
   attestation = {
@@ -1117,8 +1144,28 @@ await test("travel pass uses host attestation, QR dialog, refresh, and revocatio
   const staleFreshness: string | undefined = pass.dataset.freshness;
   assert(staleFreshness === "stale", "snapshot freshness missing");
   assert(host.querySelector('[data-testid="pass-stale"]'), "stale notice missing");
+  const conclusionWarning = host.querySelector('[data-testid="conclusion-freshness"]');
+  assert(conclusionWarning, "stale pass did not mark the conclusion layer");
+  assert(
+    conclusionWarning.textContent?.includes("saved pass"),
+    "conclusion warning did not explain the stale pass",
+  );
+  assert(
+    conclusionWarning.classList.contains("iui-conclusion-freshness--warning") &&
+      !conclusionWarning.classList.contains("iui-conclusion-freshness--danger"),
+    "stale pass did not de-escalate the conclusion marker",
+  );
+  assert(
+    host.querySelector('[data-iui-slot~="conclusion"]')?.getAttribute("data-iui-freshness") === "warning",
+    "conclusion freshness attribute missing",
+  );
+
+  clearEpoch = 1;
+  for (const listener of listeners) listener();
+  assert(pass.querySelector('[data-testid="pass-cleared"]'), "cleared pass state was still visible");
+  assert(!pass.querySelector('[data-testid="pass-show-code"]'), "cleared pass still offered a code");
   ui.destroy();
-  return "attestation · verified/revoked · QR dialog · refresh event · stale snapshot";
+  return "attestation · verified/revoked · QR dialog · refresh event · stale snapshot · conclusion marker · cleared state";
 });
 
 const passed = results.filter((r) => r.ok).length;

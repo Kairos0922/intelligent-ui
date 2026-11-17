@@ -14,7 +14,7 @@ import {
 } from "../clone/dist-lib/agent.js";
 import { generateKeyPairSync, sign } from "node:crypto";
 import { spawn } from "node:child_process";
-import { createDshPassHost } from "../packages/dsh/lib/index.js";
+import { createDshPassHost, createPassActionRunner } from "../packages/dsh/lib/index.js";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -304,6 +304,7 @@ test("DSH pass host verifies live, gate-change, revoked, and invalid feeds", asy
     issuerUrl: `http://127.0.0.1:${port}`,
     now: () => Date.parse("2026-11-13T10:00:00Z"),
     online: () => true,
+    timeoutMs: 150,
   });
   t.after(() => host.dispose());
   host.ensurePass(feed.payload);
@@ -330,16 +331,210 @@ test("DSH pass host verifies live, gate-change, revoked, and invalid feeds", asy
   );
 
   await fetch(`http://127.0.0.1:${port}/scenario?value=gate-change`);
-  await host.refresh("p1");
+  assert.equal((await host.refresh("p1")).status, "succeeded");
   assert.equal(host.getAttestation("p1")?.integrity, "verified");
   assert.equal(host.getPayload("p1")?.gate, "D2");
   assert.equal(host.getLatestKnown("p1")?.gate, "D2");
 
   await fetch(`http://127.0.0.1:${port}/scenario?value=revoked`);
-  await host.refresh("p1");
+  assert.equal((await host.refresh("p1")).status, "succeeded");
   assert.equal(host.getAttestation("p1")?.integrity, "revoked");
 
   await fetch(`http://127.0.0.1:${port}/scenario?value=invalid`);
-  await host.refresh("p1");
+  assert.equal((await host.refresh("p1")).status, "succeeded");
   assert.equal(host.getAttestation("p1")?.integrity, "invalid");
+
+  await fetch(`http://127.0.0.1:${port}/scenario?value=slow`);
+  assert.equal((await host.refresh("p1")).status, "timeout");
+});
+
+test("pass host enforces an exact https origin allowlist for QR and issuer links", () => {
+  const host = createDshPassHost({
+    issuerUrl: "https://issuer.example/api",
+    allowedOrigins: ["https://issuer.example", "https://partner.example/path"],
+  });
+  assert.equal(host.isQrPayloadAllowed("IUI1:p1:test:D7"), true);
+  assert.equal(host.isQrPayloadAllowed("opaque-token"), true);
+  assert.equal(host.isQrPayloadAllowed("   "), false);
+  assert.equal(host.isQrPayloadAllowed("https://issuer.example/pass/p1"), true);
+  assert.equal(host.isQrPayloadAllowed("https://partner.example/pass/p1"), true);
+  assert.equal(host.isQrPayloadAllowed("https://issuer.example.evil/pass/p1"), false);
+  assert.equal(host.isQrPayloadAllowed("https://other.example/pass/p1"), false);
+  assert.equal(host.isQrPayloadAllowed("http://issuer.example/pass/p1"), false);
+  assert.equal(host.isQrPayloadAllowed("//issuer.example/pass/p1"), false);
+  assert.equal(host.isQrPayloadAllowed("javascript:alert(1)"), false);
+  assert.equal(host.isIssuerLinkAllowed("https://issuer.example/help"), true);
+  assert.equal(host.isIssuerLinkAllowed("https://other.example/help"), false);
+  host.dispose();
+
+  const bare = createDshPassHost({ online: () => false });
+  assert.equal(bare.isQrPayloadAllowed("https://issuer.example/pass"), false);
+  assert.equal(bare.isQrPayloadAllowed("IUI1:p1:test:D7"), true);
+  assert.equal(bare.isIssuerLinkAllowed("https://issuer.example/help"), false);
+  bare.dispose();
+});
+
+test("clear suppresses an in-flight refresh result", async (t) => {
+  const port = 43222;
+  const server = spawn(process.execPath, [join(root, "tools/test-issuer/server.mjs"), "--port", String(port)], {
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  t.after(() => server.kill("SIGTERM"));
+  await new Promise((resolve, reject) => {
+    let output = "";
+    const timer = setTimeout(() => reject(new Error(`test issuer did not start: ${output}`)), 5_000);
+    server.stdout.on("data", (chunk) => {
+      output += chunk.toString();
+      if (output.includes("IUI test issuer:")) {
+        clearTimeout(timer);
+        resolve();
+      }
+    });
+    server.once("error", reject);
+  });
+
+  const feed = await (await fetch(`http://127.0.0.1:${port}/pass?credentialId=p1`)).json();
+  await fetch(`http://127.0.0.1:${port}/scenario?value=slow`);
+  const host = createDshPassHost({
+    issuerUrl: `http://127.0.0.1:${port}`,
+    now: () => Date.parse("2026-11-13T10:00:00Z"),
+    online: () => true,
+    timeoutMs: 120,
+  });
+  t.after(() => host.dispose());
+  let staleNotification = false;
+  host.subscribe(() => {
+    if (host.getAttestation("p1")) staleNotification = true;
+  });
+  host.ensurePass(feed.payload);
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  const refresh = host.refresh("p1");
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  await host.clear();
+  const result = await refresh;
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  assert.equal(result.status, "unavailable");
+  assert.equal(result.reason, "cleared");
+  assert.equal(staleNotification, false, "cleared refresh wrote an attestation back");
+  assert.equal(host.getAttestation("p1"), null);
+  assert.equal(host.getPayload("p1"), null);
+});
+
+test("clear during issuer verification reports cleared, not success", async (t) => {
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+  const spki = publicKey.export({ type: "spki", format: "der" }).toString("base64");
+  const payload = validatePassPayload(fixture()).payload;
+  assert.ok(payload);
+  const signature = sign(null, Buffer.from(canonicalJson(payload)), privateKey).toString("base64");
+  const feed = {
+    status: "live",
+    observedAt: "2026-11-13T10:00:00Z",
+    payload,
+    signature: { alg: "Ed25519", keyId: payload.issuer.keyId, value: signature },
+  };
+
+  let releaseConfig;
+  const configGate = new Promise((resolve) => {
+    releaseConfig = resolve;
+  });
+  let markConfigRequested;
+  const configRequested = new Promise((resolve) => {
+    markConfigRequested = resolve;
+  });
+  const jsonResponse = (value) => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return value;
+    },
+  });
+  const host = createDshPassHost({
+    issuerUrl: "https://issuer.example",
+    online: () => true,
+    timeoutMs: 1_000,
+    fetcher: async (input) => {
+      const url = String(input);
+      if (url.includes("/pass?")) return jsonResponse(feed);
+      if (url.endsWith("/config")) {
+        markConfigRequested();
+        return jsonResponse(await configGate);
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    },
+  });
+  t.after(() => host.dispose());
+
+  host.ensurePass(payload);
+  const resultPromise = host.refresh("p1");
+  await configRequested;
+  const clearing = host.clear();
+  releaseConfig({ issuer: payload.issuer, publicKey: spki });
+  const result = await resultPromise;
+  await clearing;
+
+  assert.equal(result.status, "unavailable");
+  assert.equal(result.reason, "cleared");
+  assert.equal(host.getPayload("p1"), null);
+  assert.equal(host.getAttestation("p1"), null);
+});
+
+test("refresh timeout goes unknown -> reconciliation without automatic retry", async () => {
+  let refreshes = 0;
+  const runner = createPassActionRunner({
+    host: {
+      async refresh() {
+        refreshes += 1;
+        return { status: "timeout", reason: "timeout" };
+      },
+    },
+    userId: "u1",
+    tenantId: "t1",
+    now: () => new Date("2026-11-13T10:00:00Z"),
+  });
+  const run = await runner.refresh({
+    credentialId: "p1",
+    answerId: "a1",
+    action: "refresh",
+  });
+  assert.equal(refreshes, 1, "timed-out refresh was retried automatically");
+  assert.equal(run.state.state, "failed");
+  assert.deepEqual(
+    run.events.map((event) => event.type),
+    ["authorize", "start", "timeout", "reconcile_start", "reconcile_failure"],
+  );
+  assert.equal(run.state.reconciliation?.outcome, "failed");
+  assert.ok(run.state.reconciliation?.evidence?.includes("issuer refresh timed out"));
+});
+
+test("successful refresh records a receipt and no reconciliation", async () => {
+  const runner = createPassActionRunner({
+    host: {
+      async refresh() {
+        return {
+          status: "succeeded",
+          attestation: {
+            credentialId: "p1",
+            integrity: "verified",
+            observedAt: "2026-11-13T10:00:00Z",
+            checkedAt: "2026-11-13T10:00:00Z",
+            validUntil: "2027-06-01T00:00:00Z",
+            staleAfter: "2026-11-13T11:00:00Z",
+            source: { id: "test-issuer", kind: "issuer" },
+            snapshotAt: "2026-11-13T10:00:00Z",
+          },
+        };
+      },
+    },
+    userId: "u1",
+    tenantId: "t1",
+    now: () => new Date("2026-11-13T10:00:00Z"),
+  });
+  const run = await runner.refresh({
+    credentialId: "p1",
+    answerId: "a1",
+    action: "request_verification",
+  });
+  assert.equal(run.state.state, "succeeded");
+  assert.equal(run.state.receipt?.payload?.status, "succeeded");
+  assert.equal(run.state.reconciliation, undefined);
 });

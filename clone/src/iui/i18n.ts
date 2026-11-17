@@ -174,6 +174,11 @@ type MessageKey =
   | "passOffline"
   | "passOfflineDetail"
   | "passCodeUnsupported"
+  | "passQrDomainBlocked"
+  | "passCleared"
+  | "passClearedDetail"
+  | "conclusionStale"
+  | "conclusionInvalid"
   | "gateChanged"
   | "interfaceUpdated"
   | "snapshotOutdated"
@@ -246,6 +251,11 @@ const EN: Record<MessageKey, string> = {
   passOffline: "This pass cannot be shown offline.",
   passOfflineDetail: "No sealed snapshot is available. Reconnect to load the pass.",
   passCodeUnsupported: "This pass uses a code format this host cannot render.",
+  passQrDomainBlocked: "The code link is not on this host's issuer allowlist. The code cannot be shown.",
+  passCleared: "Pass data was cleared on sign-out.",
+  passClearedDetail: "Open the pass again after signing in to reload it.",
+  conclusionStale: "This conclusion may rely on a saved pass. Check the latest gate and boarding time with the issuer.",
+  conclusionInvalid: "This conclusion relies on a pass that is no longer valid. Do not use it for travel.",
   gateChanged: "Gate changed: {from} → {to}",
   interfaceUpdated: "The interface was updated from the issuer feed.",
   snapshotOutdated: "The saved snapshot is out of date.",
@@ -319,6 +329,11 @@ const ZH: Partial<Record<MessageKey, string>> = {
   passOffline: "当前离线，无法出示此凭证。",
   passOfflineDetail: "没有可用的密封快照，请恢复网络后重试。",
   passCodeUnsupported: "此凭证的代码格式不受当前宿主支持。",
+  passQrDomainBlocked: "代码链接不在当前宿主的签发方白名单中，因此无法显示。",
+  passCleared: "登出时已清除凭证数据。",
+  passClearedDetail: "重新登录后打开凭证即可重新加载。",
+  conclusionStale: "此结论可能基于保存的快照。请向签发方核对最新登机口和登机时间。",
+  conclusionInvalid: "此结论所依据的凭证已失效，请勿用于出行。",
   gateChanged: "登机口已变更：{from} → {to}",
   interfaceUpdated: "界面已按签发方数据更新。",
   snapshotOutdated: "保存的快照已过时。",

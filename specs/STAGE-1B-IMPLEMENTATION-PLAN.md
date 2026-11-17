@@ -2,11 +2,13 @@
 
 | 项目 | 内容 |
 |---|---|
-| 状态 | **垂直切片已实现（2026-11-13，验证补跑 2026-11-15）** |
-| 分支 | `feat/stage-1b-travel-pass`（从 Stage 1a 的 `070bd83` 叠加） |
+| 状态 | **垂直切片已实现（2026-11-13；C26/C29/C30/C32 follow-up 验证 2026-11-17）** |
+| 分支 | `fix/stage-1b-conformance-followup`（基于合并后的 main `a03e29d`） |
 | 依据 | `INTELLIGENT-UI-PLAN.md` §6.4、§6.7、§7.6.1；`specs/DOMAIN-ARTIFACT-SPEC.md`；`specs/PROTOCOL-SPEC.md` §15–§17 |
 | 范围 | pass profile、QR、宿主 attestation、Ed25519 校验、密封快照、测试 issuer、DSH 只读动作 |
 | 明确不做 | 真实航司/Wallet 集成、签发真实凭证、机场闸机实测、支付/删除/日历写入 |
+
+> 2026-11-17 follow-up：实现 C26 conclusion freshness 标记、C29 ActionRuntime 对账、C30 会话销毁清理、C32 URL QR/issuer link 白名单。所有结论仍限于自建测试 issuer；C30 的 hosted sign-out smoke 与真实 issuer 仍未验证。
 
 ---
 
@@ -77,12 +79,14 @@
 
 离线且没有密封快照时，块不渲染凭证字段，只显示回退文本并禁用 QR（Domain Spec §7）。在线但 issuer 不可达时仍按 `unverified` 展示，并明确标注未验证。当前块只实现 `qr` / `iui-pass-v1` 的 QR 渲染；`pdf417` / `aztec` 可展示字段但禁用代码按钮并提示宿主不支持，不能把其他码制误画成 QR。
 
+pass 块通过 `ctx.reportArtifactFreshness()` 把宿主 attestation 的 `integrity` / `freshness` 报到 compiler。若该 artifact 为 stale、unknown、unverified、invalid 或 revoked，宿主在 conclusion 槽位前插入可见警示并写入 `data-iui-freshness`，不把模型结论当成当前事实；pass 恢复 live 后警示自动移除。该机制只读宿主状态，不重写模型 prose。
+
 ### 3.3 DSH 动作
 
-- `show_code`：本地打开 QR dialog；invalid/revoked/expired 时不可用；`unverified` 仍可出示并标注警告；离线且无密封快照时回退文本。
-- `refresh`：重新拉取 issuer 并验证；成功后动作仍回传 session。
+- `show_code`：本地打开 QR dialog；invalid/revoked/expired 时不可用；`unverified` 仍可出示并标注警告；离线且无密封快照时回退文本。URL QR payload 必须命中宿主 `allowedOrigins`；opaque `IUI1:` payload 不需要域名检查。未配置白名单时 URL QR 默认拒绝。
+- `refresh`：经 `ActionRuntime` 的 intent/authorize/start 链重新拉取 issuer 并验证；超时进入 `unknown`，随后 `beginReconciliation()`，以“issuer timeout + 是否保留密封快照”为证据对账失败；不会自动重试。用户再次点击才是新 operation。
 - `request_verification`：同 refresh，语义为请求重新验证。
-- `open_issuer_link`：只接受 `https://`；不写 Wallet。
+- `open_issuer_link`：只接受 `https://`，且 origin 必须命中同一份宿主 allowlist；不写 Wallet。
 - `save_note`：保持 Stage 1a 的 reversible + confirmation 行为。
 - 没有 `open_wallet`、`add_to_wallet`、通知或日历写入。
 
@@ -101,7 +105,12 @@ node tools/test-issuer/server.mjs --port 4319 --scenario normal
 浏览器侧在 DSH 客户端加载前设置：
 
 ```js
-window.__IUI_PASS_ISSUER__ = { url: "http://127.0.0.1:4319" };
+window.__IUI_PASS_ISSUER__ = {
+  url: "http://127.0.0.1:4319",
+  // Only needed for URL QR payloads/issuer links. https-only exact origins;
+  // an https issuer URL adds its own origin automatically.
+  allowedOrigins: ["https://issuer.example"],
+};
 ```
 
 场景：`normal`、`gate-change`（D7 → D2）、`revoked`、`invalid`（坏签名）、`slow`（超时回退）。运行时可通过 `/scenario?value=...` 切换。
@@ -116,12 +125,12 @@ window.__IUI_PASS_ISSUER__ = { url: "http://127.0.0.1:4319" };
 |---|---|
 | `npm run build` | 通过（六包） |
 | `npm run typecheck` | 通过（六包） |
-| `node --test tests/*.test.mjs` | 72/72 通过 |
-| `npm run selftest` | 30/30 通过 |
-| `npx playwright test tests/pass-host.spec.ts` | 1/1 通过（真实 IndexedDB + 测试 issuer；含 slow 超时回退） |
+| `node --test tests/*.test.mjs` | 77/77 通过（新增 allowlist、clear 竞态、验证中途清理、ActionRuntime 对账） |
+| `npm run selftest` | 30/30 通过（含 C26 结论标 stale、C32 URL QR 域名拒绝、C30 cleared UI） |
+| `npx playwright test tests/pass-host.spec.ts` | 1/1 通过（真实 IndexedDB + 测试 issuer；含 slow 超时回退、clear 后存储为空） |
 | `npm run test:e2e` | 3/3 通过（SDK 自测、pass host、MCP App） |
 | `npm run check:docs` | 通过（22 个 Markdown 文件） |
-| `npm run audit:content` | 通过（189 个文件） |
+| `npm run audit:content` | 通过（190 个文件） |
 | `npm run bench:selfcheck` | 25/25 通过（mock） |
 | `npm run pack:all` / `audit:pack` / `check:release` | 通过（6 个 tarball） |
 | 真实 issuer 验证 | **未做，且当前无真实 issuer** |
@@ -135,23 +144,24 @@ window.__IUI_PASS_ISSUER__ = { url: "http://127.0.0.1:4319" };
 
 | 用例 | 当前覆盖 | 结论 |
 |---|---|---|
-| C26 离线快照 | pass 块标 stale、显示快照时间；**不重写 conclusion 文案** | **部分通过**；宿主不保证模型结论层不写旧登机口 |
+| C26 离线快照 | pass 块标 stale；compiler 在 conclusion 槽位前插入宿主警示并写 `data-iui-freshness`；live 后移除 | 通过（宿主标记，不改写模型 prose） |
 | C27 credentialId 不匹配 | feed payload 与请求 id 不匹配 → invalid；attestation 按 id 过滤 | 通过 |
 | C28 revoked feed | 快照写入 `integrity=revoked` 并由 HMAC 覆盖；QR 禁用 | 通过（测试 issuer） |
-| C29 refresh 超时 | 浏览器已验证超时回退密封快照；无快照则 unverified | 部分通过；未接 action runtime 的 unknown→对账 |
-| C30 登出 | `PassHost.clear()` 删除快照与 HMAC key；DSH 登出钩子未接 | 部分通过 |
+| C29 refresh 超时 | 经 `ActionRuntime` 执行；超时 → unknown → reconciliation，证据含 timeout/快照；不自动重试 | 通过（单元 + 浏览器 host） |
+| C30 登出 | `PassHost.clear()` 立即失效内存与 epoch，删除 IndexedDB 快照/HMAC key，并等待在途任务后二次清理；DSH `session/disposed` 和插件卸载触发 | **部分通过**（实现与本地测试完成；hosted session-disposed/sign-out smoke 未做） |
 | C31 格式非法 | validator 丢弃 op，返回 `invalid_pass` issue | 通过 |
-| C32 QR 域名白名单 | 只允许 `https://` 或 opaque payload；**未做 issuer 域名 allowlist** | 部分通过 |
+| C32 QR 域名白名单 | 宿主 `allowedOrigins`（https exact origin）校验 URL QR 和 `open_issuer_link`；opaque `IUI1:` 放行；无白名单拒绝 URL | 通过 |
 
 ---
 
 ## 7. 已知限制
 
 - 没有真实 issuer；测试 issuer 只证明协议与实现，不证明产品价值。
-- C26 的结论层改写未实现：pass 块会标 stale，但模型写的 “Gate D7” 文本仍可能留在结论槽位。宿主需要后续的“结论与 artifact 绑定”机制。
-- 快照 TTL 为 24h；到期后当前实现降为 `unknown` 并保留记录，不自动删除。登出删除需要宿主调用 `clear()`。
+- C26 采用宿主警示标记 conclusion，不重写模型 prose；“Gate D7” 文本仍会显示，但被明确标为可能基于保存快照，不能当作当前事实。
+- 快照 TTL 为 24h；到期后当前实现降为 `unknown` 并保留记录，不自动删除。登出/会话销毁会调用 `clear()`。
+- DSH 当前 profile 没有独立 sign-out service；C30 绑定到 `session/disposed` 和插件卸载。若宿主新增真正的登出事件，必须改为绑定该事件并补 hosted smoke。
 - HMAC key 存 IndexedDB，non-extractable；同源脚本执行权仍等于宿主妥协，无法防御能调用密封 API 的同源代码对 metadata 重签。issuer 签名仍保护 payload。
-- DSH issuer URL 是可选全局配置；未配置时 pass 永远 `unverified`，不会伪造 Verified。
+- DSH issuer URL 与 `allowedOrigins` 是宿主配置；未配置时 pass 保持 `unverified`，URL QR/issuer link 默认拒绝，不会伪造 Verified。
 - 测试 issuer 的 `invalid` 场景只覆盖坏签名，不覆盖 key rotation、过期密钥、吊销列表分发。
 - DSH pass 动作没有 hosted DeepSeek 的第二轮真实模型验证；当前证据是 Node host 测试 + 浏览器 host 测试 + SDK 块测试。
 - npm 发布仍暂停；没有发布任何包。

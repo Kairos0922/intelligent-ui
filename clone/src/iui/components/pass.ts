@@ -20,6 +20,18 @@ function qrFormatSupported(format: PassPayload["qr"]["format"]): boolean {
   return format === "qr" || format === "iui-pass-v1";
 }
 
+function qrUrlNeedsPolicy(payload: string): boolean {
+  return /^https:\/\//i.test(payload.trim());
+}
+
+function qrPayloadIsOpaque(payload: string): boolean {
+  const value = payload.trim();
+  if (!value) return false;
+  if (value.toLowerCase().startsWith("iui1:")) return true;
+  if (value.startsWith("//")) return false;
+  return !/^[a-z][a-z0-9+.-]*:/i.test(value);
+}
+
 function qrSvg(payload: string, label: string): SVGSVGElement {
   const code = qrcode(0, "M");
   code.addData(payload);
@@ -130,6 +142,7 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
   let current = initial;
   let renderedPayload = initial;
   let canShowCode = false;
+  const mountEpoch = ctx.passHost?.clearEpoch?.() ?? 0;
   const root = h("article", { class: "iui-pass", "data-testid": "pass" });
   el.append(root);
   let dialog: HTMLDialogElement | null = null;
@@ -139,8 +152,15 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
     dialog = null;
   };
 
+  const qrPolicyAllowed = (pass: PassPayload): boolean => {
+    if (qrUrlNeedsPolicy(pass.qr.payload)) {
+      return ctx.passHost?.isQrPayloadAllowed?.(pass.qr.payload) === true;
+    }
+    return qrPayloadIsOpaque(pass.qr.payload);
+  };
+
   const showCode = (pass: PassPayload) => {
-    if (!canShowCode || !qrFormatSupported(pass.qr.format)) return;
+    if (!canShowCode || !qrFormatSupported(pass.qr.format) || !qrPolicyAllowed(pass)) return;
     if (dialog) dialog.close();
     const qrLabel = "Scannable boarding pass code";
     const sheet = h("dialog", { class: "iui-pass-dialog", "aria-label": qrLabel }) as HTMLDialogElement;
@@ -173,6 +193,7 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
       dialog = null;
     }
     const host = ctx.passHost;
+    const cleared = (host?.clearEpoch?.() ?? 0) !== mountEpoch;
     const hostPayload = host?.getPayload?.(current.credentialId);
     const payload = hostPayload?.credentialId === current.credentialId ? hostPayload : current;
     const hostAttestation = host?.getAttestation?.(current.credentialId);
@@ -184,11 +205,33 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
     const integrity = attestation?.integrity ?? "unverified";
     const latestKnown = host?.getLatestKnown?.(current.credentialId) ?? null;
     const locale = ctx.locale ?? "en-US";
+    const reportFreshness = () => {
+      ctx.reportArtifactFreshness?.({
+        credentialId: current.credentialId,
+        integrity,
+        freshness,
+      });
+    };
     renderedPayload = payload;
 
     root.replaceChildren();
+    if (cleared) {
+      canShowCode = false;
+      delete root.dataset.qrDomain;
+      root.dataset.integrity = "unverified";
+      root.dataset.freshness = "unknown";
+      root.append(
+        h("div", { class: "iui-pass-notice iui-pass-notice--danger", "data-testid": "pass-cleared" },
+          h("strong", { text: label("passCleared", "Pass data was cleared on sign-out.") }),
+          h("span", { text: label("passClearedDetail", "Open the pass again after signing in to reload it.") }),
+        ),
+      );
+      reportFreshness();
+      return;
+    }
     if (!online && !attestation?.snapshotAt) {
       canShowCode = false;
+      delete root.dataset.qrDomain;
       root.dataset.integrity = "unverified";
       root.dataset.freshness = "unknown";
       root.append(
@@ -197,15 +240,18 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
           h("span", { text: label("passOfflineDetail", "No sealed snapshot is available. Reconnect to load the pass.") }),
         ),
       );
+      reportFreshness();
       return;
     }
 
     const present = evaluatePass(integrity, freshness, payload.validUntil, now);
     const codeFormatSupported = qrFormatSupported(payload.qr.format);
-    const canPresentCode = present.canShowCode && codeFormatSupported;
+    const qrDomainAllowed = qrPolicyAllowed(payload);
+    const canPresentCode = present.canShowCode && codeFormatSupported && qrDomainAllowed;
     canShowCode = canPresentCode;
     root.dataset.integrity = integrity;
     root.dataset.freshness = freshness;
+    root.dataset.qrDomain = qrDomainAllowed ? "allowed" : "blocked";
 
     const head = h("div", { class: "iui-pass-head" });
     const title = h("div", { class: "iui-pass-title" });
@@ -265,6 +311,8 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
     }
     if (present.canShowCode && !codeFormatSupported) {
       notices.append(h("div", { class: "iui-pass-notice", "data-testid": "pass-code-unsupported", text: label("passCodeUnsupported", "This pass uses a code format this host cannot render.") }));
+    } else if (present.canShowCode && !qrDomainAllowed) {
+      notices.append(h("div", { class: "iui-pass-notice iui-pass-notice--danger", "data-testid": "pass-qr-domain-blocked", text: label("passQrDomainBlocked", "The code link is not on this host's issuer allowlist. The code cannot be shown.") }));
     }
     const modelGate = current.gate;
     const hostGate = payload.gate;
@@ -330,6 +378,7 @@ defineBlock("pass", (el, props: PassProps, ctx: Ctx) => {
       h("span", { text: attestation ? `${label("checked", "Checked")} ${formatTime(attestation.checkedAt, locale, ctx.timeZone ?? "UTC")}` : label("noAttestation", "No host attestation") }),
     );
     root.append(foot);
+    reportFreshness();
   };
 
   const onShowCode = (event: Event) => {
