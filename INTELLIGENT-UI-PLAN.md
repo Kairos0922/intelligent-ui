@@ -1107,6 +1107,7 @@ Imagine      W ∈ ℂ      复平面/极点/抬升
 - 2026-11-04（受托决策 + 反方检查 + 批准）：用户授权全部决策（原则"正确的方法做正确的事情"）并指令按开源标准交付。执行独立 AI 反方审阅：4 项发现全部处置——**F1** 回退成本低估 → 阶段 1 拆 1a（beachhead 无关契约，4–5 周）/ issuer 主动门槛（1a 末检查，未过即切 day plan，沉没成本仅 1a）/ 1b（travel 专属，3–5 周），外联从 1a 第一周并行；**F2** DSH 单点/作者自测 → 记录为风险，阶段 2 加非作者第二探针；**F3** 快照 seal 改双层（issuer 签名权威 + 宿主 HMAC 尽力、密钥 non-extractable、同源妥协边界入威胁模型，PROTOCOL-SPEC §15.3、新增 C25）；**F4** 状态机统一 `authorize` 事件、新增 `reconcile_timeout`（PROTOCOL-SPEC §8，0.2-draft）。EVALUATION-SPEC：真实模型 TaskCompletion 降为形成性（n=20 无法区分 60/75）、IntegrationCost 降为记录性。§7.6.1 签署批准（受托决策，用户保留推翻权）。新增 **§11 开源标准**（npm 发布为 1a 并行轨道、PROTOCOL-SPEC 英译与证据进 CI 为阶段 1 退出条件、DSH=验证宿主≠分发渠道）。新增 `specs/DOMAIN-ARTIFACT-SPEC.md`（travel/pass，0.1-draft，C26–C32）。**阶段 1a 实现解锁。**
 - 2026-11-13（Stage 1b 垂直切片 + issuer-gate override）：按用户指示以自建测试 issuer 启动 1b，同时保留真实 issuer 为阶段 2 门槛。新增 `pass` 块、QR、`PassHost`、Ed25519 校验、双层快照（issuer 签名 + 宿主 HMAC/IndexedDB）、测试 issuer 进程、DSH `canVerifyPass: true` 与只读 pass 动作。Node 72/72、SDK 自测 30/30、浏览器 pass host 1/1；真实 issuer、Wallet、闸机与 hosted pass smoke 未做。证据与限制见 `specs/STAGE-1B-IMPLEMENTATION-PLAN.md`。
 - 2026-11-17（Stage 1b conformance follow-up）：补齐 C26 conclusion freshness 标记、C29 refresh/request_verification 的 ActionRuntime 超时对账、C30 session/disposed 清理与 `clearEpoch`、C32 URL QR/`open_issuer_link` https exact-origin 白名单。Node 77/77、SDK 自测 30/30、Playwright 3/3；仍只针对自建测试 issuer，hosted sign-out 与真实 issuer 未验证。
+- 2026-11-18（hosted pass smoke + C30 sign-out 修复）：在 hosted DSH `0.2.2-rc.3` + DeepSeek Account / DeepSeek-V4.1-Flash + 本地测试 issuer 上完成 live/verified、QR、stale、revoked、invalid、slow timeout、恢复和账号登出事件清理 smoke。第一次真实账号登出发现旧版只监听 `session/disposed` 不会清理；修复为监听 `account-ui/change` signed-out，并在 hosted 客户端清除 8 个 pass 块、IndexedDB 1/2 → 0/0。Node 78/78、SDK 自测 30/30、Playwright 3/3；真实 issuer、真实账号二次登出与 hosted `session/disposed` 仍未验证。
 
 ---
 
@@ -1244,7 +1245,7 @@ node verify.mjs
 | Protocol §14 | provenance / authority / 新鲜度 | §6.3.2 | 1a 已实现记录形状/authority 分离/verification 降级；高风险字段映射与新鲜度状态待 1b |
 | Protocol §15 | pass profile / `integrity × freshness` / 双层快照 seal | §6.3.4、§6.4 | 1b 已实现测试 issuer 路径；真实 issuer 未接 |
 | Protocol §16 | storage / state ownership / PII | §6.3 P0-3 | 已回写 |
-| Protocol §17–18 | 验证规则 / C1–C24 conformance | §6.3.3、§6.4 | C1–C15、C20、C21、C26–C32 有实现/测试（测试 issuer 路径）；C30 的 hosted sign-out、真实 issuer 与真机测试仍待阶段 2 |
+| Protocol §17–18 | 验证规则 / C1–C24 conformance | §6.3.3、§6.4 | C1–C15、C20、C21、C26–C32 有实现/测试（测试 issuer 路径）；C30 的 hosted sign-out 事件路径已验证，真实账号二次登出、hosted session/disposed、真实 issuer 与真机测试仍待阶段 2 |
 | Evaluation §3–7 | L1–L4 + S / 指标 / 门禁 | §6.6、§6.7 | 已回写门禁 |
 | Evaluation §8–10 | 样本量 / 评分者一致性 / 反方审阅 | §6.6、§7.8 | 已回写摘要 |
 | Evaluation §11 | 证据包 / Evaluation Card | §6.7、§7.8 | 已回写 |

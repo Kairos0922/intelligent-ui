@@ -17,6 +17,11 @@ export type {
   PassRefreshResult,
   PassRefreshStatus,
 } from "./pass.js";
+export {
+  installPassLifecycleCleanup,
+  isSignedOutAccountState,
+} from "./pass-lifecycle.js";
+export type { PassLifecycleContext } from "./pass-lifecycle.js";
 export { createPassActionRunner } from "./pass-actions.js";
 export type {
   PassActionRunInput,
