@@ -1,6 +1,6 @@
 # DSH live and replay smoke test
 
-Date: 2026-10-27
+Date: 2026-10-27 (updated 2026-11-18 for the hosted pass smoke)
 
 Hosts: DeepSeek Harness Web `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4`
 
@@ -15,7 +15,9 @@ The repository contains no credential, token, screenshot, or session data.
 
 ## 2026-11-16 security update
 
-The adapter now requires DSH `0.2.2-rc.3` and Cordis `4.1.0`. DSH 0.2.1 pins `zod 4.4.3`, which is affected by [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5). DSH 0.2.2-rc.3 pins `zod 4.6.6`, and `npm audit` reports no vulnerabilities. Build, typecheck, the 64 Node tests, and the two Playwright tests pass on this tree. The live and deterministic records below were collected on the older hosts. They are not an rc.3 web smoke.
+The adapter now requires DSH `0.2.2-rc.3` and Cordis `4.1.0`. DSH 0.2.1 pins `zod 4.4.3`, which is affected by [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5). DSH 0.2.2-rc.3 pins `zod 4.6.6`, and the rc.3 dependency audit was clean when recorded. A later `picomatch` advisory now affects Vite. This tree does not upgrade dependencies.
+
+Build, typecheck, the 78 Node tests, and the three Playwright tests pass. The earlier live and deterministic records used older hosts. The 2026-11-18 pass smoke below used rc.3.
 
 ## Why DSH rejected 0.2.0
 
@@ -129,20 +131,51 @@ smoke above.
   the host allowlist. The block disables the code when the policy rejects it.
 - Refresh and verification actions use the action runtime. A timeout enters
   reconciliation without an automatic retry.
-- Session disposal clears sealed snapshots, the HMAC key, in-memory pass data,
-  and the action ledger. A hosted sign-out smoke was not run.
+- Account sign-out, session disposal, and plugin unload clear sealed snapshots,
+  the HMAC key, in-memory pass data, and the action ledger. A hosted account
+  sign-out event path was added after the first live sign-out exposed a
+  session-only gap.
 - Node tests cover Ed25519 verification, HMAC tamper detection, validator
-  rejection, allowlist behavior, clear-during-refresh, and the DSH controller.
+  rejection, allowlist behavior, clear-during-refresh, the DSH controller, and
+  the account sign-out/session-disposal cleanup wiring.
 
-This is **host-path evidence only**. There is no real airline, Google Wallet,
-Apple Wallet, or airport scanner. No hosted DeepSeek pass turn was run. The
-issuer-gate override and the remaining conformance gaps are recorded in
+## Hosted DSH pass smoke (2026-11-18)
+
+This run used DSH Web `0.2.2-rc.3`, the `0.2.2` adapter with the cleanup
+follow-up, Google Chrome through Playwright, and the local test issuer. The
+hosted model was DeepSeek-V4.1-Flash under DeepSeek Account. The model called
+`render_iui` with the exact pre-registered pass ops.
+
+- The pass rendered `verified` / `live`. Show code opened the QR dialog.
+- A stale copied feed (signature preserved, `staleAfter` moved to the past)
+  produced `Snapshot`, a stale notice, and the conclusion freshness warning.
+- `revoked` disabled the QR and showed the danger notice. `invalid` showed the
+  invalid notice.
+- A slow issuer produced the refresh timeout path with exactly one `/pass`
+  request and no automatic retry. The host kept the sealed snapshot.
+- Restoring the normal feed refreshed the latest pass to `verified` / `live` and
+  removed the conclusion warning.
+- The first live account sign-out showed that the earlier `session/disposed`
+  binding did not run. The fix listens to the documented `account-ui/change`
+  signed-out state. The post-fix hosted check cleared 8 mounted pass blocks and
+  changed IndexedDB from 1 snapshot / 2 metadata records to 0 / 0.
+- Browser console errors: 0.
+
+The temporary account was already signed out by the first smoke, so a second
+live provider sign-out was not run. The post-fix check emitted the same
+`account-ui/change` signed-out state through a temporary client test plugin in
+the hosted DSH client. A hosted `session/disposed` was not produced by this
+profile.
+
+This is **hosted pass-path and cleanup-event evidence only**. There is no real
+airline, Google Wallet, Apple Wallet, or airport scanner. The issuer-gate
+override and the remaining conformance gaps are recorded in
 [`specs/STAGE-1B-IMPLEMENTATION-PLAN.md`](../../specs/STAGE-1B-IMPLEMENTATION-PLAN.md).
 
-The sanitized evidence is in [specs/evidence/dsh-smoke.json](../../specs/evidence/dsh-smoke.json).
-Screenshots and session records stayed in local `.dsh-smoke/` and `.dsh-home/`
-directories, which are ignored. The repository contains no credential or route
-token.
+The sanitized evidence is in
+[specs/evidence/pass-host.json](../../specs/evidence/pass-host.json).
+Screenshots and session records stayed in a local temporary directory, which is
+not committed. The repository contains no credential or route token.
 
 ## Limits
 
@@ -150,7 +183,7 @@ token.
 - The live runs used one model and one click for each host version. They do not cover every block or model.
 - The rc.3 live model made one malformed op and corrected it. Another model can make a different error.
 - The tests check the DSH web profile only. They do not check the DSH desktop profile.
-- DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` are release candidates. DSH `0.2.2-rc.3` is also a release candidate. Package-level tests pass, but no new live web smoke was recorded. Run the tests after each DSH upgrade.
+- DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` are release candidates. DSH `0.2.2-rc.3` is also a release candidate. A hosted pass web smoke was recorded on rc.3 on 2026-11-18. The older signed-in table/tabs runs used the 0.2.1 line. Run the tests after each DSH upgrade.
 - The tests kept screenshots and session records in a local temporary directory. The repository contains no screenshot or session data.
 
 ## Test files

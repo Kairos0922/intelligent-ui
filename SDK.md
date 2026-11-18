@@ -435,7 +435,7 @@ URL QR payloads need a host-owned allowlist. `isQrPayloadAllowed()` must return 
 
 The pass block reports host-owned freshness to the compiler. When a pass is stale, unknown, unverified, invalid, or revoked, the conclusion slot gets a visible warning and a `data-iui-freshness` marker. A live pass removes the marker. This marks the model conclusion as potentially outdated. It does not rewrite model prose.
 
-`clearEpoch()` supports sign-out. `clear()` increments the epoch, deletes sealed snapshots and the HMAC key, removes in-memory payloads, and blocks an in-flight load from repainting. A block records the epoch at mount and shows a cleared notice if a later clear happens. The DSH adapter binds this to `session/disposed` and plugin unload because this profile has no separate sign-out event.
+`clearEpoch()` supports sign-out. `clear()` increments the epoch, deletes sealed snapshots and the HMAC key, removes in-memory payloads, and blocks an in-flight load from repainting. A block records the epoch at mount and shows a cleared notice if a later clear happens. The DSH adapter binds this to the hosted `account-ui/change` signed-out state, `session/disposed`, and plugin unload.
 
 The core exports `verifyPassSignature()`, `createSnapshotMetadataSeal()`, `verifySnapshotMetadata()`, and `verifySnapshotCredential()` for host adapters. The DSH adapter uses IndexedDB for sealed snapshots and a non-extractable WebCrypto HMAC key. The test issuer in `tools/test-issuer/` is an independent process. Its Ed25519 private key never enters the page.
 

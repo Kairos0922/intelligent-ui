@@ -133,7 +133,7 @@ A pass interaction returns a block action or an Answer Envelope action. `show_co
 
 `open_issuer_link` accepts only an allowlisted `https://` origin. URL QR payloads use the same host allowlist. Opaque `IUI1:` payloads do not need a domain. None of these actions writes a wallet, sends a message outside the session, or performs an irreversible write.
 
-On `session/disposed` and plugin unload, the adapter clears sealed snapshots, the HMAC key, in-memory pass data, and the action ledger. This profile does not expose a separate sign-out service, so session disposal is the account boundary.
+On the hosted `account-ui/change` signed-out state, `session/disposed`, and plugin unload, the adapter clears sealed snapshots, the HMAC key, in-memory pass data, and the action ledger. The DSH account sign-out is the normal hosted boundary. Session disposal covers deployments that expose it.
 
 The DSH host controller reads an optional browser global before it loads:
 
@@ -164,7 +164,7 @@ The live tests used DeepSeek-V4.1-Flash. Each run made one click. A model can ma
 
 On 2026-11-13, a hosted-provider web smoke passed on DSH `0.2.2-rc.1` with adapter `0.2.2` and `deepseek-flash` (served by `DeepSeek-V4.1-Flash-1017`). It covered the first render, cancel and confirm, the `[iui-action]` message, and a second complete interface. The model's automatic action turn answered in prose. The pre-registered protocol then sent the exact complete ops as a user message. That call rendered the replacement.
 
-On 2026-11-16, the dependency tree moved to DSH `0.2.2-rc.3` and Cordis `4.1.0`. Build, typecheck, the 64 Node tests, and the two Playwright tests pass. `npm audit` reports no vulnerabilities. A new hosted web smoke on rc.3 has not been run yet.
+On 2026-11-16, the dependency tree moved to DSH `0.2.2-rc.3` and Cordis `4.1.0`. At that time, the update passed build, typecheck, 64 Node tests, and 2 Playwright tests. The rc.3 dependency audit was clean when recorded. A later `picomatch` advisory now affects the Vite build toolchain, and this tree does not upgrade dependencies. A hosted pass smoke on rc.3 was recorded on 2026-11-18.
 
 A deliberately invalid op was refused by the model before the tool call. The previous valid interface stayed usable. The sanitized record is in [specs/evidence/dsh-smoke.json](https://github.com/Kairos0922/intelligent-ui/blob/main/specs/evidence/dsh-smoke.json).
 

@@ -14,6 +14,7 @@ import {
   createPassActionRunner,
   type PassActionRunner,
 } from "./pass-actions.js";
+import { installPassLifecycleCleanup } from "./pass-lifecycle.js";
 
 export const name = "intelligent-ui";
 
@@ -409,21 +410,7 @@ function createToolView(ctx: Context) {
 
 export function apply(ctx: Context): void {
   ctx.effect(() => installStyles(), "intelligent-ui: styles");
-  // DSH has no separate sign-out service in this profile. Session disposal is
-  // the available account boundary, so clear sealed snapshots and the HMAC
-  // key there. The policy is deliberately conservative: one disposed session
-  // clears the shared pass store instead of leaving PII/QR data behind.
-  ctx.effect(
-    () =>
-      (ctx as EventContext).on(
-        "session/disposed",
-        () => {
-          void clearPassHost().catch(() => {});
-        },
-        { global: true },
-      ),
-    "intelligent-ui: clear pass state on session disposal",
-  );
+  installPassLifecycleCleanup(ctx as EventContext, clearPassHost);
   ctx.effect(
     () => () => {
       void clearPassHost().catch(() => {});

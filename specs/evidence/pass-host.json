@@ -1,8 +1,8 @@
 {
   "schema": "iui-pass-host-evidence-v1",
-  "generatedAt": "2026-11-17T13:39:45Z",
+  "generatedAt": "2026-11-18T13:23:00Z",
   "scope": "stage-1b-travel-pass-vertical-slice",
-  "branch": "fix/stage-1b-conformance-followup",
+  "branch": "fix/stage-1b-signout-cleanup",
   "issuer": {
     "kind": "self-built-test-issuer",
     "realIssuerConnected": false,
@@ -16,6 +16,7 @@
     "passBlock": "clone/src/iui/components/pass.ts",
     "hostController": "packages/dsh/src/pass.ts",
     "actionRunner": "packages/dsh/src/pass-actions.ts",
+    "passLifecycle": "packages/dsh/src/pass-lifecycle.ts",
     "conclusionMarker": "clone/src/iui/compiler.ts",
     "manifest": "packages/dsh/src/manifest.ts",
     "testIssuer": "tools/test-issuer/server.mjs",
@@ -37,11 +38,51 @@
     "npm run check:release -- --tarballs",
     "npm audit --audit-level=low"
   ],
+  "hostedSmoke": {
+    "date": "2026-11-18",
+    "dsh": "0.2.2-rc.3",
+    "adapter": "0.2.2 with stage-1b cleanup follow-up",
+    "provider": "DeepSeek Account",
+    "model": "DeepSeek-V4.1-Flash",
+    "browser": "Google Chrome through Playwright",
+    "issuer": "local self-built test issuer",
+    "passUi": {
+      "liveVerified": true,
+      "qrDialog": true,
+      "staleSnapshot": true,
+      "revoked": true,
+      "invalid": true,
+      "refreshTimeout": true,
+      "timeoutRequests": 1,
+      "automaticRetry": false,
+      "recoveryLive": true,
+      "conclusionWarningClearedOnLive": true
+    },
+    "cleanup": {
+      "accountSignOutEventPath": true,
+      "liveProviderSignOutAfterFix": false,
+      "hostedSessionDisposed": false,
+      "indexedDbBefore": {
+        "snapshots": 1,
+        "meta": 2,
+        "hmacKeys": 1,
+        "issuerKeys": 1
+      },
+      "indexedDbAfter": {
+        "snapshots": 0,
+        "meta": 0,
+        "hmacKeys": 0,
+        "issuerKeys": 0
+      },
+      "mountedPassBlocksCleared": 8
+    },
+    "consoleErrors": 0
+  },
   "result": {
     "status": "pass-host-path-only",
     "nodeTests": {
-      "passed": 77,
-      "total": 77
+      "passed": 78,
+      "total": 78
     },
     "sdkBrowserSelfTest": {
       "passed": 30,
@@ -61,11 +102,20 @@
     "refreshBlockAction": true,
     "conclusionFreshnessMarker": true,
     "refreshUnknownReconciliation": true,
+    "hostedDeepSeekPassRender": true,
+    "hostedPassStateSmoke": true,
+    "clearOnAccountSignOut": true,
+    "hostedAccountSignOutEventCleanup": true,
+    "c30StrictStatus": "partial",
+    "c30PassedScope": "hosted account-ui/change signed-out event path; no post-fix live sign-out/re-login",
     "clearOnSessionDisposal": true,
+    "hostedLiveSignOutAfterFix": false,
+    "hostedSessionDisposal": false,
     "clearInFlightRaceGuard": true,
     "clearRemovesIndexedDbRecords": true,
     "urlQrDomainAllowlist": true,
-    "issuerLinkAllowlist": true
+    "issuerLinkAllowlist": true,
+    "npmAuditClean": false
   },
   "checks": [
     {
@@ -91,7 +141,7 @@
     {
       "id": "slow-issuer-fallback",
       "ok": true,
-      "detail": "A slow issuer response timed out and the host fell back to the sealed snapshot instead of clearing the pass."
+      "detail": "A slow issuer response timed out and the host fell back to the sealed snapshot. The hosted smoke recorded exactly one /pass request and no automatic retry."
     },
     {
       "id": "revocation",
@@ -126,25 +176,38 @@
     {
       "id": "c30-clear",
       "ok": true,
-      "detail": "clear() bumps a UI epoch, invalidates in-flight generations, clears memory immediately, deletes IndexedDB records and the HMAC key, and clears again after in-flight tasks settle. DSH binds it to session/disposed and plugin unload."
+      "detail": "clear() bumps a UI epoch, invalidates in-flight generations, clears memory immediately, deletes IndexedDB records and the HMAC key, and clears again after in-flight tasks settle. DSH listens to account-ui/change with a signed-out view and to session/disposed; plugin unload also clears. Hosted event path: 8 mounted pass blocks cleared and IndexedDB snapshots/meta went from 1/2 to 0/0."
     },
     {
       "id": "c32-qr-allowlist",
       "ok": true,
       "detail": "URL QR payloads and open_issuer_link require an exact https origin from host config or the configured https issuer origin. Opaque IUI1 payloads remain allowed. No allowlist means URL payloads are rejected."
+    },
+    {
+      "id": "hosted-pass-smoke",
+      "ok": true,
+      "detail": "DSH 0.2.2-rc.3 with DeepSeek Account and DeepSeek-V4.1-Flash rendered the test-issuer pass. Playwright exercised QR show-code, stale snapshot plus conclusion warning, revoked (QR disabled), invalid, slow timeout with one request, recovery to live, and cleared conclusion warnings. Console errors: 0. This used the local test issuer, not a real airline."
+    },
+    {
+      "id": "hosted-signout-event-path",
+      "ok": true,
+      "detail": "The hosted client cleared all mounted pass blocks and both IndexedDB stores on the documented account-ui/change signed-out state. After the first live sign-out exposed the old session-only gap, the temporary account was already signed out; the post-fix check emitted the same event through a temporary DSH client test plugin. A second live provider sign-out was not run."
     }
   ],
   "notProven": [
     "A real airline, hotel, rail, Google Wallet, or Apple Wallet issuer.",
     "Real-world credential validity or airport scanner compatibility.",
-    "Autonomous hosted-model pass turns or a hosted DeepSeek pass smoke.",
-    "A hosted DSH sign-out smoke. This profile exposes session/disposed, not a separate sign-out service; C30 is bound to session disposal and plugin unload.",
+    "A second live DeepSeek account sign-out after the cleanup fix. The first live sign-out exposed the gap and consumed the temporary test account; the post-fix hosted check emitted the same account-ui/change signed-out state through a temporary client test plugin.",
+    "Hosted session/disposed cleanup. The current DSH Web UI does not emit this event on archive or normal navigation, so the listener and local tests cover it but a hosted disposal was not produced.",
     "A real issuer-domain allowlist or production allowlist rotation process."
   ],
   "caveats": [
     "The test issuer generates a fresh key pair on each process start. This is not production key management.",
     "The browser tests use the local test issuer and a synthetic boarding pass. They do not use passenger data from a real booking.",
-    "C30 clears on session disposal because this DSH profile has no separate sign-out event. Closing one chat clears the shared pass store conservatively.",
+    "C30 now clears on the hosted account sign-out event and keeps session disposal as a second boundary. The hosted sign-out event path was exercised after a real sign-out had already changed the temporary account to signed-out.",
+    "The slow-refresh hosted smoke observed one /pass request and no automatic retry. Its wall-clock observation included UI polling; it is not a latency benchmark.",
+    "The historical tool rows can keep the inline timeout message after a later pass recovers. The latest pass recovered to live and the conclusion warning was removed.",
+    "npm audit --audit-level=low currently reports 4 high-severity build-tool findings in picomatch through Vite. No dependency upgrade is included in this follow-up. The rc.3 dependency update was clean when it was recorded.",
     "No API key, route token, session record, screenshot, private key, or real credential is included in this evidence."
   ]
 }

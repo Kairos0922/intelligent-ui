@@ -4,6 +4,8 @@ import { apply } from "../packages/dsh/lib/index.js";
 import {
   DSH_ALLOWED_RISKS,
   DSH_MANIFEST,
+  installPassLifecycleCleanup,
+  isSignedOutAccountState,
 } from "../packages/dsh/lib/index.js";
 
 function register() {
@@ -98,6 +100,37 @@ test("DSH declares only read or reversible actions and confirms reversible ones"
       `${name} is declared`,
     );
   }
+});
+
+test("DSH clears pass state when the account signs out or a session is disposed", () => {
+  const listeners = new Map();
+  const ctx = {
+    effect(callback) {
+      callback();
+    },
+    on(name, listener, options) {
+      listeners.set(name, { listener, options });
+      return () => {};
+    },
+  };
+  let clears = 0;
+  installPassLifecycleCleanup(ctx, async () => {
+    clears++;
+  });
+
+  assert.equal(listeners.get("account-ui/change")?.options?.global, true);
+  assert.equal(listeners.get("session/disposed")?.options?.global, true);
+  assert.equal(isSignedOutAccountState({ view: { status: "signed-out" } }), true);
+  assert.equal(isSignedOutAccountState({ view: { status: "credential-stored" } }), false);
+  assert.equal(isSignedOutAccountState(null), false);
+  assert.equal(isSignedOutAccountState({}), false);
+
+  listeners.get("account-ui/change").listener({ view: { status: "credential-stored" } }, false);
+  assert.equal(clears, 0, "signed-in updates leave pass state alone");
+  listeners.get("account-ui/change").listener({ view: { status: "signed-out" } }, true);
+  assert.equal(clears, 1, "account sign-out wipes pass state");
+  listeners.get("session/disposed").listener({});
+  assert.equal(clears, 2, "session disposal also wipes pass state");
 });
 
 test("DSH registers render_iui with the shared manifest and envelope rules", () => {
