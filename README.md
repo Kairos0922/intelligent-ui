@@ -262,6 +262,7 @@ docs/              Style and release guides
 - [specs/PROTOCOL-SPEC.en.md](specs/PROTOCOL-SPEC.en.md) gives the English protocol specification draft.
 - [ADAPTERS.md](ADAPTERS.md) gives the adapter contract and host notes.
 - [specs/SCENARIO-COVERAGE.md](specs/SCENARIO-COVERAGE.md) gives the three-scenario real-model coverage report.
+- [specs/STAGE-2-ISSUER-INTEGRATION.md](specs/STAGE-2-ISSUER-INTEGRATION.md) records Stage 2 real-issuer integration readiness and outreaching criteria.
 - [SDK.md#blocks](SDK.md#blocks) lists the default blocks.
 - [docs/STE.md](docs/STE.md) gives the documentation rules.
 - [docs/RELEASE.md](docs/RELEASE.md) gives the release steps.
