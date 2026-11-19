@@ -263,6 +263,9 @@ docs/              Style and release guides
 - [ADAPTERS.md](ADAPTERS.md) gives the adapter contract and host notes.
 - [specs/SCENARIO-COVERAGE.md](specs/SCENARIO-COVERAGE.md) gives the three-scenario real-model coverage report.
 - [specs/STAGE-2-ISSUER-INTEGRATION.md](specs/STAGE-2-ISSUER-INTEGRATION.md) records Stage 2 real-issuer integration readiness and outreaching criteria.
+- [specs/DAY-PLAN-ARTIFACT-SPEC.md](specs/DAY-PLAN-ARTIFACT-SPEC.md) defines the Day plan artifact.
+
+The current Beachhead is **Day plan**, switched on 2026-11-20 when the real-issuer Stage 2 gate was not met. Travel/pass remains mock/fallback.
 - [SDK.md#blocks](SDK.md#blocks) lists the default blocks.
 - [docs/STE.md](docs/STE.md) gives the documentation rules.
 - [docs/RELEASE.md](docs/RELEASE.md) gives the release steps.

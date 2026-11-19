@@ -301,6 +301,8 @@ Each live run made one click. The tests do not cover every block or model. The v
 
 ### 7.2 Travel pass: mock development path
 
+Current Beachhead: **Day plan** (switched 2026-11-20 when the real-issuer Stage 2 gate was not met). Travel/pass remains mock/fallback. Day plan spec: [specs/DAY-PLAN-ARTIFACT-SPEC.md](specs/DAY-PLAN-ARTIFACT-SPEC.md).
+
 For local travel-pass adapter development, point the DSH client at the local Stage 1b test issuer:
 
 ```js
