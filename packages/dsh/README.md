@@ -150,6 +150,18 @@ window.__IUI_PASS_ISSUER__ = {
 
 The next user message contains one line with the `[iui-action]` prefix. The model must resend the complete interface with a new `render_iui` call and the same block ids. A delta or `set` op is rejected. The tool result tells the model to retry with a complete interface.
 
+## Mock development path
+
+For local adapter development, set `window.__IUI_PASS_ISSUER__` to the local test issuer before the DSH client loads:
+
+```js
+window.__IUI_PASS_ISSUER__ = {
+  url: "http://127.0.0.1:4319",
+};
+```
+
+Start it with `npm run issuer:test`. It supports `normal`, `gate-change`, `revoked`, `invalid`, and `slow`. It is a mock for the pass adapter contract, not a real airline, wallet, or issuer.
+
 ## Test status
 
 A live signed-in test passed on DSH `0.2.1-rc.2` and `0.2.1-rc.3` with adapter `0.2.1`. A deterministic web test passed on DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` with the self-contained `0.2.2` tarball and a local DeepSeek Messages server. The tests cover:
