@@ -944,14 +944,14 @@ Beachhead Decision Record
 | CI/发布流水线 | ✅ ci.yml、release.yml、dependabot |
 | 英文文档 | ✅ README/SDK/ADAPTERS/ROADMAP 均为英文（ASD-STE 检查强制） |
 | **npm 发布** | ❌ **未做**——只能 GitHub 安装；"开源 SDK"不可 `npm install`，SECURITY.md 声称支持的 0.2.x 无可支持对象（ROADMAP 下一任务 #1） |
-| 决策/规范语言 | ⚠️ 本文与 specs/ 为中文工作稿（check:docs 已豁免）——以社区为采用目标时对外不可读 |
+| 决策/规范语言 | ⚠️ PROTOCOL-SPEC 已有英文翻译 [`specs/PROTOCOL-SPEC.en.md`](specs/PROTOCOL-SPEC.en.md)（0.3-draft）；本文与 EVALUATION-SPEC 仍为中文工作稿，0.3.0 发布前完成英译 |
 | 证据自动化 | ✅ P0-1 的 41/41 通过根目录 `npm run verify:spike` 在 CI 复跑；脚本构建实验、安装匹配浏览器，并把截图/JSON 写入临时目录 |
 
 ### 11.2 开源约束对方案的影响（决策）
 
 1. **"外部客户" = 开源社区。** 采用路径是 npm + 通用适配器（React / AI SDK / MCP Apps），不是 DSH。DSH 只是 beachhead **验证宿主**，不是分发渠道——两者不得混淆。
 2. **npm 发布升为阶段 1a 的并行轨道。** 0.2.2 先上 npm（稳定基线，让 1a 的契约工作有可回退的发布锚点，也让 IntegrationCost 可测）。发布需要用户完成：确认 `@intelligent-ui` scope 归属与 npm 凭据；其余（打包核验、发布清单）由 Agent 准备。**在 npm 发布完成前，不宣称"支持开源采用"。**
-3. **PROTOCOL-SPEC 英译是阶段 1 的退出条件**（它是外部贡献者要读的规范性文档）；本文与 EVALUATION-SPEC 的英译可以到 0.3.0 发布前完成。中文工作稿与 check:docs 豁免是**工作状态**，不是永久状态。
+3. **PROTOCOL-SPEC 英译是阶段 1 的退出条件**（它是外部贡献者要读的规范性文档）；本文与 EVALUATION-SPEC 的英译可以到 0.3.0 发布前完成。2026-11-19 已提交 `specs/PROTOCOL-SPEC.en.md`；中文工作稿与 check:docs 豁免是**工作状态**，不是永久状态。
 4. **证据进 CI 是阶段 1 的退出条件**：P0-1 类验证（含 seal/篡改用例）必须能在 CI 一键复跑，否则"可复现"只对本机成立。
 5. **决策记录规范化**：本文附录 F 的变更记录已按 ADR 精神运作；若外部贡献者开始参与，再拆分为独立 ADR 文件，不提前做。
 
@@ -1110,6 +1110,7 @@ Imagine      W ∈ ℂ      复平面/极点/抬升
 - 2026-11-18（hosted pass smoke + C30 sign-out 修复）：在 hosted DSH `0.2.2-rc.3` + DeepSeek Account / DeepSeek-V4.1-Flash + 本地测试 issuer 上完成 live/verified、QR、stale、revoked、invalid、slow timeout、恢复和账号登出事件清理 smoke。第一次真实账号登出发现旧版只监听 `session/disposed` 不会清理；修复为监听 `account-ui/change` signed-out，并在 hosted 客户端清除 8 个 pass 块、IndexedDB 1/2 → 0/0。Node 78/78、SDK 自测 30/30、Playwright 3/3；真实 issuer、真实账号二次登出与 hosted `session/disposed` 仍未验证。
 - 2026-11-19（C30 hosted 真实 UI 登出复验）：在隔离 `HOME`/`DSH_HOME` 的 DSH `0.2.2-rc.3` profile 中执行真实账号 UI 登出。pass 块进入 `pass-cleared` 状态，IndexedDB snapshots/meta 从 1/2 → 0/0，console error 0；恢复同一账号凭证后重新登录，pass 重新加载为 verified/live，只写入新快照。临时 runtime 用 test-only patch 抑制远端 provider 撤销，未消耗真实 token；provider 侧撤销、全新设备授权与 hosted `session/disposed` 仍未验证。真实 issuer、Wallet、机场闸机与生产 `verified` 仍不在范围内。
 - 2026-11-19（P0-1 证据进 CI）：新增 `npm run verify:spike`，在 CI 中构建 P0-1 pass-spike、安装匹配的 Playwright Chromium、运行 41 项证据检查，并把截图/JSON 写到临时目录。实验 fixture 的签名算法标签更新为当前 pass profile 要求的 Ed25519。证据自动化退出条件完成；真实 issuer、Wallet 与闸机仍不在范围内。
+- 2026-11-19（Protocol Spec 英译）：新增 `specs/PROTOCOL-SPEC.en.md`，保留 20 节与附录结构、表格、代码块和 C1–C25 编号；中文稿保留用于对照。本文与 EVALUATION-SPEC 的英译、真实 issuer 与 npm 发布仍未完成。
 
 ---
 

@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file.
 - Answer-level locale drives number, date, and currency formatting in the core runtime.
 - The release workflow checks the tag, package versions, and tarball names.
 - `npm run verify:spike` rebuilds the P0-1 pass spike, installs its matching Playwright Chromium, runs the 41-check evidence verification, and writes screenshots/JSON to a temporary directory. CI runs this command.
+- `specs/PROTOCOL-SPEC.en.md` is an English translation of the Protocol Spec. The Chinese working draft remains available for cross-checking.
 - A 60-task three-scenario suite covers data analysis, daily travel planning, and daily life. Each scenario registers 20 tasks and reports coverage on its own.
 - The scenario runner supports validation-feedback repair calls, conservative JSON wrapping, interaction replay, per-scenario release gates, and a hosted DeepSeek OpenAI-compatible provider.
 - The DSH adapter declares only `copy_text`, `open_link`, and `save_note`. It rejects undeclared actions and tells the model to resend a complete interface after an `[iui-action]` message.
