@@ -51,7 +51,7 @@ export async function fetchIssuerState(scenario: IssuerScenario): Promise<Issuer
       id: "meridian-air",
       name: "Meridian Air",
       keyId: "meridian-2026-11",
-      algorithm: "ES256",
+      algorithm: "Ed25519",
     },
     holder: { name: "Kairos" },
     bookingRef: "X7K2QP",

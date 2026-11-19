@@ -1,7 +1,9 @@
 # Pass spike — P0-1 counter-experiment
 
 **Status:** experiment only. It is not a product, not a published package, and not
-part of the default `npm run build` / `npm test` pipeline.
+part of the default `npm run build` / `npm test` pipeline. CI runs its
+reproducible evidence verification through the root `npm run verify:spike`
+command.
 
 This directory answers one question from `INTELLIGENT-UI-PLAN.md` §8.2 P0-1:
 
@@ -30,7 +32,7 @@ npm ci
 npm run build:core
 
 cd experiments/pass-spike
-npm install
+npm ci
 npm run dev          # http://127.0.0.1:5180
 ```
 
@@ -42,10 +44,14 @@ visible.
 ## Verify
 
 ```bash
-cd experiments/pass-spike
-npm run build
-node verify.mjs
+# repository root
+npm run verify:spike
 ```
+
+The root command builds the core, installs the experiment dependencies, installs
+the matching Playwright Chromium, builds the experiment, and runs the checks.
+It writes screenshots and JSON to a temporary evidence directory, so the
+tracked `evidence/` files are not overwritten. CI runs the same command.
 
 The script starts a local static server, launches Chrome (falling back to
 Playwright Chromium), and runs 41 checks:
@@ -60,7 +66,8 @@ Playwright Chromium), and runs 41 checks:
 - 320 px and 720 px horizontal overflow; 44 px primary action;
 - console errors.
 
-Screenshots and JSON land in `evidence/`.
+With `IUI_EVIDENCE_DIR` unset, screenshots and JSON land in `evidence/`. CI sets
+it to a temporary directory to keep the worktree clean.
 
 ## What is deliberate
 

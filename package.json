@@ -25,6 +25,7 @@
     "bench": "npm run build:core && node bench/run.mjs",
     "issuer:test": "node tools/test-issuer/server.mjs",
     "bench:selfcheck": "npm run build:core && node bench/run.mjs --provider mock --mode fence --out bench/results/selfcheck.json",
+    "verify:spike": "npm run build:core && npm --prefix experiments/pass-spike ci --no-audit --no-fund && (cd experiments/pass-spike && npx playwright install --with-deps chromium && npm run build && IUI_EVIDENCE_DIR=\"$(mktemp -d)\" node verify.mjs)",
     "bench:scenarios": "npm run build:core && node bench/scenario-run.mjs --provider fixture",
     "bench:scenarios:data": "npm run build:core && node bench/scenario-run.mjs --provider fixture --scenario data-analysis --require 0.9",
     "bench:scenarios:travel": "npm run build:core && node bench/scenario-run.mjs --provider fixture --scenario daily-travel --require 0.9",
