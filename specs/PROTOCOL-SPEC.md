@@ -1,5 +1,7 @@
 # Intelligent UI Protocol Spec
 
+> English translation: [`PROTOCOL-SPEC.en.md`](PROTOCOL-SPEC.en.md) (0.3-draft, 2026-11-19).
+
 | 项目 | 内容 |
 |---|---|
 | 状态 | **草案 0.3；阶段 1a 核心契约已实现（2026-11-04）；pass/storage profile 未实现；不是产品承诺** |

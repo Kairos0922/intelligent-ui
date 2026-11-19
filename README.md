@@ -259,6 +259,7 @@ docs/              Style and release guides
 ## Documentation
 
 - [SDK.md](SDK.md) gives the protocol, API, blocks, state, and security model.
+- [specs/PROTOCOL-SPEC.en.md](specs/PROTOCOL-SPEC.en.md) gives the English protocol specification draft.
 - [ADAPTERS.md](ADAPTERS.md) gives the adapter contract and host notes.
 - [specs/SCENARIO-COVERAGE.md](specs/SCENARIO-COVERAGE.md) gives the three-scenario real-model coverage report.
 - [SDK.md#blocks](SDK.md#blocks) lists the default blocks.
