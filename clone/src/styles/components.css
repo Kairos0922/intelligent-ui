@@ -3147,3 +3147,81 @@ svg.iui-bike .callout text {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.iui-day-plan {
+  display: grid;
+  gap: 12px;
+}
+
+.iui-day-plan-task {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--iui-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--iui-bg);
+}
+
+.iui-day-plan-task__title {
+  flex: 0 1 40%;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.iui-day-plan-task__meta {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--iui-muted);
+  font-size: 12px;
+}
+
+.iui-day-plan-status {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.iui-day-plan-status--ok {
+  color: var(--iui-success);
+}
+
+.iui-day-plan-status--warning {
+  color: var(--iui-warning);
+}
+
+.iui-day-plan-status--muted {
+  color: var(--iui-muted);
+}
+
+.iui-day-plan-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.iui-day-plan-reminder {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--iui-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.iui-day-plan-reminder__title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.iui-day-plan-reminder__time {
+  color: var(--iui-muted);
+  font-size: 12px;
+}
+
+.iui-day-plan-reminder__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

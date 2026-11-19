@@ -673,3 +673,10 @@ export type {
   PassSignature,
   PassSnapshot,
 } from "../iui/pass";
+export type {
+  DayPlanTask,
+  DayPlanTaskStatus,
+  DayPlanRecurrence,
+  DayReminder,
+  TaskListPayload,
+} from "../iui/day-plan";

@@ -11,7 +11,7 @@ The name separates two responsibilities. The model supplies the intelligence. Th
 ## What it does
 
 - The core runtime compiles the IUI-1 JSON Lines stream into an answer.
-- The block catalog has 31 blocks: 30 general-purpose blocks and the travel `pass` profile.
+- The block catalog has 33 blocks: 26 general-purpose blocks, the travel `pass` profile, and the Day-plan `taskList`/`reminder` profiles.
 - The validator checks each op before it reaches the DOM.
 - The agent contract supplies a system prompt and the `render_iui` tool.
 - The adapter layer gives one action format and one lifecycle to all hosts.
@@ -24,7 +24,7 @@ The core does not depend on DSH or on a browser chat shell. The agent entry poin
 
 | Package | Function | Source status |
 |---|---|---|
-| `@intelligent-ui/core` | Runtime, protocol, 31 blocks, validator, agent contract | Ready |
+| `@intelligent-ui/core` | Runtime, protocol, 33 blocks, validator, agent contract | Ready |
 | `@intelligent-ui/adapter` | Host-neutral action, theme, and lifecycle layer | Ready |
 | `@intelligent-ui/react` | React component and imperative handle | Ready |
 | `@intelligent-ui/ai-sdk` | Vercel AI SDK tool-part renderer | Ready |
