@@ -43,6 +43,13 @@ export type {
   PassSignature,
   PassSnapshot,
 } from "../iui/pass";
+export type {
+  DayPlanTask,
+  DayPlanTaskStatus,
+  DayPlanRecurrence,
+  DayReminder,
+  TaskListPayload,
+} from "../iui/day-plan";
 
 export const IUI_VERSION = "1.0";
 export const IUI_TOOL_NAME = "render_iui";

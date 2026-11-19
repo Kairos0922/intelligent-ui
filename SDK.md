@@ -356,7 +356,7 @@ The `createIuiExtractor()` `onIssue` callback does not stop the stream. Text out
 
 ## 8. Blocks
 
-The default catalog has 31 blocks: 30 general-purpose blocks and the travel `pass` profile.
+The default catalog has 33 blocks: 26 general-purpose blocks, the travel `pass` profile, and the Day-plan `taskList`/`reminder` profiles.
 
 | Type | Kind | Function |
 |---|---|---|

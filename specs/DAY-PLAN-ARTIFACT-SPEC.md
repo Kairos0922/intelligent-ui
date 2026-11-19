@@ -3,7 +3,7 @@
 | 项目 | 内容 |
 |---|---|
 | 版本 | 0.1-draft |
-| 状态 | **Day plan Beachhead 已选定（2026-11-20）**；Travel/pass 仍保留 mock/fallback 报告；真实 issuer 不再作为 Day plan 验收依赖 |
+| 状态 | **Day plan Beachhead 已选定（2026-11-20）**；Travel/pass 仍保留 mock/fallback 报告；真实 issuer 不再作为 Day plan 验收依赖。核心 Block 在 `clone/src/iui/day-plan.ts` 已实现。 |
 | 上游 | `INTELLIGENT-UI-PLAN.md` §6.7/§7.6.1；`specs/Protocol-Spec.md` §16；`ADAPTERS.md` §7.2 |
 | 语言 | 中文工作稿（check:docs 豁免） |
 

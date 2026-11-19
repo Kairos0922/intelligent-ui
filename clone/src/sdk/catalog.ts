@@ -415,6 +415,70 @@ export const BLOCK_CATALOG: BlockSpec[] = [
     state: [{ path: "pass", description: "replace the complete unsigned pass payload" }],
   },
   {
+    type: "taskList",
+    title: "Task list",
+    description: "Day plan task list with deadlines, reminders, completion state, and host actions. Host owns state; user state wins on conflicts.",
+    kind: "domain",
+    props: {
+      type: "object",
+      required: ["payload"],
+      properties: {
+        payload: obj(
+          {
+            kind: s("Day plan payload kind", { enum: ["day-plan"] }),
+            version: s("Day plan payload version", { enum: ["1.0"] }),
+            hostTimeZone: s("Optional host time zone"),
+            tasks: arr(
+              obj(
+                {
+                  id: s("Stable task id"),
+                  title: s("Task title"),
+                  description: s("Optional task description"),
+                  status: s("Task status", {
+                    enum: ["pending", "done", "overdue", "cancelled"],
+                  }),
+                  priority: n("Optional task priority 0–3"),
+                  deadlineAt: s("Optional host-local ISO deadline"),
+                  reminderAt: s("Optional host-local ISO reminder time"),
+                  recurrence: s("Optional recurrence", {
+                    enum: ["once", "daily", "weekdays"],
+                  }),
+                  completedAt: s("Optional completion timestamp"),
+                },
+                ["id", "title"],
+              ),
+              "1–20 tasks",
+            ),
+          },
+          ["kind", "version", "tasks"],
+        ),
+      },
+    },
+    state: [{ path: "payload.tasks", description: "replace all tasks" }],
+  },
+  {
+    type: "reminder",
+    title: "Day reminder",
+    description: "A scheduled Day plan reminder. Host actions can open the task, calendar, or scheduler and request host notification.",
+    kind: "domain",
+    props: {
+      type: "object",
+      required: ["reminder"],
+      properties: {
+        reminder: obj(
+          {
+            taskId: s("Stable task id"),
+            title: s("Reminder title"),
+            reminderAt: s("Reminder time as host-local ISO"),
+            note: s("Optional reminder note"),
+          },
+          ["taskId", "title", "reminderAt"],
+        ),
+      },
+    },
+    state: [{ path: "reminder", description: "replace the reminder" }],
+  },
+  {
     type: "calendar",
     title: "Month calendar",
     description: "One-month calendar with dated events, event dots and a selected-day detail list. Users can pick a day; the selection returns as a select action.",
