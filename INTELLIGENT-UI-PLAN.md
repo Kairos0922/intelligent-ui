@@ -3,7 +3,7 @@
 | 项目 | 内容 |
 |---|---|
 | 版本 | 2026-11-03 汇总版 + P0-1 实验修订 + spec 草案 |
-| 状态 | **方案已批准（2026-11-04，受托决策：用户授权"所有决策你来做"，原则"正确的方法做正确的事情"；用户保留推翻权）**。Beachhead：**travel/pass @ DSH，有条件**——阶段 1a 无关契约 + issuer 主动门槛（1a 末检查，未过即切 day plan，沉没成本仅 1a）+ 1b travel 专属。反方审阅 4 项发现已全部处置（§7.6.1）。开源约束已纳入（§11）。**阶段 1a 核心契约已实现（2026-11-04，见 `specs/STAGE-1A-IMPLEMENTATION-PLAN.md`）**；下一步：执行 issuer 主动门槛证据检查（未通过前不启动 1b）；npm 发布准备并行（§11） |
+| 状态 | **方案已批准（2026-11-04，受托决策：用户授权"所有决策你来做"，原则"正确的方法做正确的事情"；用户保留推翻权）**。Beachhead：Travel/pass @ DSH 经 2026-11-13 受托指令起跑，但 2026-11-20 Stage 2 real-issuer 门槛因没有真实凭证路径未通过；当前 Beachhead 切换为 Day plan @ general host adapters（fallback）。Travel/pass 仍可作 travel-specific mock/fallback 报告。反方审阅 4 项发现已全部处置（§7.6.1）。开源约束已纳入（§11）。**阶段 1a 核心契约已实现（2026-11-04，见 `specs/STAGE-1A-IMPLEMENTATION-PLAN.md`）**；下一步：执行 issuer 主动门槛证据检查（未通过前不启动 1b）；npm 发布准备并行（§11） |
 | 代码基线 | `dcd1cc6`（`v0.2.2-3-gdcd1cc6`，2026-10-29） |
 | 实验证据 | `experiments/pass-spike/`（41/41 自动检查；结论见附录 G） |
 | 规范草案 | `specs/PROTOCOL-SPEC.md`（0.3-draft）、`specs/EVALUATION-SPEC.md`（0.2-draft）；草案，非产品承诺 |
@@ -787,6 +787,8 @@ Beachhead Decision Record
 
 > **2026-11-13 issuer-gate override（显式偏离，不得当作门槛通过）：** 用户在 issuer 阻塞未解时指示"那现在就解决这个事情啊"。本记录将指令解释为：**授权以自建测试 issuer 继续 Stage 1b，同时把真实外部 issuer 保留为阶段 2 门槛**。不接入真实航司/Wallet，不把测试 issuer 的 `verified` 当作真实凭证，不声称机场闸机可扫。Stage 1b 交付与限制见 `specs/STAGE-1B-IMPLEMENTATION-PLAN.md`；若该解释不符合用户意图，立即停止 travel 实现并回退 day plan。
 
+> **2026-11-20 Day plan switch（显式切换）：** real issuer 主动门槛在 2026-11-20 未产出可验证凭证路径，按受托决策切换 Beachhead 为 **Day plan @ general host adapters**。Travel/pass 保留 mock/fallback 报告；Day plan 在 `specs/DAY-PLAN-ARTIFACT-SPEC.md`。
+
 ### 7.7 暂定建议（不是决定）
 
 若目前没有宿主约束，建议先用 **Day plan 作为协议与评估的测试夹具**：它不依赖 issuer/凭证发行，能更早验证持久化、冲突、提醒与 action 状态。但这只是"测试夹具"，不等于产品 beachhead；正式 beachhead 仍由真实宿主、用户、数据决定。
@@ -903,7 +905,7 @@ Beachhead Decision Record
 
 1. **首个宿主类型：DSH（现有路径）**。
 2. **目标开发者：用户本人 + 外部客户**（首期以本人集成验证为准）。
-3. **首期选择：Travel pass**——有条件：见 §7.6.1 决策记录（自建测试 issuer 起步，真实 issuer 为阶段 2 门槛，到期拿不到切 day plan）。
+3. **2026-11-20：Day plan switch（显式切换）：** real issuer 主动门槛未通过，Beachhead 切换为 Day plan；Travel/pass 仍作 travel-specific mock/fallback 报告。2026-11-04：Travel pass——有条件：见 §7.6.1 决策记录（自建测试 issuer 起步，真实 issuer 为阶段 2 门槛，到期拿不到切 day plan）。
 4. **真实数据：完全没有**；DSH action 接口可用。数据以自建测试 issuer 起步。
 
 由此确定的下一步：Domain Artifact Spec（travel/pass）现在可以起草；Protocol/Evaluation Spec 的 P0 子集按 travel 列裁剪（spec §1.3）；阈值与 8 个未决问题的建议答案已起草（spec §7.4、§20），待确认。

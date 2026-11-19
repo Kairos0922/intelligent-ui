@@ -1,6 +1,6 @@
 # Stage 2 issuer integration readiness
 
-**Status:** readiness/outreach record. No real external issuer is connected.
+**Status:** readiness/outreach record. Beachhead switched to Day plan on 2026-11-20 because no real external issuer satisfied Stage 2 criteria.
 
 This document records what is still needed to move the selected travel/pass
 beachhead from the local Stage 1b test issuer path to a real issuer.

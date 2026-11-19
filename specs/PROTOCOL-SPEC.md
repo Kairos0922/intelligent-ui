@@ -54,17 +54,17 @@
 
 ### 1.3 P0 子集（选中 beachhead 后裁剪）
 
-> **2026-11-03：beachhead 已有条件选定 travel/pass**（计划 §7.6.1；自建测试 issuer 起步，真实 issuer 为阶段 2 门槛，day plan 回退）。**Travel 列即为 P0 裁剪结果**；Day plan 列降级为回退参考，仅在触发放弃条件①时启用。
+> **2026-11-03：beachhead 条件选定 travel/pass；2026-11-20：真实 issuer 主动门槛未通过，Beachhead 切换为 Day plan。** Day plan 列即当前 Beachhead；travel pass 为 travel-specific mock/fallback 报告，不再作为产品 Beachhead。
 
-| 契约 | Travel pass | Day plan |
+| 契约 | Travel pass（mock/fallback） | Day plan（当前 Beachhead） |
 |---|---|---|
-| Answer Envelope | **P0（生效）** | 回退参考 |
-| Capability Manifest | **P0（生效）** | 回退参考 |
-| Action lifecycle / 授权 / 幂等 / 对账 / 补偿 / 审计 | **P0（只读/可逆）** | 回退参考 |
-| Provenance | **P0（凭证/时间/登机口字段）** | 回退参考 |
-| Pass profile | **P0（生效；seal 首期用宿主 HMAC，见 §20 建议 7）** | 不启用 |
-| Storage / state profile | **P0（快照/TTL/登出）** | 回退参考（任务/冲突/离线队列） |
-| i18n（locale/timeZone/currency/units） | **P0（生效）** | 回退参考 |
+| Answer Envelope | 回退参考 | **P0（生效）** |
+| Capability Manifest | 回退参考 | **P0（生效）** |
+| Action lifecycle / 授权 / 幂等 / 对账 / 补偿 / 审计 | 回退参考 | **P0（只读/可逆）** |
+| Provenance | 回退参考 | **P0（任务/提醒，用户状态）** |
+| Pass profile | 不启用（mock/fallback） | 不启用（Day plan） |
+| Storage / state profile | 回退参考（pass snapshot/TTL/logout） | **P0（任务/冲突/离线队列，单设备）** |
+| i18n（locale/timeZone/currency/units） | 回退参考 | **P0（生效）** |
 
 **未选中的 profile 只保留 schema 与扩展点，不实现。** 这张表是裁剪依据，不是并列开发许可。
 
@@ -1049,7 +1049,7 @@ type StorageAdapter = {
 | 5 | 模型提议 action 与 block 产生 action 的优先级/冲突规则？ | **block 侧优先**（用户直接操作是更强意图）；同 `operationId` 幂等去重；并发冲突记 audit 并以 block 侧结果为准。**意图归并（把模型 action 与 block action 对齐到同一 operationId）由宿主负责**，协议只要求 audit 记录归并决策 | 与 user-priority 状态策略一致；归并是宿主语义，协议无法替宿主判断"这两次点击是不是同一件事" |
 | 6 | 对账窗口、幂等保留期、重试预算的具体默认值？ | `expiresAt` ≤ 10 分钟（refresh/verify 类）；**对账窗口 1 小时；幂等保留期 24 小时；重试预算 2 次、`retryWindow` = 1 小时**（`failed(retryable=true)` 后 1 小时内发起），仅对账确认无副作用后 | 满足 §9 时距不等式：幂等保留期（24h）≥ 对账窗口（1h）+ retryWindow（1h）≥ 操作时效（≤10min） |
 | 7 | pass 快照的 seal 用宿主 HMAC 还是 issuer 签名 + 本地 MAC？ | **双层：issuer 签名（权威，保护凭证本体）+ 宿主 HMAC（尽力，保护元数据，密钥 non-extractable 或服务端密封）**；测试 issuer 私钥不进前端 | 2026-11-04 反方审阅 F3 修正：纯 HMAC 防不住同源脚本重签；issuer 签名防得住（无私钥不可伪造）。详见 §15.3 |
-| 8 | day plan 的存储后端与跨设备同步是否在首期范围内？ | **否** | day plan 未选中；即使作为回退启用，首期也只做单设备存储 |
+| 8 | Day plan 的存储后端与跨设备同步是否在首期范围内？ | **否（单设备）** | Day plan 当前 Beachhead 只做单设备存储；跨设备同步在后续 Phase |
 
 ---
 

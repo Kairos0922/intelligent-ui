@@ -54,17 +54,17 @@ This draft turns these 12 items into testable contracts. **P0 covers only the su
 
 ### 1.3 P0 subset (trimmed after beachhead selection)
 
-> **2026-11-03: The beachhead has been conditionally selected as travel/pass** (plan §7.6.1; starting with a self-built test issuer, with a real issuer as the Phase 2 gate and day plan as fallback). **The Travel column is the P0 trimming result**; the Day plan column is downgraded to fallback reference and is enabled only when abandonment condition ① is triggered.
+> **2026-11-03: Beachhead conditionally selected travel/pass; 2026-11-20: real-issuer acceptance gate not met, Beachhead switches to Day plan.** Day plan column is current Beachhead; travel pass is travel-specific mock/fallback and is not the product Beachhead.
 
-| Contract | Travel pass | Day plan |
+| Contract | Travel pass (mock/fallback) | Day plan (current Beachhead) |
 |---|---|---|
-| Answer Envelope | **P0 (in effect)** | Fallback reference |
-| Capability Manifest | **P0 (in effect)** | Fallback reference |
-| Action lifecycle / authorization / idempotency / reconciliation / compensation / audit | **P0 (read-only/reversible)** | Fallback reference |
-| Provenance | **P0 (credential/time/gate fields)** | Fallback reference |
-| Pass profile | **P0 (in effect; seal initially uses host HMAC, see §20 recommendation 7)** | Not enabled |
-| Storage / state profile | **P0 (snapshot/TTL/logout)** | Fallback reference (tasks/conflicts/offline queue) |
-| i18n (locale/timeZone/currency/units) | **P0 (in effect)** | Fallback reference |
+| Answer Envelope | Fallback reference | **P0 (in effect)** |
+| Capability Manifest | Fallback reference | **P0 (in effect)** |
+| Action lifecycle / authorization / idempotency / reconciliation / compensation / audit | Fallback reference | **P0 (read-only/reversible)** |
+| Provenance | Fallback reference | **P0 (tasks/reminders, user state)** |
+| Pass profile | Not enabled (mock/fallback) | Not enabled (Day plan) |
+| Storage / state profile | Fallback reference (pass snapshot/TTL/logout) | **P0 (tasks/conflicts/offline queue, single-device)** |
+| i18n (locale/timeZone/currency/units) | Fallback reference | **P0 (in effect)** |
 
 **Unselected profiles retain only the schema and extension points and are not implemented.** This table is the basis for trimming, not a license for parallel development.
 
@@ -1049,7 +1049,7 @@ On validation failure:
 | 5 | What are the priority/conflict rules between model-proposed actions and block-produced actions? | **Block side takes precedence** (direct user operation is a stronger intent); same-`operationId` idempotent deduplication; concurrent conflicts are recorded in audit and the block-side result prevails. **Intent merging (aligning model actions and block actions to the same operationId) is the host's responsibility**; the protocol only requires the audit to record the merge decision | Consistent with the user-priority state policy; merging is host semantics, and the protocol cannot decide for the host whether "these two clicks are the same thing" |
 | 6 | What are the concrete default values for the reconciliation window, idempotency retention period, and retry budget? | `expiresAt` ≤ 10 minutes (refresh/verify type); **reconciliation window 1 hour; idempotency retention 24 hours; retry budget 2 attempts, `retryWindow` = 1 hour** (initiated within 1 hour after `failed(retryable=true)`), only after reconciliation confirms no side effects | Satisfies the §9 time inequality: idempotency retention (24h) ≥ reconciliation window (1h) + retryWindow (1h) ≥ operation validity (≤10min) |
 | 7 | Should the pass snapshot seal use host HMAC or issuer signature + local MAC? | **Two layers: issuer signature (authoritative, protects the credential body) + host HMAC (best-effort, protects metadata; key non-extractable or server-side sealed)**; the test issuer private key does not enter the frontend | 2026-11-04 adversarial review F3 correction: pure HMAC cannot defend against same-origin script re-signing; the issuer signature can (forgery is impossible without the private key). See §15.3 |
-| 8 | Are the day plan's storage backend and cross-device sync in scope for the first phase? | **No** | The day plan is not selected; even if enabled as a fallback, the first phase only does single-device storage |
+| 8 | Is the Day plan storage backend and cross-device sync in scope for the first phase? | **No (single-device)** | The current Day plan Beachhead only does single-device storage; cross-device sync is a later Phase |
 
 ---
 

@@ -16,7 +16,7 @@ remains unproven. A real external issuer is still not connected and remains a
 Stage 2 gate. The plan remains the decision source of truth. A Stage 2
 real-issuer integration readiness/outreach record is in
 `STAGE-2-ISSUER-INTEGRATION.md`. No real external issuer is connected;
-travel/pass remains mock-verified.
+travel/pass remains mock-verified. Beachhead is switched to Day plan.
 
 The three P0 verticals have a real-model coverage report in
 [`SCENARIO-COVERAGE.md`](SCENARIO-COVERAGE.md). It reports the hosted DeepSeek
@@ -32,6 +32,7 @@ This directory contains the two beachhead-independent specifications called for 
 | [`PROTOCOL-SPEC.md`](PROTOCOL-SPEC.md) | Chinese working draft: Answer Envelope, action lifecycle, authorization, idempotency, reconciliation, compensation, audit, provenance, capability manifest, pass/storage profiles | `INTELLIGENT-UI-PLAN.md` §6.3; `experiments/pass-spike/` |
 | [`PROTOCOL-SPEC.en.md`](PROTOCOL-SPEC.en.md) | English translation of the Protocol Spec (0.3-draft) | `PROTOCOL-SPEC.md`; `INTELLIGENT-UI-PLAN.md` §6.3 |
 | [`STAGE-2-ISSUER-INTEGRATION.md`](STAGE-2-ISSUER-INTEGRATION.md) | Stage 2 real-issuer readiness and outreaching criteria | Plan §6.7/§7.6.1; `ADAPTERS.md` §7.2 |
+| [`DAY-PLAN-ARTIFACT-SPEC.md`](DAY-PLAN-ARTIFACT-SPEC.md) | Day plan artifact: tasks/reminders, host storage/calendar/notification, conflicts, offline queue | Plan §6.7/§7.6.1; Protocol Spec §16 |
 | [`EVALUATION-SPEC.md`](EVALUATION-SPEC.md) | L1–L4 + security metrics, gates, fixtures, evidence package, reporting | Plan §6.6–§6.7; Protocol Spec |
 | [`DOMAIN-ARTIFACT-SPEC.md`](DOMAIN-ARTIFACT-SPEC.md) | Travel/pass: fields, validation, two-axis states, actions, degradation, privacy, test-issuer spec, C26–C32 | Plan §6.4/§7.6.1; Protocol Spec §15; experiment pass-model |
 | [`STAGE-1A-IMPLEMENTATION-PLAN.md`](STAGE-1A-IMPLEMENTATION-PLAN.md) | Stage 1a contracts, tests, limits, and hosted scenario results | Plan §6.3/§6.5; Protocol Spec |
