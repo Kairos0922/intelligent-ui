@@ -778,7 +778,7 @@ Beachhead Decision Record
 | 成功指标 | 见 `specs/EVALUATION-SPEC.md` §7.4 阈值草案【待确认】 |
 | 放弃条件 | ① **Issuer 门槛（阶段 1a 末，主动检查）**：外联未产出任何可验证凭证路径 → 立即切 day plan，沉没成本仅 1a（beachhead 无关，全复用），travel 专属工作零启动（2026-11-04 反方 F1 修正：原"阶段 2 中期"被动触发会导致最大沉没成本恰好留在 travel 侧）；② 阶段 2 端到端 demo 无法在 DSH 稳定跑通；③ 出现不可修复的硬阻断 |
 | 未选方案及原因 | **Day plan**：频率更高、宿主依赖更轻，但 travel 的契约验证路径已被实验铺满（B1–B7 → C1–C24），首期沉没成本最低；保留为回退方案。**Bill**：支付/合规 + 数据获取双高风险，已排除 |
-| 证据链接 | `experiments/pass-spike/`（41/41，2026-11-03 独立复跑通过）、`specs/` |
+| 证据链接 | `experiments/pass-spike/`（41/41，2026-11-19 `npm run verify:spike` 本地通过；2026-11-03 独立复跑通过）、`specs/` |
 | 检查 | 证据检查 ✓（第六轮独立复验）；边界检查 ✓（本记录 + §6.2 降级表）；**反方检查：AI 反方**（用户 2026-11-03 决策 8——由未参与撰写的独立 AI 实例按 §7.8 清单执行，身份如实标注：不是人类专家审阅） |
 | 审阅人 | **2026-11-04 批准（受托决策）**：用户于 2026-11-04 授权（"所有决策你来做"，原则"正确的方法做正确的事情"），Agent 作为受托决策人签署；反方检查已由独立 AI 实例执行（2026-11-04），4 项发现全部处置（见下）。用户保留推翻权 |
 | 未解决异议 | ~~① 最终用户细分未定义~~（仍开放——阶段 2 形成性测试前必须回答）；~~② 与 §7.5 前置条件的张力~~（已按"有条件选定 + 主动门槛 + 回退"处置，见上）。反方审阅处置：**F1** 回退成本低估 → 阶段 1 拆 1a/1b + issuer 主动门槛（已改 §6.7）；**F2** DSH 单点/作者自测 → 已记录为风险，阶段 2 加非作者第二探针（已改 §6.7、EVALUATION §7.4.1）；**F3** HMAC 密钥存放未定义 → seal 改双层（PROTOCOL-SPEC §15.3）；**F4** 状态机两处不一致 → 已修（PROTOCOL-SPEC §8） |
@@ -945,7 +945,7 @@ Beachhead Decision Record
 | 英文文档 | ✅ README/SDK/ADAPTERS/ROADMAP 均为英文（ASD-STE 检查强制） |
 | **npm 发布** | ❌ **未做**——只能 GitHub 安装；"开源 SDK"不可 `npm install`，SECURITY.md 声称支持的 0.2.x 无可支持对象（ROADMAP 下一任务 #1） |
 | 决策/规范语言 | ⚠️ 本文与 specs/ 为中文工作稿（check:docs 已豁免）——以社区为采用目标时对外不可读 |
-| 证据自动化 | ⚠️ P0-1 的 41/41 复现依赖本机 Chrome 与手工步骤，贡献者无法自动验证 |
+| 证据自动化 | ✅ P0-1 的 41/41 通过根目录 `npm run verify:spike` 在 CI 复跑；脚本构建实验、安装匹配浏览器，并把截图/JSON 写入临时目录 |
 
 ### 11.2 开源约束对方案的影响（决策）
 
@@ -1051,8 +1051,8 @@ Imagine      W ∈ ℂ      复平面/极点/抬升
 | 路线图 | `ROADMAP.md`（含 live DSH 验证记录） | 可复现 |
 | 30 块宽度测试 | `test-results/gallery/`（gitignore） | **未提交** |
 | P0-1 判决规则 | `experiments/pass-spike/DECISION-RULE.md` | 可复现（写码前预登记） |
-| P0-1 实验代码 | `experiments/pass-spike/src/` | **工作区可复现，尚未提交 git** |
-| P0-1 自动验证 | `experiments/pass-spike/evidence/verify.json`（41/41） | 可复现（需本机 Chrome + 先 build core）；**2026-11-03 第六轮审阅时独立复跑，41/41 通过** |
+| P0-1 实验代码 | `experiments/pass-spike/src/` | 可复现（已提交；`npm run verify:spike`） |
+| P0-1 自动验证 | `experiments/pass-spike/evidence/verify.json`（41/41） | 可复现（`npm run verify:spike`；CI 安装匹配 Chromium 并先构建 core；本地 2026-11-19 41/41） |
 | P0-1 截图 | `experiments/pass-spike/evidence/`（10 张） | 可复现（随 `verify.mjs` 重生成） |
 | P0-1 卡点与判决 | `experiments/pass-spike/BLOCKERS.md` | 可复现（依赖上述实验证据） |
 | Protocol Spec 草案 | `specs/PROTOCOL-SPEC.md` | **0.1-draft，待审；未实现** |
@@ -1060,7 +1060,7 @@ Imagine      W ∈ ℂ      复平面/极点/抬升
 | Spec 评审清单 | `specs/README.md` | **0.1-draft，待审** |
 | 代码基线 | `dcd1cc6` / `v0.2.2-3-gdcd1cc6` | 可追溯 |
 
-**可复现性结论：旧证据不足，P0-1 实验证据可复现。** 视频关键帧与网站抓取仍不可复现；P0-1 实验有预登记规则、代码、41 项自动检查、10 张截图与判决，但尚未提交 git，且依赖本机 Chrome 与 core build。发布或交给研发前至少应提交：关键帧与时间戳、浏览器版本/访问日期/截图/DOM 结果、30 块测试脚本与完整输出、benchmark 任务清单/模型版本/真实执行记录、第一轮代理提示词与合成规则，以及 `experiments/pass-spike/`（含 `evidence/`）本身。
+**可复现性结论：旧证据不足，P0-1 实验证据可复现。** 视频关键帧与网站抓取仍不可复现；P0-1 实验有预登记规则、代码、41 项自动检查、10 张截图与判决，`experiments/pass-spike/`（含 `evidence/`）已提交，并由 `npm run verify:spike` 在 CI 复跑。发布或交给研发前至少应提交：关键帧与时间戳、浏览器版本/访问日期/截图/DOM 结果、30 块测试脚本与完整输出、benchmark 任务清单/模型版本/真实执行记录，以及第一轮代理提示词与合成规则。
 
 ## 附录 E：术语
 
@@ -1109,6 +1109,7 @@ Imagine      W ∈ ℂ      复平面/极点/抬升
 - 2026-11-17（Stage 1b conformance follow-up）：补齐 C26 conclusion freshness 标记、C29 refresh/request_verification 的 ActionRuntime 超时对账、C30 session/disposed 清理与 `clearEpoch`、C32 URL QR/`open_issuer_link` https exact-origin 白名单。Node 77/77、SDK 自测 30/30、Playwright 3/3；仍只针对自建测试 issuer，hosted sign-out 与真实 issuer 未验证。
 - 2026-11-18（hosted pass smoke + C30 sign-out 修复）：在 hosted DSH `0.2.2-rc.3` + DeepSeek Account / DeepSeek-V4.1-Flash + 本地测试 issuer 上完成 live/verified、QR、stale、revoked、invalid、slow timeout、恢复和账号登出事件清理 smoke。第一次真实账号登出发现旧版只监听 `session/disposed` 不会清理；修复为监听 `account-ui/change` signed-out，并在 hosted 客户端清除 8 个 pass 块、IndexedDB 1/2 → 0/0。Node 78/78、SDK 自测 30/30、Playwright 3/3；真实 issuer、真实账号二次登出与 hosted `session/disposed` 仍未验证。
 - 2026-11-19（C30 hosted 真实 UI 登出复验）：在隔离 `HOME`/`DSH_HOME` 的 DSH `0.2.2-rc.3` profile 中执行真实账号 UI 登出。pass 块进入 `pass-cleared` 状态，IndexedDB snapshots/meta 从 1/2 → 0/0，console error 0；恢复同一账号凭证后重新登录，pass 重新加载为 verified/live，只写入新快照。临时 runtime 用 test-only patch 抑制远端 provider 撤销，未消耗真实 token；provider 侧撤销、全新设备授权与 hosted `session/disposed` 仍未验证。真实 issuer、Wallet、机场闸机与生产 `verified` 仍不在范围内。
+- 2026-11-19（P0-1 证据进 CI）：新增 `npm run verify:spike`，在 CI 中构建 P0-1 pass-spike、安装匹配的 Playwright Chromium、运行 41 项证据检查，并把截图/JSON 写到临时目录。实验 fixture 的签名算法标签更新为当前 pass profile 要求的 Ed25519。证据自动化退出条件完成；真实 issuer、Wallet 与闸机仍不在范围内。
 
 ---
 
@@ -1218,18 +1219,11 @@ Imagine      W ∈ ℂ      复平面/极点/抬升
 ### G.8 复现
 
 ```bash
-# 1. 构建 core（实验消费 clone/dist-lib）
-npm ci
-npm run build:core
-
-# 2. 安装并验证实验
-cd experiments/pass-spike
-npm install
-npm run build
-node verify.mjs
+# 一键复现（与 CI 相同的命令）
+npm run verify:spike
 ```
 
-输出：`evidence/verify.json`、`evidence/*.png`、控制台 41/41。要求本机有 Chrome（脚本先试 `channel: "chrome"`，失败回退 Playwright Chromium）。复现细节与卡点全文见 `experiments/pass-spike/README.md` 与 `BLOCKERS.md`。
+输出写入临时目录：`verify.json`、`*.png`，控制台 41/41。脚本先试本机 Chrome，失败回退到已安装的 Playwright Chromium。若要刷新仓库内 `evidence/`，在 `experiments/pass-spike` 中运行 `npm run build && node verify.mjs`。复现细节与卡点全文见 `experiments/pass-spike/README.md` 与 `BLOCKERS.md`。
 
 ---
 

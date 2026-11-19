@@ -28,6 +28,7 @@ jobs:
       - run: npm run typecheck
       - run: node --test tests/*.test.mjs
       - run: npm run bench:selfcheck
+      - run: npm run verify:spike
       - run: npm run pack:all
       - run: npm run audit:pack
       - run: npm run check:release -- --tarballs

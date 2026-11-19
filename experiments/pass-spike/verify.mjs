@@ -15,7 +15,9 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL(".", import.meta.url)));
 const dist = join(root, "dist");
-const evidenceDir = join(root, "evidence");
+const evidenceDir = process.env.IUI_EVIDENCE_DIR
+  ? resolve(process.env.IUI_EVIDENCE_DIR)
+  : join(root, "evidence");
 const PORT = 4180;
 const BASE = `http://127.0.0.1:${PORT}`;
 

@@ -225,8 +225,9 @@ The default action policy is `agent`. It sends prompts and meaningful block even
 
 | Check | Result |
 |---|---|
-| Unit tests | 72 of 72 pass |
+| Unit tests | 78 of 78 pass |
 | Playwright host tests | 3 of 3 pass |
+| P0-1 pass-spike evidence | 41 of 41 checks pass with `npm run verify:spike` in CI |
 | SDK browser self-test | 30 of 30 pass |
 | Benchmark harness self-check | 25 of 25 tasks pass with the mock provider |
 | 60-task scenario fixture | 60 of 60 tasks pass (20 of 20 per scenario) |

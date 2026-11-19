@@ -1,7 +1,7 @@
 {
   "experiment": "P0-1 pass spike",
-  "startedAt": "2026-11-03T14:13:10.597Z",
-  "finishedAt": "2026-11-03T14:13:15.373Z",
+  "startedAt": "2026-11-19T15:21:49.554Z",
+  "finishedAt": "2026-11-19T15:21:53.300Z",
   "baseUrl": "http://127.0.0.1:4180",
   "viewport": "456x920, then 320/720",
   "checks": [
@@ -43,7 +43,7 @@
     {
       "name": "QR decodes to the pass payload",
       "ok": true,
-      "detail": "IUI1:MR284:AMS-LIS:2026-11-04T18:35:00.000Z:14A:X7K2QP:cred_8f3a2c71"
+      "detail": "IUI1:MR284:AMS-LIS:2026-11-20T18:35:00.000Z:14A:X7K2QP:cred_8f3a2c71"
     },
     {
       "name": "QR has a real module grid",
@@ -248,7 +248,7 @@
         "id": "meridian-air",
         "name": "Meridian Air",
         "keyId": "meridian-2026-11",
-        "algorithm": "ES256"
+        "algorithm": "Ed25519"
       },
       "holder": {
         "name": "Kairos"
@@ -266,10 +266,10 @@
           "city": "Lisbon"
         }
       },
-      "departAt": "2026-11-04T18:35:00.000Z",
-      "arriveAt": "2026-11-04T20:20:00.000Z",
-      "boardingAt": "2026-11-04T18:05:00.000Z",
-      "validUntil": "2026-11-04T20:35:00.000Z",
+      "departAt": "2026-11-20T18:35:00.000Z",
+      "arriveAt": "2026-11-20T20:20:00.000Z",
+      "boardingAt": "2026-11-20T18:05:00.000Z",
+      "validUntil": "2026-11-20T20:35:00.000Z",
       "departTimeZone": "Europe/Amsterdam",
       "arriveTimeZone": "Europe/Lisbon",
       "terminal": "1",
@@ -278,17 +278,17 @@
       "boardingGroup": "2",
       "qr": {
         "format": "qr",
-        "payload": "IUI1:MR284:AMS-LIS:2026-11-04T18:35:00.000Z:14A:X7K2QP:cred_8f3a2c71"
+        "payload": "IUI1:MR284:AMS-LIS:2026-11-20T18:35:00.000Z:14A:X7K2QP:cred_8f3a2c71"
       },
-      "validFrom": "2026-11-03T13:13:14.717Z"
+      "validFrom": "2026-11-19T14:21:52.652Z"
     },
     "attestation": {
       "credentialId": "cred_8f3a2c71",
       "integrity": "verified",
-      "observedAt": "2026-11-03T14:13:14.717Z",
-      "checkedAt": "2026-11-03T14:13:14.717Z",
-      "validUntil": "2026-11-04T20:35:00.000Z",
-      "staleAfter": "2026-11-03T14:28:14.717Z",
+      "observedAt": "2026-11-19T15:21:52.652Z",
+      "checkedAt": "2026-11-19T15:21:52.652Z",
+      "validUntil": "2026-11-20T20:35:00.000Z",
+      "staleAfter": "2026-11-19T15:36:52.652Z",
       "source": {
         "id": "meridian-air/status",
         "kind": "issuer_api",
@@ -297,11 +297,11 @@
     },
     "latestKnown": {
       "gate": "D7",
-      "observedAt": "2026-11-03T14:13:14.717Z"
+      "observedAt": "2026-11-19T15:21:52.652Z"
     },
     "snapshot": {
       "schemaVersion": 1,
-      "savedAt": "2026-11-03T14:13:12.742Z",
+      "savedAt": "2026-11-19T15:21:50.796Z",
       "pass": {
         "kind": "boarding-pass",
         "credentialId": "cred_8f3a2c71",
@@ -309,7 +309,7 @@
           "id": "meridian-air",
           "name": "Meridian Air",
           "keyId": "meridian-2026-11",
-          "algorithm": "ES256"
+          "algorithm": "Ed25519"
         },
         "holder": {
           "name": "Kairos"
@@ -327,10 +327,10 @@
             "city": "Lisbon"
           }
         },
-        "departAt": "2026-11-04T18:35:00.000Z",
-        "arriveAt": "2026-11-04T20:20:00.000Z",
-        "boardingAt": "2026-11-04T18:05:00.000Z",
-        "validUntil": "2026-11-04T20:35:00.000Z",
+        "departAt": "2026-11-20T18:35:00.000Z",
+        "arriveAt": "2026-11-20T20:20:00.000Z",
+        "boardingAt": "2026-11-20T18:05:00.000Z",
+        "validUntil": "2026-11-20T20:35:00.000Z",
         "departTimeZone": "Europe/Amsterdam",
         "arriveTimeZone": "Europe/Lisbon",
         "terminal": "1",
@@ -339,17 +339,17 @@
         "boardingGroup": "2",
         "qr": {
           "format": "qr",
-          "payload": "IUI1:MR284:AMS-LIS:2026-11-04T18:35:00.000Z:14A:X7K2QP:cred_8f3a2c71"
+          "payload": "IUI1:MR284:AMS-LIS:2026-11-20T18:35:00.000Z:14A:X7K2QP:cred_8f3a2c71"
         },
-        "validFrom": "2026-11-03T13:13:11.949Z"
+        "validFrom": "2026-11-19T14:21:50.029Z"
       },
       "attestation": {
         "credentialId": "cred_8f3a2c71",
         "integrity": "verified",
-        "observedAt": "2026-11-03T14:13:11.949Z",
-        "checkedAt": "2026-11-03T14:13:11.949Z",
-        "validUntil": "2026-11-04T20:35:00.000Z",
-        "staleAfter": "2026-11-03T14:28:11.949Z",
+        "observedAt": "2026-11-19T15:21:50.029Z",
+        "checkedAt": "2026-11-19T15:21:50.029Z",
+        "validUntil": "2026-11-20T20:35:00.000Z",
+        "staleAfter": "2026-11-19T15:36:50.029Z",
         "source": {
           "id": "meridian-air/status",
           "kind": "issuer_api",
