@@ -6,11 +6,14 @@ review passed with all four findings dispositioned — see Plan §7.6.1).
 Stage 1a core contracts are implemented in `clone/src` (2026-11-04).
 The Stage 1b pass vertical slice is implemented against a self-built test issuer
 (2026-11-13) under an explicit issuer-gate override. A follow-up implements
-C26, C29, C30, and C32 for this test-issuer slice. The hosted DSH pass smoke and
-the account sign-out event path passed on 2026-11-18. A second live provider
-sign-out and hosted `session/disposed` remain unproven. A real external issuer
-is still not connected and remains a Stage 2 gate. The plan remains the
-decision source of truth.
+C26, C29, C30, and C32 for this test-issuer slice. The hosted DSH pass smoke
+passed on 2026-11-18. On 2026-11-19 an isolated hosted DSH profile performed a
+real account UI sign-out: the pass block entered the cleared state and
+IndexedDB snapshots/meta went from 1/2 to 0/0; a credential-restored re-login
+produced only a fresh verified/live snapshot. Remote provider revocation and a
+fresh device authorization were not exercised, and hosted `session/disposed`
+remains unproven. A real external issuer is still not connected and remains a
+Stage 2 gate. The plan remains the decision source of truth.
 
 The three P0 verticals have a real-model coverage report in
 [`SCENARIO-COVERAGE.md`](SCENARIO-COVERAGE.md). It reports the hosted DeepSeek

@@ -134,12 +134,13 @@ smoke above.
 - Account sign-out, session disposal, and plugin unload clear sealed snapshots,
   the HMAC key, in-memory pass data, and the action ledger. A hosted account
   sign-out event path was added after the first live sign-out exposed a
-  session-only gap.
+  session-only gap, and was later rechecked with a real isolated account UI
+  sign-out.
 - Node tests cover Ed25519 verification, HMAC tamper detection, validator
   rejection, allowlist behavior, clear-during-refresh, the DSH controller, and
   the account sign-out/session-disposal cleanup wiring.
 
-## Hosted DSH pass smoke (2026-11-18)
+## Hosted DSH pass smoke (2026-11-18) and sign-out recheck (2026-11-19)
 
 This run used DSH Web `0.2.2-rc.3`, the `0.2.2` adapter with the cleanup
 follow-up, Google Chrome through Playwright, and the local test issuer. The
@@ -157,25 +158,34 @@ hosted model was DeepSeek-V4.1-Flash under DeepSeek Account. The model called
   removed the conclusion warning.
 - The first live account sign-out showed that the earlier `session/disposed`
   binding did not run. The fix listens to the documented `account-ui/change`
-  signed-out state. The post-fix hosted check cleared 8 mounted pass blocks and
-  changed IndexedDB from 1 snapshot / 2 metadata records to 0 / 0.
+  signed-out state.
+- A 2026-11-19 follow-up used a real hosted account UI sign-out in an isolated
+  `HOME`/`DSH_HOME` profile. The mounted pass block changed to the
+  `pass-cleared` notice, IndexedDB snapshots/meta went from 1/2 to 0/0, and the
+  account became signed out. Restoring the same credential signed the account
+  in again. The pass reloaded `verified` / `live` from the test issuer with only
+  a fresh snapshot.
 - Browser console errors: 0.
 
-The temporary account was already signed out by the first smoke, so a second
-live provider sign-out was not run. The post-fix check emitted the same
-`account-ui/change` signed-out state through a temporary client test plugin in
-the hosted DSH client. A hosted `session/disposed` was not produced by this
-profile.
+The 2026-11-19 run suppressed the remote provider revocation with a test-only
+patch in the disposable DSH runtime so the real account token stayed valid.
+It therefore proves the local hosted sign-out cleanup and re-login state, not a
+provider-side revocation or a fresh device authorization. The earlier
+post-fix event-path check, which emitted the same signed-out state through a
+temporary client test plugin, had cleared 8 mounted blocks. A hosted
+`session/disposed` was not produced by this profile.
 
-This is **hosted pass-path and cleanup-event evidence only**. There is no real
+This is **hosted pass-path and cleanup evidence only**. There is no real
 airline, Google Wallet, Apple Wallet, or airport scanner. The issuer-gate
 override and the remaining conformance gaps are recorded in
 [`specs/STAGE-1B-IMPLEMENTATION-PLAN.md`](../../specs/STAGE-1B-IMPLEMENTATION-PLAN.md).
 
 The sanitized evidence is in
 [specs/evidence/pass-host.json](../../specs/evidence/pass-host.json).
-Screenshots and session records stayed in a local temporary directory, which is
-not committed. The repository contains no credential or route token.
+Screenshots, the temporary DSH runtime, and the copied account credential
+stayed in a local temporary directory, which is not committed and was removed
+after the run. The original `~/.dsh` profile was not modified. The repository
+contains no credential or route token.
 
 ## Limits
 
