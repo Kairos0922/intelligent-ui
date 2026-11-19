@@ -1112,6 +1112,7 @@ Imagine      W ∈ ℂ      复平面/极点/抬升
 - 2026-11-19（P0-1 证据进 CI）：新增 `npm run verify:spike`，在 CI 中构建 P0-1 pass-spike、安装匹配的 Playwright Chromium、运行 41 项证据检查，并把截图/JSON 写到临时目录。实验 fixture 的签名算法标签更新为当前 pass profile 要求的 Ed25519。证据自动化退出条件完成；真实 issuer、Wallet 与闸机仍不在范围内。
 - 2026-11-19（Protocol Spec 英译）：新增 `specs/PROTOCOL-SPEC.en.md`，保留 20 节与附录结构、表格、代码块和 C1–C25 编号；中文稿保留用于对照。本文与 EVALUATION-SPEC 的英译、真实 issuer 与 npm 发布仍未完成。
 - 2026-11-20（Mock adapter 开发路径）：按用户选择，开始用本地 `tools/test-issuer` 做 DSH travel adapter 的 mock 开发，并完成 GitHub package publish prep。支持的 mock 覆盖 `normal`、`gate-change`、`revoked`、`invalid`、`slow`；`npm run pack:all`、`npm run audit:pack`、`npm run check:release -- --tarballs` 均通过。NPM publishing 仍暂停。
+- 2026-11-20（Stage 2 issuer integration readiness）：新增 `specs/STAGE-2-ISSUER-INTEGRATION.md`，记录真实 issuer 的候选标准、DSH 集成面、外联话术与 Day plan 回退条件。仍未找到真实 issuer；真实 issuer/Wallet/机场闸机与 production `verified` 仍不在范围内。
 
 ---
 
