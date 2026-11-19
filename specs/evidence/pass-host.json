@@ -1,8 +1,8 @@
 {
   "schema": "iui-pass-host-evidence-v1",
-  "generatedAt": "2026-11-18T13:23:00Z",
+  "generatedAt": "2026-11-18T23:20:14Z",
   "scope": "stage-1b-travel-pass-vertical-slice",
-  "branch": "fix/stage-1b-signout-cleanup",
+  "branch": "main",
   "issuer": {
     "kind": "self-built-test-issuer",
     "realIssuerConnected": false,
@@ -60,7 +60,11 @@
     },
     "cleanup": {
       "accountSignOutEventPath": true,
+      "hostedRealUiSignOutAfterFix": true,
+      "hostedUiSignOutScope": "real account UI sign-out in an isolated profile; remote provider revocation suppressed by a test-only patch in the disposable runtime",
       "liveProviderSignOutAfterFix": false,
+      "remoteProviderRevocationSuppressed": true,
+      "freshDeviceAuthorizationAfterFix": false,
       "hostedSessionDisposed": false,
       "indexedDbBefore": {
         "snapshots": 1,
@@ -74,9 +78,37 @@
         "hmacKeys": 0,
         "issuerKeys": 0
       },
-      "mountedPassBlocksCleared": 8
+      "passBlockBefore": {
+        "count": 1,
+        "integrity": "verified",
+        "freshness": "live"
+      },
+      "passBlockAfter": {
+        "count": 1,
+        "clearedCount": 1,
+        "mounted": true,
+        "unmounted": false,
+        "integrity": "unverified",
+        "freshness": "unknown",
+        "notice": "Pass data was cleared on sign-out. Open the pass again after signing in to reload it."
+      },
+      "eventPathEmitterMountedBlocksCleared": 8,
+      "reLogin": {
+        "credentialRestored": true,
+        "accountSignedIn": true,
+        "passCount": 1,
+        "integrity": "verified",
+        "freshness": "live",
+        "snapshots": 1,
+        "meta": 2,
+        "snapshotFreshAfterSignout": true,
+        "snapshotAt": "2026-11-18T23:20:08.463Z",
+        "consoleErrors": 0
+      },
+      "consoleErrors": 0
     },
-    "consoleErrors": 0
+    "consoleErrors": 0,
+    "signOutUiDate": "2026-11-19"
   },
   "result": {
     "status": "pass-host-path-only",
@@ -106,8 +138,8 @@
     "hostedPassStateSmoke": true,
     "clearOnAccountSignOut": true,
     "hostedAccountSignOutEventCleanup": true,
-    "c30StrictStatus": "partial",
-    "c30PassedScope": "hosted account-ui/change signed-out event path; no post-fix live sign-out/re-login",
+    "c30StrictStatus": "passed-cleanup-scope",
+    "c30PassedScope": "hosted real account UI sign-out cleared pass state and IndexedDB; credential-restored re-login produced only a fresh verified/live snapshot; provider-side revocation and fresh device authorization were not exercised",
     "clearOnSessionDisposal": true,
     "hostedLiveSignOutAfterFix": false,
     "hostedSessionDisposal": false,
@@ -115,7 +147,12 @@
     "clearRemovesIndexedDbRecords": true,
     "urlQrDomainAllowlist": true,
     "issuerLinkAllowlist": true,
-    "npmAuditClean": false
+    "npmAuditClean": false,
+    "hostedUiSignOutAfterFix": true,
+    "hostedReLoginNoResidual": true,
+    "hostedFreshDeviceAuthorization": false,
+    "hostedRealUiSignOutAfterFix": true,
+    "hostedLiveProviderRevocationAfterFix": false
   },
   "checks": [
     {
@@ -176,7 +213,7 @@
     {
       "id": "c30-clear",
       "ok": true,
-      "detail": "clear() bumps a UI epoch, invalidates in-flight generations, clears memory immediately, deletes IndexedDB records and the HMAC key, and clears again after in-flight tasks settle. DSH listens to account-ui/change with a signed-out view and to session/disposed; plugin unload also clears. Hosted event path: 8 mounted pass blocks cleared and IndexedDB snapshots/meta went from 1/2 to 0/0."
+      "detail": "clear() bumps a UI epoch, invalidates in-flight generations, clears memory immediately, deletes IndexedDB records and the HMAC key, and clears again after in-flight tasks settle. DSH listens to account-ui/change with a signed-out view and to session/disposed; plugin unload also clears. On 2026-11-19 an isolated hosted DSH 0.2.2-rc.3 profile performed a real account UI sign-out: the mounted pass block entered the pass-cleared state, IndexedDB snapshots/meta went 1/2 -> 0/0, and the account became signed out. Remote provider revocation was suppressed by a test-only patch in the disposable runtime so the real token was not consumed. Restoring the same credential signed the account in again; the pass reloaded verified/live and wrote only a fresh snapshot. The block remained mounted as a cleared notice; the earlier temporary-emitter event-path run cleared 8 mounted blocks."
     },
     {
       "id": "c32-qr-allowlist",
@@ -191,23 +228,24 @@
     {
       "id": "hosted-signout-event-path",
       "ok": true,
-      "detail": "The hosted client cleared all mounted pass blocks and both IndexedDB stores on the documented account-ui/change signed-out state. After the first live sign-out exposed the old session-only gap, the temporary account was already signed out; the post-fix check emitted the same event through a temporary DSH client test plugin. A second live provider sign-out was not run."
+      "detail": "2026-11-19 follow-up: a real hosted account UI sign-out in an isolated DSH 0.2.2-rc.3 profile. The pass block showed \"Pass data was cleared on sign-out\", IndexedDB snapshots/meta went 1/2 -> 0/0, and console errors were 0. The remote provider revocation call was suppressed by a test-only patch in the disposable runtime; the real account token was not consumed. After restoring the same credential, the account signed in and the pass reloaded verified/live from the test issuer with a new snapshot only. A fresh device authorization and hosted session/disposed were not exercised."
     }
   ],
   "notProven": [
     "A real airline, hotel, rail, Google Wallet, or Apple Wallet issuer.",
     "Real-world credential validity or airport scanner compatibility.",
-    "A second live DeepSeek account sign-out after the cleanup fix. The first live sign-out exposed the gap and consumed the temporary test account; the post-fix hosted check emitted the same account-ui/change signed-out state through a temporary client test plugin.",
+    "Remote provider-side revocation and a fresh device authorization after the C30 fix. The 2026-11-19 hosted UI sign-out used a test-only patch to suppress remote revocation so the real token stayed valid; re-login restored the same credential in the isolated profile.",
     "Hosted session/disposed cleanup. The current DSH Web UI does not emit this event on archive or normal navigation, so the listener and local tests cover it but a hosted disposal was not produced.",
     "A real issuer-domain allowlist or production allowlist rotation process."
   ],
   "caveats": [
     "The test issuer generates a fresh key pair on each process start. This is not production key management.",
     "The browser tests use the local test issuer and a synthetic boarding pass. They do not use passenger data from a real booking.",
-    "C30 now clears on the hosted account sign-out event and keeps session disposal as a second boundary. The hosted sign-out event path was exercised after a real sign-out had already changed the temporary account to signed-out.",
+    "C30 now clears on the hosted account sign-out event and keeps session disposal as a second boundary. The 2026-11-19 real UI sign-out used an isolated profile and a test-only remote-revocation suppression; the pass block entered the cleared state, IndexedDB snapshots/meta went 1/2 -> 0/0, and a credential-restored re-login produced only a fresh verified/live snapshot. Remote provider revocation and fresh device authorization were not exercised.",
+    "The test-only revocation-suppression patch existed only in the disposable DSH runtime under the temporary directory. It is not part of this repository, and it was removed with that runtime.",
     "The slow-refresh hosted smoke observed one /pass request and no automatic retry. Its wall-clock observation included UI polling; it is not a latency benchmark.",
     "The historical tool rows can keep the inline timeout message after a later pass recovers. The latest pass recovered to live and the conclusion warning was removed.",
     "npm audit --audit-level=low currently reports 4 high-severity build-tool findings in picomatch through Vite. No dependency upgrade is included in this follow-up. The rc.3 dependency update was clean when it was recorded.",
-    "No API key, route token, session record, screenshot, private key, or real credential is included in this evidence."
+    "No API key, route token, session record, screenshot, private key, or real credential is included in this evidence. The original ~/.dsh profile was not modified."
   ]
 }

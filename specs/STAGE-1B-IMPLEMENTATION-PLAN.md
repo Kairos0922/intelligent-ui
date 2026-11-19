@@ -2,13 +2,15 @@
 
 | 项目 | 内容 |
 |---|---|
-| 状态 | **垂直切片已实现（2026-11-13；C26/C29/C30/C32 follow-up 验证 2026-11-18）** |
-| 分支 | `main`（本轮 follow-up 修复分支 `fix/stage-1b-signout-cleanup`） |
+| 状态 | **垂直切片已实现（2026-11-13；C26/C29/C30/C32 follow-up 验证 2026-11-18；C30 hosted 清理复验 2026-11-19）** |
+| 分支 | `main`（C30 修复分支 `fix/stage-1b-signout-cleanup` 已合并；复验证据分支 `docs/stage-1b-c30-signout-evidence`） |
 | 依据 | `INTELLIGENT-UI-PLAN.md` §6.4、§6.7、§7.6.1；`specs/DOMAIN-ARTIFACT-SPEC.md`；`specs/PROTOCOL-SPEC.md` §15–§17 |
 | 范围 | pass profile、QR、宿主 attestation、Ed25519 校验、密封快照、测试 issuer、DSH 只读动作 |
 | 明确不做 | 真实航司/Wallet 集成、签发真实凭证、机场闸机实测、支付/删除/日历写入 |
 
-> 2026-11-17 follow-up：实现 C26 conclusion freshness 标记、C29 ActionRuntime 对账、C30 会话销毁清理、C32 URL QR/issuer link 白名单。2026-11-18 hosted DSH `0.2.2-rc.3` smoke 使用 DeepSeek Account / DeepSeek-V4.1-Flash 与本地测试 issuer，覆盖 live/verified、QR、stale、revoked、invalid、refresh timeout 和恢复；同时发现旧版仅监听 `session/disposed` 不会在账号登出时清理。修复后 C30 监听 `account-ui/change` 的 signed-out 状态。所有结论仍限于自建测试 issuer；真实 issuer、真实账号二次登出和 hosted `session/disposed` 仍未验证。
+> 2026-11-17 follow-up：实现 C26 conclusion freshness 标记、C29 ActionRuntime 对账、C30 会话销毁清理、C32 URL QR/issuer link 白名单。2026-11-18 hosted DSH `0.2.2-rc.3` smoke 使用 DeepSeek Account / DeepSeek-V4.1-Flash 与本地测试 issuer，覆盖 live/verified、QR、stale、revoked、invalid、refresh timeout 和恢复；同时发现旧版仅监听 `session/disposed` 不会在账号登出时清理。修复后 C30 监听 `account-ui/change` 的 signed-out 状态。该次记录时，所有结论仍限于自建测试 issuer；真实 issuer、真实账号二次登出和 hosted `session/disposed` 仍未验证。2026-11-19 的真实账号 UI 登出复验见下一段。
+>
+> 2026-11-19 C30 复验：在隔离的 `HOME`/`DSH_HOME` 中启动 DSH `0.2.2-rc.3`，用真实 hosted 账号 UI 执行登出。pass 块进入 `pass-cleared` 状态，IndexedDB snapshots/meta 从 1/2 变为 0/0；恢复同一账号凭证后重新登录，pass 重新从测试 issuer 加载为 verified/live，且只写入新的快照。为避免消耗真实账号 token，临时运行时用 test-only patch 抑制远端 provider 撤销；因此 provider 侧撤销与全新设备授权仍未验证。真实 issuer、Wallet、机场闸机和生产 `verified` 仍不在范围内。
 
 ---
 
@@ -138,7 +140,7 @@ window.__IUI_PASS_ISSUER__ = {
 | 真实 Wallet 写入 | **未做（DSH `canOpenWallet: false`）** |
 | 机场闸机扫描 | **未做** |
 | DSH hosted DeepSeek pass smoke | **通过（2026-11-18，DSH `0.2.2-rc.3`，DeepSeek Account / DeepSeek-V4.1-Flash）**：hosted 模型渲染测试 issuer pass；Playwright 覆盖 QR dialog、stale snapshot + conclusion warning、revoked（QR 禁用）、invalid、slow timeout（恰好 1 次 `/pass`、无自动重试）、恢复 live；浏览器 console error 0 |
-| DSH hosted sign-out / session disposal | **事件路径通过，真实二次登出与 hosted `session/disposed` 未重跑**：第一次真实账号登出暴露旧版只监听 `session/disposed` 的缺口；修复后 hosted 客户端在 `account-ui/change` signed-out 状态下清除 8 个已挂载 pass 块，IndexedDB snapshots/meta 从 1/2 变为 0/0。因临时账号已登出，post-fix smoke 通过宿主内测试发射器发出同一事件；当前 DSH Web UI 未产生 hosted `session/disposed` |
+| DSH hosted sign-out / session disposal | **C30 清理范围通过；provider 撤销 / 全新授权 / hosted `session/disposed` 未验证**：2026-11-19 在隔离 profile 执行真实账号 UI 登出；pass 块显示 `pass-cleared`，IndexedDB snapshots/meta 从 1/2 变为 0/0，console error 0。恢复同一账号凭证后重新登录，pass 重新从测试 issuer 加载为 verified/live，且只写入登出后的新快照。临时运行时用 test-only patch 抑制远端撤销，未消耗真实 token；当前 DSH Web UI 未产生 hosted `session/disposed` |
 
 ---
 
@@ -150,7 +152,7 @@ window.__IUI_PASS_ISSUER__ = {
 | C27 credentialId 不匹配 | feed payload 与请求 id 不匹配 → invalid；attestation 按 id 过滤 | 通过 |
 | C28 revoked feed | 快照写入 `integrity=revoked` 并由 HMAC 覆盖；QR 禁用 | 通过（测试 issuer） |
 | C29 refresh 超时 | 经 `ActionRuntime` 执行；超时 → unknown → reconciliation，证据含 timeout/快照；不自动重试 | 通过（单元 + 浏览器 host） |
-| C30 登出 | `PassHost.clear()` 立即失效内存与 epoch，删除 IndexedDB 快照/HMAC key，并等待在途任务后二次清理；DSH 监听 `account-ui/change` 的 signed-out、`session/disposed` 和插件卸载 | **部分通过**：清理逻辑与 hosted `account-ui/change` 事件路径通过；真实账号二次登出/再登录和 hosted `session/disposed` 未重跑 |
+| C30 登出 | `PassHost.clear()` 立即失效内存与 epoch，删除 IndexedDB 快照/HMAC key，并等待在途任务后二次清理；DSH 监听 `account-ui/change` 的 signed-out、`session/disposed` 和插件卸载。2026-11-19 hosted 真实账号 UI 登出后 pass 块进入 cleared 状态，IndexedDB 1/2 → 0/0；恢复凭证再登录后只产生新的 verified/live 快照 | **通过（客户端清理与再登录无残留）**：测试用临时 DSH runtime 抑制了远端 provider 撤销；provider 侧撤销、全新设备授权和 hosted `session/disposed` 未验证 |
 | C31 格式非法 | validator 丢弃 op，返回 `invalid_pass` issue | 通过 |
 | C32 QR 域名白名单 | 宿主 `allowedOrigins`（https exact origin）校验 URL QR 和 `open_issuer_link`；opaque `IUI1:` 放行；无白名单拒绝 URL | 通过 |
 
@@ -161,12 +163,12 @@ window.__IUI_PASS_ISSUER__ = {
 - 没有真实 issuer；测试 issuer 只证明协议与实现，不证明产品价值。
 - C26 采用宿主警示标记 conclusion，不重写模型 prose；“Gate D7” 文本仍会显示，但被明确标为可能基于保存快照，不能当作当前事实。
 - 快照 TTL 为 24h；到期后当前实现降为 `unknown` 并保留记录，不自动删除。账号登出/会话销毁会调用 `clear()`。
-- DSH 账号登出通过客户端 `account-ui/change` 事件识别；`session/disposed` 与插件卸载仍是第二边界。第一次真实 hosted sign-out 暴露旧版只绑定 `session/disposed` 的缺口；修复后 hosted 验证使用了同一 `account-ui/change` signed-out 事件。当前 Web UI 的归档不会产生 `session/disposed`，因此 hosted 会话销毁路径未实测；若宿主改变事件或新增独立登出 API，必须重新绑定并补 smoke。
+- DSH 账号登出通过客户端 `account-ui/change` 事件识别；`session/disposed` 与插件卸载仍是第二边界。第一次真实 hosted sign-out 暴露旧版只绑定 `session/disposed` 的缺口；2026-11-19 的复验在隔离 profile 中用真实账号 UI 登出，pass 块进入 cleared 状态、IndexedDB 1/2 → 0/0，恢复凭证再登录后只产生新快照。临时 DSH runtime 用 test-only patch 抑制远端 provider 撤销，因此 provider 侧撤销与全新设备授权未验证；当前 Web UI 的归档不会产生 `session/disposed`，hosted 会话销毁路径仍未实测。若宿主改变事件或新增独立登出 API，必须重新绑定并补 smoke。
 - HMAC key 存 IndexedDB，non-extractable；同源脚本执行权仍等于宿主妥协，无法防御能调用密封 API 的同源代码对 metadata 重签。issuer 签名仍保护 payload。
 - DSH issuer URL 与 `allowedOrigins` 是宿主配置；未配置时 pass 保持 `unverified`，URL QR/issuer link 默认拒绝，不会伪造 Verified。
 - 测试 issuer 的 `invalid` 场景只覆盖坏签名，不覆盖 key rotation、过期密钥、吊销列表分发。
 - DSH pass 动作已有 hosted DeepSeek 模型渲染与宿主状态 smoke；模型动作后的新 pass 可能形成多个历史 tool row，最新块状态正确。慢刷新 smoke 的历史 tool row 仍保留 inline timeout 文案；最新块恢复 live，conclusion warning 已移除。
-- 首次真实账号登出消耗了临时 DSH 账号的登录状态；最终证据不包含账号、API key、route token 或 session 内容。后续若需再次验证真实 sign-out，需要用户重新登录临时 profile。
+- 2026-11-19 复验未修改用户原始 `~/.dsh` 凭证；真实 token 只复制到隔离的临时 profile，远端撤销被 test-only patch 抑制，原始登录保持有效。最终证据不包含账号、API key、route token 或 session 内容；临时运行时、凭证副本、截图和日志在复验后清理。
 - npm 发布仍暂停；没有发布任何包。
 
 ---
