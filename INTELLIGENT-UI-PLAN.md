@@ -1111,6 +1111,7 @@ Imagine      W ∈ ℂ      复平面/极点/抬升
 - 2026-11-19（C30 hosted 真实 UI 登出复验）：在隔离 `HOME`/`DSH_HOME` 的 DSH `0.2.2-rc.3` profile 中执行真实账号 UI 登出。pass 块进入 `pass-cleared` 状态，IndexedDB snapshots/meta 从 1/2 → 0/0，console error 0；恢复同一账号凭证后重新登录，pass 重新加载为 verified/live，只写入新快照。临时 runtime 用 test-only patch 抑制远端 provider 撤销，未消耗真实 token；provider 侧撤销、全新设备授权与 hosted `session/disposed` 仍未验证。真实 issuer、Wallet、机场闸机与生产 `verified` 仍不在范围内。
 - 2026-11-19（P0-1 证据进 CI）：新增 `npm run verify:spike`，在 CI 中构建 P0-1 pass-spike、安装匹配的 Playwright Chromium、运行 41 项证据检查，并把截图/JSON 写到临时目录。实验 fixture 的签名算法标签更新为当前 pass profile 要求的 Ed25519。证据自动化退出条件完成；真实 issuer、Wallet 与闸机仍不在范围内。
 - 2026-11-19（Protocol Spec 英译）：新增 `specs/PROTOCOL-SPEC.en.md`，保留 20 节与附录结构、表格、代码块和 C1–C25 编号；中文稿保留用于对照。本文与 EVALUATION-SPEC 的英译、真实 issuer 与 npm 发布仍未完成。
+- 2026-11-20（Mock adapter 开发路径）：按用户选择，开始用本地 `tools/test-issuer` 做 DSH travel adapter 的 mock 开发，并完成 GitHub package publish prep。支持的 mock 覆盖 `normal`、`gate-change`、`revoked`、`invalid`、`slow`；`npm run pack:all`、`npm run audit:pack`、`npm run check:release -- --tarballs` 均通过。NPM publishing 仍暂停。
 
 ---
 

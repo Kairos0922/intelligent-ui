@@ -19,6 +19,7 @@ All notable changes to this project are documented in this file.
 - The DSH adapter declares only `copy_text`, `open_link`, and `save_note`. It rejects undeclared actions and tells the model to resend a complete interface after an `[iui-action]` message.
 - The DSH package carries a `dsh.bundle.patch` layer for the DSH `0.2.2` release line.
 - The travel `pass` profile adds a host-verified boarding pass block, real QR rendering, Ed25519 issuer verification, a 24h sealed snapshot, and refresh/verification actions.
+- Added the local test-issuer mock path for DSH travel-pass adapter development. GitHub tarball publish prep passes and NPM publishing remains paused.
 - DSH declares `canVerifyPass: true` plus read-only `show_code`, `refresh`, `request_verification`, and `open_issuer_link` actions.
 - A standalone test issuer signs payloads with an in-process Ed25519 key. The browser receives only the public key and signed feed.
 - Pass refresh and verification actions run through `ActionRuntime`. A timeout enters reconciliation and is not retried automatically.

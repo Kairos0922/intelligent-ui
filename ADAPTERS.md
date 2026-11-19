@@ -299,6 +299,29 @@ Stage 1b adds the travel `pass` profile to the same host. DSH verifies Ed25519 s
 
 Each live run made one click. The tests do not cover every block or model. The validator keeps the valid ops if a model makes a malformed op.
 
+### 7.2 Travel pass: mock development path
+
+For local travel-pass adapter development, point the DSH client at the local Stage 1b test issuer:
+
+```js
+window.__IUI_PASS_ISSUER__ = {
+  url: "http://127.0.0.1:4319",
+};
+```
+
+Start it with `npm run issuer:test` or `node tools/test-issuer/server.mjs --port 4319`. The mock returns a signed Ed25519 feed and supports `normal`, `gate-change`, `revoked`, `invalid`, and `slow`. Use it to exercise the adapter contract. It is not a real airline, wallet, or issuer.
+
+GitHub-install publish preparation is:
+
+```bash
+npm run build
+npm run pack:all
+npm run audit:pack
+npm run check:release -- --tarballs
+```
+
+NPM publishing remains paused in this checkout. The real Stage 2 issuer remains the acceptance gate.
+
 Read [packages/dsh/README.md](packages/dsh/README.md) and [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md).
 
 ## 8. Custom host
