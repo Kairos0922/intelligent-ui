@@ -132,6 +132,17 @@ Conflict examples:
 | D109 | show_task | Opens host task detail/focus |
 | D110 | cancel/reopen | Not claim final; host state wins |
 
+| A1 | `taskList` renders `role=region` + accessible name `Day plan tasks` | Check with role locators |
+| A2 | Each pending task row is `role=group` with a non-empty accessible name | Playwright `getByRole("group", ...)` |
+| A3 | Reminder is `role=status`, has `aria-live=polite`, and contains non-empty reminder time | Keyboard/role assertions |
+| A4 | Task buttons are native buttons with `aria-label`, focusable, and keyboard-activatable (Enter/Space) | Playwright `focus()` + `press("Enter")` |
+| A5 | User/Host state wins over model/derived pending patches | `applyDayPlanPatch()`/`applyOfflineQueue()` tests |
+| A6 | Host computes overdue state and sorts overdue first | `reconcileDayPlanTasks()` tests |
+| A7 | Storage persists `setTasks` and host completion via `DayPlanStorage` | `createDshDayPlanHost()` storage test |
+| A8 | DSH executes reminder updates and conflict reports | `createDshDayPlanHost().setReminder()`/`reportConflict()` |
+| A9 | PII is redacted and expired | `redactDayPlanPii()`/`clearExpiredDayPlanPii()` tests |
+| A10 | No real issuer/Wallet/airport scanner/production `verified` claim | Acceptance tests use local fixture tasks |
+
 All acceptance uses local fixture tasks, not real ISSUE/Wallet.
 
 ## 8. 真实 issuer/Wallet 不在范围
