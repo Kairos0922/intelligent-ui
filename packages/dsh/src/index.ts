@@ -17,6 +17,8 @@ export type {
   PassRefreshResult,
   PassRefreshStatus,
 } from "./pass.js";
+export { applyDayPlanPatch, createDshDayPlanHost } from "./day-plan.js";
+export type { DayPlanPatchKind } from "./day-plan.js";
 export {
   installPassLifecycleCleanup,
   isSignedOutAccountState,
