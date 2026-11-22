@@ -82,7 +82,7 @@ defineBlock("taskList", (el, props: { payload?: TaskListPayload }, ctx: Ctx) => 
       class: `iui-day-plan-status iui-day-plan-status--${status === "done" ? "ok" : status === "overdue" ? "warning" : status === "cancelled" ? "muted" : "ok"}`,
       text: statusText(status),
     });
-    const row = h("div", { class: "iui-day-plan-task", "data-testid": `task-${id}` });
+    const row = h("div", { class: "iui-day-plan-task", "data-testid": id });
     row.append(h("div", { class: "iui-day-plan-task__title", text: title }), statusBadge);
     const meta = h("div", { class: "iui-day-plan-task__meta" });
     const deadline = formatWhen(task.deadlineAt, ctx);
