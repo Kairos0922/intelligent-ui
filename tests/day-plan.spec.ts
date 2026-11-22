@@ -71,6 +71,42 @@ test("Day plan taskList/reminder render and emit host actions", async ({ page })
   ]);
 });
 
+test("Day plan taskList is keyboard accessible", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(async () => {
+    const mod = await import("/src/sdk/index.ts");
+    const events: IuiEvent[] = [];
+    const ui = mod.createIntelligentUI({
+      container: document.body,
+      theme: "light",
+      onEvent: (event: IuiEvent) => events.push(event),
+    });
+    ui.apply([
+      {
+        t: "comp",
+        id: "task-list",
+        type: "taskList",
+        props: {
+          payload: {
+            kind: "day-plan",
+            version: "1.0",
+            tasks: [{ id: "task-1", title: "Buy milk", status: "pending" }],
+          },
+        },
+      },
+      { t: "done" },
+    ]);
+    window.__dayPlanEvents = events;
+  });
+
+  await expect(page.getByTestId("complete-task-1")).toBeVisible();
+  await page.getByTestId("complete-task-1").focus();
+  await expect(page.getByTestId("complete-task-1")).toBeFocused();
+  await page.keyboard.press("Enter");
+  const events = await page.evaluate(() => window.__dayPlanEvents);
+  expect(events.some((event) => event.name === "complete_task")).toBe(true);
+});
+
 declare global {
   interface Window {
     __dayPlanEvents?: IuiEvent[];
