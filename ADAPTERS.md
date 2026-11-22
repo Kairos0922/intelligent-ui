@@ -331,7 +331,7 @@ Read actions and reversible actions are declared for `show_task`, `open_calendar
 Day plan Blocks emit these events, and DSH validates and forwards them as `[iui-action]` messages.
 DSH also exports a minimal host integration: `createDshDayPlanHost()`, `applyDayPlanPatch()`, `createLocalStorageDayPlanStorage()`, and `applyOfflineQueue()`.
 The offline helper accepts `sequence` values, returns the task list in order, and host-completed tasks win over model/derived pending patches.
-Core validates `taskList`/`reminder` payloads with PII redaction/expiry helpers, and host-side notification delivery, calendar execution, and richer storage remain host responsibilities.
+Core validates `taskList`/`reminder` payloads with PII redaction/expiry helpers and `reconcileDayPlanTasks()`, and host-side notification delivery, calendar execution, and richer storage remain host responsibilities.
 
 Read [packages/dsh/README.md](packages/dsh/README.md) and [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md).
 

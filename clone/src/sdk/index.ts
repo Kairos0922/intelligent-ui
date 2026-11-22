@@ -678,6 +678,8 @@ export {
   validateDayReminderPayload,
   redactDayPlanPii,
   clearExpiredDayPlanPii,
+  reconcileDayPlanTask,
+  reconcileDayPlanTasks,
 } from "../iui/day-plan";
 export type {
   DayPlanPii,
