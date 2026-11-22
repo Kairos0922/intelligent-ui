@@ -133,7 +133,11 @@ A pass interaction returns a block action or an Answer Envelope action. `show_co
 
 ## Day plan host integration
 
-Day plan Blocks emit the host actions declared by the DSH manifest: `show_task`, `complete_task`, `open_calendar`, `set_reminder`, `request_notification`, and `host_conflict_report`. DSH validates and forwards them as `[iui-action]` messages. DSH also exports `createDshDayPlanHost()` and `applyDayPlanPatch()`: the host keeps tasks in memory, marks user-complete actions done, and applies user/model/derived conflict rules. Host-side storage persistence, notification scheduling, calendar execution, and offline queues remain host responsibilities.
+Day plan Blocks emit the host actions declared by the DSH manifest: `show_task`, `complete_task`, `open_calendar`, `set_reminder`, `request_notification`, and `host_conflict_report`.
+
+DSH validates and forwards them as `[iui-action]` messages. DSH also exports `createDshDayPlanHost()`, `applyDayPlanPatch()`, `createLocalStorageDayPlanStorage()`, and `applyOfflineQueue()`.
+
+The host keeps tasks in the provided storage, marks user-complete actions done, applies user/model/derived conflict rules, and merges queued user patches. Host-side notification scheduling, calendar execution, and richer storage/offline behavior remain host responsibilities.
 
 `open_issuer_link` accepts only an allowlisted `https://` origin. URL QR payloads use the same host allowlist. Opaque `IUI1:` payloads do not need a domain. None of these actions writes a wallet, sends a message outside the session, or performs an irreversible write.
 
