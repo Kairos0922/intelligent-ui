@@ -5,7 +5,9 @@ import {
   DSH_ALLOWED_RISKS,
   DSH_MANIFEST,
   applyDayPlanPatch,
+  applyOfflineQueue,
   createDshDayPlanHost,
+  createMemoryDayPlanStorage,
   installPassLifecycleCleanup,
   isSignedOutAccountState,
 } from "../packages/dsh/lib/index.js";
@@ -132,6 +134,24 @@ test("DSH Day plan host applies user-over-model conflicts", () => {
   const tasks = host.getTasks();
   assert.equal(tasks.length, 1);
   assert.equal(tasks[0].status, "done");
+});
+
+test("DSH Day plan host persists through DayPlanStorage and applies offline queue", () => {
+  const storage = createMemoryDayPlanStorage([{ id: "t1", title: "Buy milk", status: "done", completedAt: "2026-11-20T10:00:00Z" }]);
+  const host = createDshDayPlanHost({ storage });
+  assert.equal(host.getTasks()[0].status, "done");
+  host.completeTask("t1");
+  assert.equal(storage.getTasks()[0].status, "done");
+
+  const merged = applyOfflineQueue(
+    storage.getTasks(),
+    [
+      { id: "t1", status: "pending" },
+      { id: "t2", title: "Write report", status: "pending", deadlineAt: "2026-11-21T10:00:00Z" },
+    ],
+  );
+  assert.equal(merged.find((task) => task.id === "t1")?.status, "done", "host done wins over offline pending");
+  assert.equal(merged.find((task) => task.id === "t2")?.title, "Write report");
 });
 
 test("DSH clears pass state when the account signs out or a session is disposed", () => {

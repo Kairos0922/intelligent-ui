@@ -326,7 +326,7 @@ NPM publishing remains paused in this checkout. The real Stage 2 issuer remains 
 
 ### 7.3 Day plan host integration
 
-DSH declares Day plan actions: `show_task`, `complete_task`, `open_calendar`, `set_reminder`, `request_notification`, and `host_conflict_report`. `show_task`, `open_calendar`, `request_notification`, and `host_conflict_report` are read actions. `complete_task` and `set_reminder` are reversible. Day plan Blocks emit these events, and DSH validates and forwards them as `[iui-action]` messages. DSH also exports a minimal host integration: `createDshDayPlanHost()` plus `applyDayPlanPatch()` for user/model/derived conflict semantics. Host-side storage persistence, notification scheduling, calendar execution, and offline queues remain host responsibilities.
+DSH declares Day plan actions: `show_task`, `complete_task`, `open_calendar`, `set_reminder`, `request_notification`, and `host_conflict_report`. `show_task`, `open_calendar`, `request_notification`, and `host_conflict_report` are read actions. `complete_task` and `set_reminder` are reversible. Day plan Blocks emit these events, and DSH validates and forwards them as `[iui-action]` messages. DSH also exports a minimal host integration: `createDshDayPlanHost()`, `applyDayPlanPatch()`, `createLocalStorageDayPlanStorage()`, and `applyOfflineQueue()` for user/model/derived conflict and offline-queue semantics. Host-side storage persistence details, notification scheduling, and calendar execution remain host responsibilities.
 
 Read [packages/dsh/README.md](packages/dsh/README.md) and [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md).
 
