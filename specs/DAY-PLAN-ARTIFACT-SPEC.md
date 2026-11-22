@@ -3,7 +3,7 @@
 | 项目 | 内容 |
 |---|---|
 | 版本 | 0.2-implemented-slice |
-| 状态 | **Day plan Beachhead 已选定（2026-11-20）**；Travel/pass 仍保留 mock/fallback 报告；真实 issuer 不再作为 Day plan 验收依赖。核心 `taskList`/`reminder` Block 已实现并增加 ARIA `region`/`group`/`status`；Day plan Playwright 渲染/动作/无障碍校验通过。新增 `validateDayListPayload()`/`validateDayReminderPayload()` 校验 Day plan payload，并在 `validateOps()` 接入；PII 生命周期辅助函数 `redactDayPlanPii()`/`clearExpiredDayPlanPii()` 与 `reconcileDayPlanTask()`/`reconcileDayPlanTasks()` 已导出。DSH manifest 已声明 `show_task`、`complete_task`、`open_calendar`、`set_reminder`、`request_notification`、`host_conflict_report`；DSH client 已接入 `getDayPlanHost()` host 执行，`DayPlanHost` 契约、`createDshDayPlanHost()`、`applyDayPlanPatch()`、`createLocalStorageDayPlanStorage()`、`applyOfflineQueue()`（含 `sequence` 排序与 host done 语义）已导出。 |
+| 状态 | **Day plan Beachhead 已选定（2026-11-20）**；Travel/pass 仍保留 mock/fallback 报告；真实 issuer 不再作为 Day plan 验收依赖。核心 `taskList`/`reminder` Block 已实现并增加 ARIA `region`/`group`/`status`；Day plan Playwright 渲染/动作/无障碍校验通过。新增 `validateDayListPayload()`/`validateDayReminderPayload()` 校验 Day plan payload，并在 `validateOps()` 接入；PII 生命周期辅助函数 `redactDayPlanPii()`/`clearExpiredDayPlanPii()` 与 `reconcileDayPlanTask()`/`reconcileDayPlanTasks()` 已导出。DSH manifest 已声明 `show_task`、`complete_task`、`open_calendar`、`set_reminder`、`request_notification`、`host_conflict_report`；DSH client 已接入 `getDayPlanHost()` host 执行，`DayPlanHost` 契约、`createDshDayPlanHost()`（含 `setReminder` 持久化）、`applyDayPlanPatch()`、`createLocalStorageDayPlanStorage()`、`applyOfflineQueue()`（含 `sequence` 排序与 host done 语义）已导出。 |
 | 上游 | `INTELLIGENT-UI-PLAN.md` §6.7/§7.6.1；`specs/Protocol-Spec.md` §16；`ADAPTERS.md` §7.2 |
 | 语言 | 中文工作稿（check:docs 豁免） |
 
