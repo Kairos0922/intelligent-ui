@@ -1,6 +1,7 @@
 import { h } from "./dom";
 import { defineBlock, type Ctx } from "./registry";
 import { safeText } from "./security";
+import { isInstant, isValidTimeZone, type ContractIssue, isPlainObject } from "./contracts";
 
 export type DayPlanTaskStatus = "pending" | "done" | "overdue" | "cancelled";
 export type DayPlanRecurrence = "once" | "daily" | "weekdays";
@@ -15,6 +16,8 @@ export interface DayPlanTask {
   reminderAt?: string;
   recurrence?: DayPlanRecurrence;
   completedAt?: string;
+  pii?: DayPlanPii;
+  userFacts?: string[];
 }
 
 export interface TaskListPayload {
@@ -31,13 +34,19 @@ export interface DayReminder {
   note?: string;
 }
 
+export interface DayPlanPii {
+  holderName?: string;
+  userId?: string;
+  expiresAt?: string;
+}
+
 /** Host-side Day plan integration contract. User/host state wins on conflicts. */
 export interface DayPlanHost {
   getTasks(): DayPlanTask[];
   setTasks(tasks: DayPlanTask[]): void;
   openTask(id: string): void;
   completeTask(id: string): void;
-  openCalendar(range?: { start?: string; end?: string }): void;
+  openCalendar(range?: { start?: string; end?: string; reminderAt?: string }): void;
   setReminder(taskId: string, reminderAt?: string): void;
   requestNotification(taskId: string): void;
   reportConflict(taskId: string, reason?: string): void;
@@ -69,6 +78,164 @@ function statusText(status: DayPlanTaskStatus): string {
   if (status === "overdue") return "Overdue";
   if (status === "cancelled") return "Cancelled";
   return "Pending";
+}
+
+function dayIssue(list: ContractIssue[], path: string, message: string, code: string): void {
+  if (list.length < 60) list.push({ path, message, code });
+}
+
+function requiredDayText(value: unknown, path: string, list: ContractIssue[], max = 120): string | null {
+  const s = typeof value === "string" ? safeText(value, max).trim() : "";
+  if (!s) {
+    dayIssue(list, path, `${path} must be a non-empty string`, "invalid_day_plan");
+    return null;
+  }
+  return s;
+}
+
+function optionalDayText(value: unknown, path: string, list: ContractIssue[], max = 120): string | undefined {
+  if (value === undefined || value === null || value === "") return undefined;
+  return requiredDayText(value, path, list, max) ?? undefined;
+}
+
+function dayInstant(value: unknown, path: string, list: ContractIssue[]): string | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (!isInstant(value)) {
+    dayIssue(list, path, `${path} must be an RFC 3339 instant`, "invalid_day_plan");
+    return undefined;
+  }
+  return value;
+}
+
+function dayZone(value: unknown, path: string, list: ContractIssue[]): string | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (!isValidTimeZone(value)) {
+    dayIssue(list, path, `${path} must be an IANA time zone`, "invalid_day_plan");
+    return undefined;
+  }
+  return value;
+}
+
+function dayStatus(value: unknown, path: string, list: ContractIssue[]): DayPlanTaskStatus | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (!["pending", "done", "overdue", "cancelled"].includes(value as never)) {
+    dayIssue(list, path, `${path} must be pending, done, overdue, or cancelled`, "invalid_day_plan");
+    return "pending";
+  }
+  return value as DayPlanTaskStatus;
+}
+
+function dayRecurrence(value: unknown, path: string, list: ContractIssue[]): DayPlanRecurrence | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (!["once", "daily", "weekdays"].includes(value as never)) {
+    dayIssue(list, path, `${path} must be once, daily, or weekdays`, "invalid_day_plan");
+    return "once";
+  }
+  return value as DayPlanRecurrence;
+}
+
+export function validateDayListPayload(input: unknown, path = "dayPlan"): {
+  payload: TaskListPayload | null;
+  issues: ContractIssue[];
+} {
+  const issues: ContractIssue[] = [];
+  if (!isPlainObject(input)) {
+    dayIssue(issues, path, `${path} must be an object`, "invalid_day_plan");
+    return { payload: null, issues };
+  }
+  if (input.kind !== "day-plan") dayIssue(issues, `${path}.kind`, "kind must be day-plan", "invalid_day_plan");
+  if (input.version !== "1.0") dayIssue(issues, `${path}.version`, "version must be 1.0", "invalid_day_plan");
+  const hostTimeZone = dayZone(input.hostTimeZone, `${path}.hostTimeZone`, issues);
+  const rawTasks = input.tasks;
+  if (!Array.isArray(rawTasks)) {
+    dayIssue(issues, `${path}.tasks`, "tasks must be an array", "invalid_day_plan");
+    return { payload: null, issues };
+  }
+  const tasks: DayPlanTask[] = [];
+  rawTasks.slice(0, 20).forEach((raw, index) => {
+    const base = `${path}.tasks[${index}]`;
+    if (!isPlainObject(raw)) {
+      dayIssue(issues, base, "task must be an object", "invalid_day_plan");
+      return;
+    }
+    const id = requiredDayText(raw.id, `${base}.id`, issues, 120);
+    const title = requiredDayText(raw.title, `${base}.title`, issues, 120);
+    if (!id || !title) return;
+    const status = dayStatus(raw.status, `${base}.status`, issues);
+    const deadlineAt = dayInstant(raw.deadlineAt, `${base}.deadlineAt`, issues);
+    const reminderAt = dayInstant(raw.reminderAt, `${base}.reminderAt`, issues);
+    const completedAt = dayInstant(raw.completedAt, `${base}.completedAt`, issues);
+    const recurrence = dayRecurrence(raw.recurrence, `${base}.recurrence`, issues);
+    const description = optionalDayText(raw.description, `${base}.description`, issues, 500);
+    const priority =
+      typeof raw.priority === "number" && [0, 1, 2, 3].includes(raw.priority)
+        ? raw.priority as 0 | 1 | 2 | 3
+        : undefined;
+    if (raw.priority !== undefined && priority === undefined) {
+      dayIssue(issues, `${base}.priority`, "priority must be 0, 1, 2, or 3", "invalid_day_plan");
+    }
+    tasks.push({
+      id,
+      title,
+      ...(status ? { status } : {}),
+      ...(priority ? { priority } : {}),
+      ...(deadlineAt ? { deadlineAt } : {}),
+      ...(reminderAt ? { reminderAt } : {}),
+      ...(recurrence ? { recurrence } : {}),
+      ...(completedAt ? { completedAt } : {}),
+      ...(description ? { description } : {}),
+      ...(Array.isArray(raw.userFacts)
+        ? {
+            userFacts: raw.userFacts
+              .slice(0, 5)
+              .map((fact) => safeText(fact, 200).trim())
+              .filter(Boolean),
+          }
+        : {}),
+      ...(isPlainObject(raw.pii) ? { pii: { ...(raw.pii as DayPlanPii) } } : {}),
+    });
+  });
+  const payload: TaskListPayload | null =
+    issues.length && tasks.length === 0
+      ? null
+      : { kind: "day-plan", version: "1.0", tasks, ...(hostTimeZone ? { hostTimeZone } : {}) };
+  return { payload, issues };
+}
+
+export function validateDayReminderPayload(
+  input: unknown,
+  path = "reminder",
+): { payload: DayReminder | null; issues: ContractIssue[] } {
+  const issues: ContractIssue[] = [];
+  if (!isPlainObject(input)) {
+    dayIssue(issues, path, `${path} must be an object`, "invalid_day_plan");
+    return { payload: null, issues };
+  }
+  const taskId = requiredDayText(input.taskId, `${path}.taskId`, issues, 160);
+  const title = requiredDayText(input.title, `${path}.title`, issues, 120);
+  const reminderAt = dayInstant(input.reminderAt, `${path}.reminderAt`, issues);
+  const note = optionalDayText(input.note, `${path}.note`, issues, 300);
+  const payload =
+    taskId && title && reminderAt
+      ? { taskId, title, reminderAt, ...(note ? { note } : {}) }
+      : null;
+  return { payload, issues };
+}
+
+export function redactDayPlanPii(task: DayPlanTask, redactedValue = "[redacted]"): DayPlanTask {
+  if (!task.pii) return task;
+  const pii: DayPlanPii = {};
+  if (task.pii.holderName !== undefined) pii.holderName = redactedValue;
+  if (task.pii.userId !== undefined) pii.userId = redactedValue;
+  if (task.pii.expiresAt !== undefined) pii.expiresAt = task.pii.expiresAt;
+  return { ...task, pii };
+}
+
+export function clearExpiredDayPlanPii(tasks: DayPlanTask[], now = Date.now()): DayPlanTask[] {
+  return tasks.map((task) => {
+    if (!task.pii?.expiresAt) return task;
+    return new Date(task.pii.expiresAt).getTime() <= now ? { ...task, pii: undefined } : task;
+  });
 }
 
 defineBlock("taskList", (el, props: { payload?: TaskListPayload }, ctx: Ctx) => {

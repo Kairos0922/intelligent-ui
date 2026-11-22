@@ -25,6 +25,7 @@ import {
 import { BLOCK_TYPES } from "./catalog";
 import { safeColor, safeUrl } from "../iui/security";
 import { validatePassPayload } from "../iui/pass";
+import { validateDayListPayload, validateDayReminderPayload } from "../iui/day-plan";
 
 export interface ValidationIssue {
   path: string;
@@ -767,6 +768,20 @@ export function validateOp(input: unknown, options: ValidateOptions = {}): Valid
         }
         if (!checked.payload) break;
         props = { ...props, pass: checked.payload };
+      }
+      if (type === "taskList") {
+        const checked = validateDayListPayload(props.payload, "props.payload");
+        for (const item of checked.issues) {
+          issue(issues, item.path, item.message, item.code ?? "invalid_day_plan");
+        }
+        if (checked.payload) props = { ...props, payload: checked.payload };
+      }
+      if (type === "reminder") {
+        const checked = validateDayReminderPayload(props.reminder, "props.reminder");
+        for (const item of checked.issues) {
+          issue(issues, item.path, item.message, item.code ?? "invalid_day_plan");
+        }
+        if (checked.payload) props = { ...props, reminder: checked.payload };
       }
       const size = jsonBytes(props);
       if (size > opts.maxPropsBytes) {

@@ -5,10 +5,11 @@ import {
   formatIuiActionMessage,
   type IuiHost,
 } from "@intelligent-ui/adapter";
-import type { Op } from "@intelligent-ui/core";
+import type { DayPlanHost, Op } from "@intelligent-ui/core";
 import { formatIuiAction } from "@intelligent-ui/core/agent";
 import coreCss from "@intelligent-ui/core/styles.css?raw";
 import { DSH_MANIFEST, dshAction } from "./manifest.js";
+import { createDshDayPlanHost } from "./day-plan.js";
 import { createDshPassHost, type DshPassHost } from "./pass.js";
 import {
   createPassActionRunner,
@@ -35,6 +36,30 @@ const STYLE_ID = "iui-dsh-styles";
 
 let sharedPassHost: DshPassHost | null = null;
 let sharedPassActions: PassActionRunner | null = null;
+let sharedDayPlanHost: DayPlanHost | null = null;
+
+function getDayPlanHost(): DayPlanHost {
+  sharedDayPlanHost ??= createDshDayPlanHost();
+  return sharedDayPlanHost;
+}
+
+function executeDayPlanHostAction(action: {
+  kind: string;
+  envelope?: { action: string; payload?: Record<string, unknown> };
+}): void {
+  if (action.kind !== "block" || !action.envelope) return;
+  const name = action.envelope.action;
+  const payload = action.envelope.payload ?? {};
+  const taskId = typeof payload.taskId === "string" ? payload.taskId : "";
+  const reminderAt = typeof payload.reminderAt === "string" ? payload.reminderAt : undefined;
+  const reason = typeof payload.reason === "string" ? payload.reason : undefined;
+  if (name === "show_task") getDayPlanHost().openTask(taskId);
+  if (name === "complete_task") getDayPlanHost().completeTask(taskId);
+  if (name === "open_calendar") getDayPlanHost().openCalendar({ reminderAt });
+  if (name === "set_reminder") getDayPlanHost().setReminder(taskId, reminderAt);
+  if (name === "request_notification") getDayPlanHost().requestNotification(taskId);
+  if (name === "host_conflict_report") getDayPlanHost().reportConflict(taskId, reason);
+}
 
 /** Lazily create one host-side pass store for the whole DSH client. */
 function getPassHost(): DshPassHost {
@@ -236,6 +261,7 @@ function createToolView(ctx: Context) {
                   ? action.name
                   : null;
             const descriptor = actionName ? dshAction(actionName) : null;
+            executeDayPlanHostAction(action);
             if (
               action.kind === "block" &&
               descriptor?.requiresConfirmation
