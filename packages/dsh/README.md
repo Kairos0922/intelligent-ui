@@ -12,7 +12,7 @@ DeepSeek Harness (DSH) adapter for Intelligent UI. It registers the `render_iui`
 ## Function
 
 - A `render_iui` tool validates and cleans each op with the core validator.
-- A capability manifest declares only read (`copy_text`, `open_link`, `show_code`, `refresh`, `request_verification`, `open_issuer_link`) and reversible (`save_note`) actions. Reversible actions must opt into confirmation. Irreversible actions are never declared.
+- A capability manifest declares only read (`copy_text`, `open_link`, `show_code`, `refresh`, `request_verification`, `open_issuer_link`, `show_task`, `open_calendar`, `request_notification`, `host_conflict_report`) and reversible (`save_note`, `complete_task`, `set_reminder`) actions. Reversible actions must opt into confirmation. Irreversible actions are never declared.
 - The travel `pass` profile verifies Ed25519 issuer signatures in the host. Model-supplied trust fields never control the badge or QR. Sealed snapshots use IndexedDB and a non-extractable HMAC key.
 - A system prompt section tells the model when to render an interface and how to answer an `[iui-action]` message. Every render is a complete replacement. The model is told to resend all blocks with stable ids, never a patch or delta op.
 - The tool result repeats the recovery instruction when an update renders zero valid ops, so the model can retry with a complete interface.
@@ -130,6 +130,10 @@ An Answer Envelope action returns its name, id, and arguments:
 `save_note` is reversible and asks for confirmation. The core shows the confirmation dialog before `onAction`. Cancelling sends nothing and leaves the current interface unchanged. `copy_text` and `open_link` are read-only and do not ask. The DSH adapter never declares an irreversible action.
 
 A pass interaction returns a block action or an Answer Envelope action. `show_code` opens the QR dialog locally. `refresh` and `request_verification` run through the action runtime. A timeout enters reconciliation and is not retried automatically.
+
+## Day plan host integration
+
+Day plan Blocks emit the host actions declared by the DSH manifest: `show_task`, `complete_task`, `open_calendar`, `set_reminder`, `request_notification`, and `host_conflict_report`. DSH validates and forwards them as `[iui-action]` messages. Host-side task storage, conflict policy, reminder scheduling, and calendar execution are outside the current deterministic validation path and remain host responsibilities.
 
 `open_issuer_link` accepts only an allowlisted `https://` origin. URL QR payloads use the same host allowlist. Opaque `IUI1:` payloads do not need a domain. None of these actions writes a wallet, sends a message outside the session, or performs an irreversible write.
 

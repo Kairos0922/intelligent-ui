@@ -3,7 +3,7 @@
 | 项目 | 内容 |
 |---|---|
 | 版本 | 0.2-implemented-slice |
-| 状态 | **Day plan Beachhead 已选定（2026-11-20）**；Travel/pass 仍保留 mock/fallback 报告；真实 issuer 不再作为 Day plan 验收依赖。核心 `taskList`/`reminder` Block 已实现（`clone/src/iui/day-plan.ts`），并有 Day plan Playwright 渲染/动作校验。 |
+| 状态 | **Day plan Beachhead 已选定（2026-11-20）**；Travel/pass 仍保留 mock/fallback 报告；真实 issuer 不再作为 Day plan 验收依赖。核心 `taskList`/`reminder` Block 已实现（`clone/src/iui/day-plan.ts`），有 Day plan Playwright 渲染/动作校验，并在 DSH manifest 中声明 `show_task`、`complete_task`、`open_calendar`、`set_reminder`、`request_notification`、`host_conflict_report`。 |
 | 上游 | `INTELLIGENT-UI-PLAN.md` §6.7/§7.6.1；`specs/Protocol-Spec.md` §16；`ADAPTERS.md` §7.2 |
 | 语言 | 中文工作稿（check:docs 豁免） |
 

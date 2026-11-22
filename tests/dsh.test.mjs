@@ -100,6 +100,13 @@ test("DSH declares only read or reversible actions and confirms reversible ones"
       `${name} is declared`,
     );
   }
+  for (const name of ["show_task", "complete_task", "open_calendar", "set_reminder", "request_notification", "host_conflict_report"]) {
+    assert.equal(
+      DSH_MANIFEST.actions.some((action) => action.name === name),
+      true,
+      `${name} is declared`,
+    );
+  }
 });
 
 test("DSH clears pass state when the account signs out or a session is disposed", () => {
