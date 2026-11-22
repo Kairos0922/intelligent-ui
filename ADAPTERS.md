@@ -291,7 +291,7 @@ A live signed-in test passed on DSH `0.2.1-rc.2` and `0.2.1-rc.3`. It covers a r
 
 A deterministic web test passed on DSH `0.2.1-rc.2`, `0.2.1-rc.3`, and `0.2.1-rc.4` with a local DeepSeek Messages server and the self-contained `0.2.2` tarball. It covers the same toolview and action path. It does not use an account and does not measure model compliance.
 
-The adapter declares only read actions (`copy_text`, `open_link`, `show_code`, `refresh`, `request_verification`, `open_issuer_link`) and the reversible `save_note`. `save_note` requires confirmation. Every `render_iui` call is a complete replacement, and the model is told to resend all blocks with stable ids after an `[iui-action]` message. The DSH `0.2.2-rc.1` bundle patch adds the plugin to the profile through `dsh.bundle.patch`.
+The adapter declares only read actions (`copy_text`, `open_link`, `show_code`, `refresh`, `request_verification`, `open_issuer_link`, and Day plan actions) and the reversible `save_note`. `save_note` requires confirmation. Every `render_iui` call is a complete replacement, and the model is told to resend all blocks with stable ids after an `[iui-action]` message. The DSH `0.2.2-rc.1` bundle patch adds the plugin to the profile through `dsh.bundle.patch`.
 
 Stage 1b adds the travel `pass` profile to the same host. DSH verifies Ed25519 signatures from the configured issuer, stores a sealed snapshot in IndexedDB, and disables the QR for revoked, invalid, or expired passes. URL QR payloads and issuer links require an exact `https` origin from the host allowlist. Refresh actions use the action runtime and reconcile a timeout without retrying. Session disposal clears sealed snapshots and the action ledger.
 
@@ -323,6 +323,10 @@ npm run check:release -- --tarballs
 ```
 
 NPM publishing remains paused in this checkout. The real Stage 2 issuer remains the acceptance gate.
+
+### 7.3 Day plan host integration
+
+DSH declares Day plan actions: `show_task`, `complete_task`, `open_calendar`, `set_reminder`, `request_notification`, and `host_conflict_report`. `show_task`, `open_calendar`, `request_notification`, and `host_conflict_report` are read actions. `complete_task` and `set_reminder` are reversible. Day plan Blocks emit these events, and DSH validates and forwards them as `[iui-action]` messages. Host-side task storage, notification scheduling, conflict reporting, and calendar execution remain host responsibilities.
 
 Read [packages/dsh/README.md](packages/dsh/README.md) and [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md).
 
