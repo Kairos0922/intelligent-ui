@@ -31,6 +31,18 @@ export interface DayReminder {
   note?: string;
 }
 
+/** Host-side Day plan integration contract. User/host state wins on conflicts. */
+export interface DayPlanHost {
+  getTasks(): DayPlanTask[];
+  setTasks(tasks: DayPlanTask[]): void;
+  openTask(id: string): void;
+  completeTask(id: string): void;
+  openCalendar(range?: { start?: string; end?: string }): void;
+  setReminder(taskId: string, reminderAt?: string): void;
+  requestNotification(taskId: string): void;
+  reportConflict(taskId: string, reason?: string): void;
+}
+
 function text(value: unknown, fallback = ""): string {
   return typeof value === "string" && value.trim() ? safeText(value, 120).trim() : fallback;
 }

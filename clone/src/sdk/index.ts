@@ -678,5 +678,6 @@ export type {
   DayPlanTaskStatus,
   DayPlanRecurrence,
   DayReminder,
+  DayPlanHost,
   TaskListPayload,
 } from "../iui/day-plan";
