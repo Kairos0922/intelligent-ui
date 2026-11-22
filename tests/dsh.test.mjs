@@ -4,6 +4,8 @@ import { apply } from "../packages/dsh/lib/index.js";
 import {
   DSH_ALLOWED_RISKS,
   DSH_MANIFEST,
+  applyDayPlanPatch,
+  createDshDayPlanHost,
   installPassLifecycleCleanup,
   isSignedOutAccountState,
 } from "../packages/dsh/lib/index.js";
@@ -107,6 +109,29 @@ test("DSH declares only read or reversible actions and confirms reversible ones"
       `${name} is declared`,
     );
   }
+});
+
+test("DSH Day plan host applies user-over-model conflicts", () => {
+  const host = createDshDayPlanHost();
+  host.setTasks([{ id: "t1", title: "Buy milk", status: "done", completedAt: "2026-11-20T10:00:00Z" }]);
+
+  const modelReset = applyDayPlanPatch(
+    { id: "t1", title: "Buy milk", status: "done", completedAt: "2026-11-20T10:00:00Z" },
+    { id: "t1", title: "Buy milk", status: "pending" },
+    "model",
+  );
+  assert.equal(modelReset.status, "done", "model cannot resurrect user-completed tasks");
+
+  const userReopen = applyDayPlanPatch(modelReset, { id: "t1", title: "Buy milk", status: "pending" }, "user");
+  assert.equal(userReopen.status, "pending", "user override wins");
+
+  const hostComplete = applyDayPlanPatch({ id: "t1", title: "Buy milk", status: "pending" }, { id: "t1", title: "Buy milk", status: "done" }, "user");
+  assert.equal(hostComplete.status, "done");
+  host.setTasks([hostComplete]);
+  host.completeTask("t1");
+  const tasks = host.getTasks();
+  assert.equal(tasks.length, 1);
+  assert.equal(tasks[0].status, "done");
 });
 
 test("DSH clears pass state when the account signs out or a session is disposed", () => {
