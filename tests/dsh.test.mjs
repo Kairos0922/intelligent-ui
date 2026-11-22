@@ -146,12 +146,15 @@ test("DSH Day plan host persists through DayPlanStorage and applies offline queu
   const merged = applyOfflineQueue(
     storage.getTasks(),
     [
-      { id: "t1", status: "pending" },
-      { id: "t2", title: "Write report", status: "pending", deadlineAt: "2026-11-21T10:00:00Z" },
+      { id: "t2", title: "Write report", status: "pending", deadlineAt: "2026-11-21T10:00:00Z", sequence: 2 },
+      { id: "t1", status: "pending", sequence: 1 },
+      { id: "t3", title: "Read email", status: "pending", sequence: 0 },
     ],
   );
+  assert.deepEqual(merged.map((task) => task.id), ["t1", "t3", "t2"]);
   assert.equal(merged.find((task) => task.id === "t1")?.status, "done", "host done wins over offline pending");
   assert.equal(merged.find((task) => task.id === "t2")?.title, "Write report");
+  assert.equal(merged.find((task) => task.id === "t3")?.title, "Read email");
 });
 
 test("DSH clears pass state when the account signs out or a session is disposed", () => {

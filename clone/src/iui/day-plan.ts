@@ -78,7 +78,12 @@ defineBlock("taskList", (el, props: { payload?: TaskListPayload }, ctx: Ctx) => 
     return;
   }
 
-  const root = h("article", { class: "iui-card iui-day-plan", "data-testid": "task-list" });
+  const root = h("article", {
+    class: "iui-card iui-day-plan",
+    role: "region",
+    "aria-label": "Day plan tasks",
+    "data-testid": "task-list",
+  });
   root.append(h("h2", { class: "iui-card-title", text: "Today" }));
 
   const tasks = payload.tasks.slice(0, 20);
@@ -92,9 +97,15 @@ defineBlock("taskList", (el, props: { payload?: TaskListPayload }, ctx: Ctx) => 
     const status = task.status ?? "pending";
     const statusBadge = h("div", {
       class: `iui-day-plan-status iui-day-plan-status--${status === "done" ? "ok" : status === "overdue" ? "warning" : status === "cancelled" ? "muted" : "ok"}`,
+      role: "status",
       text: statusText(status),
     });
-    const row = h("div", { class: "iui-day-plan-task", "data-testid": id });
+    const row = h("div", {
+      class: "iui-day-plan-task",
+      role: "group",
+      "aria-label": title,
+      "data-testid": id,
+    });
     row.append(h("div", { class: "iui-day-plan-task__title", text: title }), statusBadge);
     const meta = h("div", { class: "iui-day-plan-task__meta" });
     const deadline = formatWhen(task.deadlineAt, ctx);
@@ -135,7 +146,13 @@ defineBlock("reminder", (el, props: { reminder?: DayReminder }, ctx: Ctx) => {
   const taskId = text(reminder?.taskId) || text(reminder?.title, "task") || "task";
   const title = text(reminder?.title, taskId);
   const when = formatWhen(reminder?.reminderAt, ctx);
-  const root = h("article", { class: "iui-card iui-day-plan-reminder", "data-testid": "day-reminder" });
+  const root = h("article", {
+    class: "iui-card iui-day-plan-reminder",
+    role: "status",
+    "aria-live": "polite",
+    "aria-label": text(reminder?.title, "Day reminder"),
+    "data-testid": "day-reminder",
+  });
   root.append(h("h2", { class: "iui-card-title", text: "Day reminder" }));
   root.append(h("div", { class: "iui-day-plan-reminder__title", text: title }));
   if (when) root.append(h("div", { class: "iui-day-plan-reminder__time", text: `Reminder at ${when}` }));

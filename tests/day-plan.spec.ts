@@ -46,10 +46,11 @@ test("Day plan taskList/reminder render and emit host actions", async ({ page })
     window.__dayPlanEvents = events;
   }, ops);
 
-  await expect(page.getByTestId("task-list")).toBeVisible();
-  await expect(page.getByTestId("task-1")).toContainText("Buy milk");
-  await expect(page.getByTestId("task-2")).toContainText("Write report");
+  await expect(page.getByRole("region", { name: "Day plan tasks" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Buy milk" })).toContainText("Buy milk");
+  await expect(page.getByRole("group", { name: "Write report" })).toContainText("Write report");
   await expect(page.getByTestId("day-reminder")).toBeVisible();
+  await expect(page.getByRole("status", { name: "Buy milk" })).toContainText("Reminder at");
 
   await page.getByTestId("complete-task-1").click();
   await page.getByTestId("open-task-1").click();

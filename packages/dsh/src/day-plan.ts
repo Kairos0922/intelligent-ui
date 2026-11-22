@@ -8,7 +8,7 @@ export interface DayPlanStorage {
 }
 
 export type DayPlanTaskPatch = { id: string } & Partial<Omit<DayPlanTask, "id">>;
-export type DayPlanOfflinePatch = DayPlanTaskPatch;
+export type DayPlanOfflinePatch = DayPlanTaskPatch & { sequence?: number };
 
 function notify(name: string, detail: Record<string, unknown>): void {
   if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
@@ -95,7 +95,8 @@ export function applyOfflineQueue(
   kind: DayPlanPatchKind = "model",
 ): DayPlanTask[] {
   const tasks = [...current];
-  for (const patch of queued) {
+  const ordered = [...queued].sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+  for (const patch of ordered) {
     const base = tasks.find((task) => task.id === patch.id);
     if (!base) {
       tasks.push({
