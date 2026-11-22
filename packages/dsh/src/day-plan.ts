@@ -140,10 +140,16 @@ export function createDshDayPlanHost(options: { storage?: DayPlanStorage } = {})
       );
       commit();
     },
-    openCalendar(range?: { start?: string; end?: string }): void {
+    openCalendar(range?: { start?: string; end?: string; reminderAt?: string }): void {
       notify("iui-day-plan-calendar-open", { range });
     },
     setReminder(taskId: string, reminderAt?: string): void {
+      if (reminderAt) {
+        tasks = tasks.map((task) =>
+          task.id === taskId ? { ...task, reminderAt, status: task.status === "done" ? "done" : task.status } : task,
+        );
+        commit();
+      }
       notify("iui-day-plan-reminder-set", { taskId, reminderAt });
     },
     requestNotification(taskId: string): void {

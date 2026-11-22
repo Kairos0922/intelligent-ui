@@ -136,6 +136,16 @@ test("DSH Day plan host applies user-over-model conflicts", () => {
   assert.equal(tasks[0].status, "done");
 });
 
+test("DSH Day plan host executes reminder updates and conflict reports", () => {
+  const storage = createMemoryDayPlanStorage([{ id: "t1", title: "Buy milk", status: "pending" }]);
+  const host = createDshDayPlanHost({ storage });
+  host.openTask("t1");
+  host.setReminder("t1", "2026-11-21T09:00:00Z");
+  assert.equal(storage.getTasks().find((task) => task.id === "t1")?.reminderAt, "2026-11-21T09:00:00Z");
+  host.requestNotification("t1");
+  host.reportConflict("t1", "conflict with user state");
+});
+
 test("DSH Day plan host persists through DayPlanStorage and applies offline queue", () => {
   const storage = createMemoryDayPlanStorage([{ id: "t1", title: "Buy milk", status: "done", completedAt: "2026-11-20T10:00:00Z" }]);
   const host = createDshDayPlanHost({ storage });
