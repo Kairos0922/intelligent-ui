@@ -137,7 +137,7 @@ Day plan Blocks emit the host actions declared by the DSH manifest: `show_task`,
 
 DSH validates and forwards them as `[iui-action]` messages. DSH also exports `createDshDayPlanHost()`, `applyDayPlanPatch()`, `createLocalStorageDayPlanStorage()`, and `applyOfflineQueue()`.
 
-The host keeps tasks in the provided storage, marks user-complete actions done, applies user/model/derived conflict rules, and merges queued user patches. `applyOfflineQueue()` accepts a `sequence` on each queued patch and returns the task list in sequence order. Core validates `taskList`/`reminder` payloads, redacts/expires PII, and DSH executes host actions before sending `[iui-action]` messages. Host-side richer storage, calendar execution, notification delivery, and production a11y execution remain host responsibilities.
+The host keeps tasks in the provided storage, marks user-complete actions done, applies user/model/derived conflict rules, and merges queued user patches. `applyOfflineQueue()` accepts a `sequence` on each queued patch and returns the task list in sequence order. Core validates `taskList`/`reminder` payloads, redacts/expires PII, and computes host-side overdue state with `reconcileDayPlanTasks()`. DSH executes host actions before sending `[iui-action]` messages. Host-side richer storage, calendar execution, notification delivery, and production a11y execution remain host responsibilities.
 
 `open_issuer_link` accepts only an allowlisted `https://` origin. URL QR payloads use the same host allowlist. Opaque `IUI1:` payloads do not need a domain. None of these actions writes a wallet, sends a message outside the session, or performs an irreversible write.
 

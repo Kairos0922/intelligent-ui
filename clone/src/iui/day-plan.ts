@@ -238,6 +238,38 @@ export function clearExpiredDayPlanPii(tasks: DayPlanTask[], now = Date.now()): 
   });
 }
 
+function parseDayPlanIso(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const time = new Date(value).getTime();
+  return Number.isFinite(time) ? time : undefined;
+}
+
+export function reconcileDayPlanTask(task: DayPlanTask, now = Date.now()): DayPlanTask {
+  if (task.status === "done" || task.status === "cancelled") return task;
+  const deadline = parseDayPlanIso(task.deadlineAt);
+  const status = deadline !== undefined && now >= deadline ? "overdue" : (task.status ?? "pending");
+  return status === task.status ? task : { ...task, status };
+}
+
+export function reconcileDayPlanTasks(tasks: DayPlanTask[], now = Date.now()): DayPlanTask[] {
+  return tasks
+    .map((task) => reconcileDayPlanTask(task, now))
+    .sort((a, b) => {
+      const rank = (task: DayPlanTask) => {
+        if (task.status === "overdue") return 0;
+        const deadline = parseDayPlanIso(task.deadlineAt);
+        if (deadline === undefined) return 3;
+        if (deadline - now <= 0) return 1;
+        return 2;
+      };
+      if (rank(a) !== rank(b)) return rank(a) - rank(b);
+      const deadlineA = parseDayPlanIso(a.deadlineAt) ?? Number.MAX_SAFE_INTEGER;
+      const deadlineB = parseDayPlanIso(b.deadlineAt) ?? Number.MAX_SAFE_INTEGER;
+      if (deadlineA !== deadlineB) return deadlineA - deadlineB;
+      return a.id.localeCompare(b.id);
+    });
+}
+
 defineBlock("taskList", (el, props: { payload?: TaskListPayload }, ctx: Ctx) => {
   const payload = props.payload;
   if (!payload || payload.kind !== "day-plan" || !Array.isArray(payload.tasks)) {

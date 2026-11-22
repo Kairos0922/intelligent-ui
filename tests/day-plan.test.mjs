@@ -8,6 +8,8 @@ import {
   validateDayReminderPayload,
   redactDayPlanPii,
   clearExpiredDayPlanPii,
+  reconcileDayPlanTask,
+  reconcileDayPlanTasks,
 } from "../clone/dist-lib/agent.js";
 
 test("Day plan catalog and component-registry types are present", () => {
@@ -53,6 +55,26 @@ test("Day plan payload validator accepts valid tasks and reminders", () => {
   assert.deepEqual(reminder.issues, []);
   const invalidReminder = validateDayReminderPayload({ taskId: "task-1" });
   assert.ok(invalidReminder.issues.length > 0);
+});
+
+test("Day plan reconcile helpers mark overdue and sort tasks", () => {
+  const past = "2026-01-01T00:00:00Z";
+  const future = "2027-01-01T00:00:00Z";
+  const done = reconcileDayPlanTask({ id: "done", title: "Done", status: "done", deadlineAt: past });
+  assert.equal(done.status, "done");
+
+  const overdue = reconcileDayPlanTask({ id: "overdue", title: "Overdue", deadlineAt: past });
+  assert.equal(overdue.status, "overdue");
+
+  const live = reconcileDayPlanTask({ id: "live", title: "Live", deadlineAt: future });
+  assert.equal(live.status, "pending");
+
+  const sorted = reconcileDayPlanTasks([
+    { id: "no-deadline", title: "No deadline", deadlineAt: undefined },
+    { id: "overdue", title: "Overdue", deadlineAt: past },
+    { id: "later", title: "Later", deadlineAt: future },
+  ], 0).map((task) => task.id);
+  assert.deepEqual(sorted, ["overdue", "later", "no-deadline"]);
 });
 
 test("Day plan PII helpers redact and expire PII", () => {
