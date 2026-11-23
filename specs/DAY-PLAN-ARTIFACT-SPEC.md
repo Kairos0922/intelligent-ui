@@ -142,6 +142,7 @@ Conflict examples:
 | A8 | DSH executes reminder updates and conflict reports | `createDshDayPlanHost().setReminder()`/`reportConflict()` |
 | A9 | PII is redacted and expired | `redactDayPlanPii()`/`clearExpiredDayPlanPii()` tests |
 | A10 | No real issuer/Wallet/airport scanner/production `verified` claim | Acceptance tests use local fixture tasks |
+| A11 | DSH host focuses task row on `show_task` and requests/delivers Web Notifications; denial emits `iui-day-plan-notification-denied` | Playwright asserts task rows are focusable; DSH `openTask()` focuses row; notification denial is in DSH host implementation |
 
 All acceptance uses local fixture tasks, not real ISSUE/Wallet.
 

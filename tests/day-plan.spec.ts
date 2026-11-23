@@ -54,6 +54,7 @@ test("Day plan taskList/reminder render and emit host actions", async ({ page })
 
   await page.getByTestId("complete-task-1").click();
   await page.getByTestId("open-task-1").click();
+  await expect(page.getByRole("group", { name: "Buy milk" })).toHaveAttribute("tabindex", "0");
   await page.getByTestId("day-reminder-open-task-1").click();
   await page.getByTestId("day-reminder-calendar-task-1").click();
   await page.getByTestId("day-reminder-set-task-1").click();
