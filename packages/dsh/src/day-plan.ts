@@ -130,6 +130,12 @@ export function createDshDayPlanHost(options: { storage?: DayPlanStorage } = {})
       commit();
     },
     openTask(id: string): void {
+      const selector = id.replace(/"/g, "\\\"");
+      const element =
+        typeof document !== "undefined"
+          ? (document.querySelector(`[data-testid="${selector}"]`) as HTMLElement | null)
+          : null;
+      element?.focus();
       notify("iui-day-plan-task-open", { taskId: id });
     },
     completeTask(id: string): void {
@@ -154,6 +160,24 @@ export function createDshDayPlanHost(options: { storage?: DayPlanStorage } = {})
     },
     requestNotification(taskId: string): void {
       notify("iui-day-plan-notification-request", { taskId });
+      if (typeof window === "undefined" || typeof window.Notification !== "function") return;
+      void (async () => {
+        if (window.Notification.permission !== "granted" && window.Notification.permission !== "default") {
+          notify("iui-day-plan-notification-denied", { taskId, status: window.Notification.permission });
+          return;
+        }
+        if (window.Notification.permission === "default") {
+          const status = await window.Notification.requestPermission();
+          if (status !== "granted") {
+            notify("iui-day-plan-notification-denied", { taskId, status });
+            return;
+          }
+        }
+        const task = tasks.find((item) => item.id === taskId);
+        if (task) {
+          new window.Notification(task.title, { body: task.description ?? task.reminderAt ?? "" });
+        }
+      })();
     },
     reportConflict(taskId: string, reason?: string): void {
       notify("iui-day-plan-conflict", { taskId, reason });
