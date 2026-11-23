@@ -36,6 +36,7 @@
 - 一个 beachhead recipe 的端到端任务评估；
 - 离线、撤销、篡改、跨设备/存储冲突；
 - 布局、断点、文本缩放、RTL、无障碍的**定义域内**验证；
+- Day plan（taskList/reminder）评估：renders/actions/overdue/PII/storage/offline/a11y/keyboard/focus/role。
 - 注入、越权、重复执行、跨用户污染、快照篡改；
 - 证据包、评分者一致性、报告模板、门禁模板。
 
