@@ -3,7 +3,7 @@
 | 项目 | 内容 |
 |---|---|
 | 版本 | 2026-11-03 汇总版 + P0-1 实验修订 + spec 草案 |
-| 状态 | **方案已批准（2026-11-04，受托决策：用户授权"所有决策你来做"，原则"正确的方法做正确的事情"；用户保留推翻权）**。Beachhead：Travel/pass @ DSH 经 2026-11-13 受托指令起跑，但 2026-11-20 Stage 2 real-issuer 门槛因没有真实凭证路径未通过；当前 Beachhead 切换为 Day plan @ general host adapters（fallback）。Travel/pass 仍可作 travel-specific mock/fallback 报告。反方审阅 4 项发现已全部处置（§7.6.1）。开源约束已纳入（§11）。**阶段 1a 核心契约已实现（2026-11-04，见 `specs/STAGE-1A-IMPLEMENTATION-PLAN.md`）**；下一步：执行 issuer 主动门槛证据检查（未通过前不启动 1b）；npm 发布准备并行（§11） |
+| 状态 | **方案已批准（2026-11-04，受托决策：用户授权"所有决策你来做"，原则"正确的方法做正确的事情"；用户保留推翻权）**。Beachhead：**Day plan @ general host adapters（2026-11-20 切换，Stage 2 real-issuer 门槛未通过）**；Travel/pass 仍作 travel-specific mock/fallback。反方审阅 4 项发现已全部处置（§7.6.1）。开源约束已纳入（§11）。**阶段 1a 核心契约已实现（2026-11-04，见 `specs/STAGE-1A-IMPLEMENTATION-PLAN.md`）**；Day plan Beachhead 已按 `specs/DAY-PLAN-ARTIFACT-SPEC.md` 实现/验收；npm 发布准备并行（§11） |
 | 代码基线 | `dcd1cc6`（`v0.2.2-3-gdcd1cc6`，2026-10-29） |
 | 实验证据 | `experiments/pass-spike/`（41/41 自动检查；结论见附录 G） |
 | 规范草案 | `specs/PROTOCOL-SPEC.md`（0.3-draft）、`specs/EVALUATION-SPEC.md`（0.2-draft）；草案，非产品承诺 |
@@ -1115,6 +1115,7 @@ Imagine      W ∈ ℂ      复平面/极点/抬升
 - 2026-11-19（Protocol Spec 英译）：新增 `specs/PROTOCOL-SPEC.en.md`，保留 20 节与附录结构、表格、代码块和 C1–C25 编号；中文稿保留用于对照。本文与 EVALUATION-SPEC 的英译、真实 issuer 与 npm 发布仍未完成。
 - 2026-11-20（Mock adapter 开发路径）：按用户选择，开始用本地 `tools/test-issuer` 做 DSH travel adapter 的 mock 开发，并完成 GitHub package publish prep。支持的 mock 覆盖 `normal`、`gate-change`、`revoked`、`invalid`、`slow`；`npm run pack:all`、`npm run audit:pack`、`npm run check:release -- --tarballs` 均通过。NPM publishing 仍暂停。
 - 2026-11-20（Stage 2 issuer integration readiness）：新增 `specs/STAGE-2-ISSUER-INTEGRATION.md`，记录真实 issuer 的候选标准、DSH 集成面、外联话术与 Day plan 回退条件。仍未找到真实 issuer；真实 issuer/Wallet/机场闸机与 production `verified` 仍不在范围内。
+- 2026-11-20（Day plan Beachhead switch）：真实 issuer 门槛未通过，Beachhead 切换为 Day plan @ general host adapters。Travel/pass 保留 mock/fallback；Day plan artifact/spec 已实现（payload/reconcile/PII/storage/offline/host execution/a11y/acceptance）；Stage 2 issuer 与 npm publishing 仍按先前约定等待外部条件。
 
 ---
 
