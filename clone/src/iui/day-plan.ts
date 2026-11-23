@@ -303,6 +303,8 @@ defineBlock("taskList", (el, props: { payload?: TaskListPayload }, ctx: Ctx) => 
       class: "iui-day-plan-task",
       role: "group",
       "aria-label": title,
+      "aria-roledescription": "Day plan task",
+      tabindex: 0,
       "data-testid": id,
     });
     row.append(h("div", { class: "iui-day-plan-task__title", text: title }), statusBadge);
@@ -350,6 +352,7 @@ defineBlock("reminder", (el, props: { reminder?: DayReminder }, ctx: Ctx) => {
     role: "status",
     "aria-live": "polite",
     "aria-label": text(reminder?.title, "Day reminder"),
+    tabindex: 0,
     "data-testid": "day-reminder",
   });
   root.append(h("h2", { class: "iui-card-title", text: "Day reminder" }));
