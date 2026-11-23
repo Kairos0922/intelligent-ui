@@ -3202,6 +3202,12 @@ svg.iui-bike .callout text {
   flex-shrink: 0;
 }
 
+.iui-day-plan-task .iui-pass-button:focus-visible,
+.iui-day-plan-reminder__actions .iui-pass-button:focus-visible {
+  outline: 2px solid var(--iui-focus);
+  outline-offset: 2px;
+}
+
 .iui-day-plan-reminder {
   display: grid;
   gap: 8px;
