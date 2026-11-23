@@ -145,6 +145,15 @@ Conflict examples:
 
 All acceptance uses local fixture tasks, not real ISSUE/Wallet.
 
+## 9. 生产无障碍与验收执行
+
+- Task buttons are native `<button type="button">`; keyboard activation uses Enter/Space.
+- Accessible roles: `taskList` has `role=region`; task rows have `role=group` with non-empty `aria-label`; reminder has `role=status` and `aria-live=polite`.
+- Buttons have non-empty `aria-label`; status text is non-empty.
+- `focus-visible` styles are present for task and reminder actions.
+- Status is not encoded color-only; `role` + text are used.
+- Acceptance D101–D110 runs in a browser with role/keyboard assertions and local fixture tasks.
+
 ## 8. 真实 issuer/Wallet 不在范围
 
 No Ed25519 credential verification; no signature; no snapshot TTL; no revoke; no Wallet handoff. The beachhead is Day plan; Travel pass is mock/fallback and not used as product.
