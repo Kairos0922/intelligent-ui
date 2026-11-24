@@ -5,6 +5,19 @@
 This document records what is still needed to move the selected travel/pass
 beachhead from the local Stage 1b test issuer path to a real issuer.
 
+## Real-task validation ledger
+
+The current Stage 2 readiness record tracks the following real-task outcomes:
+
+| Item | Status | Notes |
+|---|---|---|
+| Real airline issuer | Not connected | No external issuer/credential path found. |
+| Wallet | Not verified | No wallet integration or handoff exists. |
+| Airport scanner compatibility | Not verified | No real-device scanner testing done. |
+| Production `verified` | Not verified | Only Day plan production hardening is validated. |
+| npm publishing | Paused | No packages published. |
+| Travel/pass product | Mock/fallback | Day plan is the active Beachhead. |
+
 ## Current state
 
 - Travel pass mock development and DSH adapter path are complete.
