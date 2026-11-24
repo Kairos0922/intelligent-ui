@@ -134,6 +134,33 @@ function dayRecurrence(value: unknown, path: string, list: ContractIssue[]): Day
   return value as DayPlanRecurrence;
 }
 
+export interface DayPlanTaskFilter {
+  status?: DayPlanTaskStatus;
+  priority?: 0 | 1 | 2 | 3;
+  search?: string;
+  limit?: number;
+}
+
+/** Large-data helper: filter and limit a task list for rendering. */
+export function filterDayPlanTasks(tasks: DayPlanTask[], filter: DayPlanTaskFilter = {}, defaultLimit = 20): DayPlanTask[] {
+  const needle = typeof filter.search === "string" ? filter.search.toLowerCase().trim() : "";
+  const limit = Math.max(0, Math.min(filter.limit ?? defaultLimit, 500));
+  const out: DayPlanTask[] = [];
+  for (const task of tasks) {
+    if (filter.status !== undefined && task.status !== filter.status) continue;
+    if (typeof filter.priority !== "number" && filter.priority !== undefined) continue;
+    if (filter.priority !== undefined && task.priority !== filter.priority) continue;
+    if (needle) {
+      const title = text(task.title, "").toLowerCase();
+      const description = (task.description ?? "").toLowerCase();
+      if (!title.includes(needle) && !description.includes(needle)) continue;
+    }
+    out.push(task);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
 export function validateDayListPayload(input: unknown, path = "dayPlan"): {
   payload: TaskListPayload | null;
   issues: ContractIssue[];
@@ -285,7 +312,7 @@ defineBlock("taskList", (el, props: { payload?: TaskListPayload }, ctx: Ctx) => 
   });
   root.append(h("h2", { class: "iui-card-title", text: "Today" }));
 
-  const tasks = payload.tasks.slice(0, 20);
+  const tasks = filterDayPlanTasks(payload.tasks);
   if (!tasks.length) {
     root.append(h("div", { class: "iui-muted", text: "No tasks yet." }));
   }
