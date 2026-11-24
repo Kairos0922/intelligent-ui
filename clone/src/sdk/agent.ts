@@ -58,8 +58,10 @@ export type {
   DayPlanRecurrence,
   DayReminder,
   DayPlanHost,
+  DayPlanTaskFilter,
   TaskListPayload,
 } from "../iui/day-plan";
+export { filterDayPlanTasks } from "../iui/day-plan";
 
 export const IUI_VERSION = "1.0";
 export const IUI_TOOL_NAME = "render_iui";

@@ -10,6 +10,7 @@ import {
   clearExpiredDayPlanPii,
   reconcileDayPlanTask,
   reconcileDayPlanTasks,
+  filterDayPlanTasks,
 } from "../clone/dist-lib/agent.js";
 
 test("Day plan catalog and component-registry types are present", () => {
@@ -75,6 +76,28 @@ test("Day plan reconcile helpers mark overdue and sort tasks", () => {
     { id: "later", title: "Later", deadlineAt: future },
   ], 0).map((task) => task.id);
   assert.deepEqual(sorted, ["overdue", "later", "no-deadline"]);
+});
+
+test("filterDayPlanTasks filters status/priority/search and limits large lists", () => {
+  const many = Array.from({ length: 1200 }, (_, index) => ({
+    id: `task-${index}`,
+    title: index % 2 === 0 ? "Even task" : "Odd task",
+    status: index % 2 === 0 ? "pending" : "done",
+  }));
+  const pending = filterDayPlanTasks(many, { status: "pending" }, 600);
+  assert.equal(pending.length, 500);
+  const highPriority = filterDayPlanTasks(
+    many.map((task, index) => ({ ...task, priority: index % 4 })),
+    { priority: 3 },
+    500,
+  );
+  assert.equal(highPriority.length, 300);
+  assert.ok(highPriority.every((task) => task.priority === 3));
+  const searched = filterDayPlanTasks(many, { search: "Even" }, 500);
+  assert.ok(searched.length > 0);
+  assert.ok(searched.every((task) => task.title.includes("Even")));
+  assert.equal(filterDayPlanTasks(many, {}, 2).length, 2);
+  assert.ok(filterDayPlanTasks(many).length <= 20);
 });
 
 test("Day plan PII helpers redact and expire PII", () => {

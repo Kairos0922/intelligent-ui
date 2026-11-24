@@ -3,7 +3,7 @@
 | 项目 | 内容 |
 |---|---|
 | 版本 | 0.3-implemented-slice |
-| 状态 | **Day plan Beachhead 已完成实现（2026-11-20）**；Travel/pass 仍保留 mock/fallback；真实 issuer 不在 Day plan 验收依赖。核心/DSH 已实现 payload 验证、PII、overdue reconcile、存储/offline、a11y/键盘/focus、Notification/Calendar host execution 与 acceptance A1–A11；Playwright 5/5、Node 86/86、CI 通过。Stage 2 real issuer、npm publishing 仍按先前约定等待外部条件。 |
+| 状态 | **Day plan Beachhead 已完成实现（2026-11-20）**；Travel/pass 仍保留 mock/fallback；真实 issuer 不在 Day plan 验收依赖。核心/DSH 已实现 payload 验证、PII、overdue reconcile、存储/offline、a11y/键盘/focus、Notification/Calendar host execution 与 acceptance A1–A12；`filterDayPlanTasks()` 支持大数据筛选；Playwright 5/5、Node 86/86、CI 通过。Stage 2 real issuer、npm publishing 仍按先前约定等待外部条件。 |
 | 上游 | `INTELLIGENT-UI-PLAN.md` §6.7/§7.6.1；`specs/Protocol-Spec.md` §16；`ADAPTERS.md` §7.2 |
 | 语言 | 中文工作稿（check:docs 豁免） |
 
@@ -143,6 +143,7 @@ Conflict examples:
 | A9 | PII is redacted and expired | `redactDayPlanPii()`/`clearExpiredDayPlanPii()` tests |
 | A10 | No real issuer/Wallet/airport scanner/production `verified` claim | Acceptance tests use local fixture tasks |
 | A11 | DSH host focuses task row on `show_task`, dispatches calendar open, and requests/delivers Web Notifications; denial emits `iui-day-plan-notification-denied` | Playwright asserts task rows are focusable; DSH host dispatches `iui-day-plan-calendar` and focuses notification permission flow |
+| A12 | `filterDayPlanTasks()` filters by status/priority/search and limits large lists; component uses it for rendering | Unit tests with 1200-task fixture; component uses default limit 20 |
 
 All acceptance uses local fixture tasks, not real ISSUE/Wallet.
 

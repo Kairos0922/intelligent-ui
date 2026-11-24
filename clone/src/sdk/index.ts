@@ -688,5 +688,7 @@ export type {
   DayPlanRecurrence,
   DayReminder,
   DayPlanHost,
+  DayPlanTaskFilter,
   TaskListPayload,
 } from "../iui/day-plan";
+export { filterDayPlanTasks } from "../iui/day-plan";
