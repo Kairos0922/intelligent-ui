@@ -329,7 +329,7 @@ NPM publishing remains paused in this checkout. The real Stage 2 issuer remains 
 DSH declares Day plan actions and Day plan Blocks emit these events, and DSH validates and forwards them as `[iui-action]` messages.
 DSH also exports a minimal host integration and the offline helper accepts `sequence` values and returns the task list in order.
 Host-completed tasks win over model/derived pending patches and core validates `taskList`/`reminder` payloads with PII redaction/expiry helpers.
-DSH `openTask()` focuses the task row and `requestNotification()` requests and delivers Web Notifications, emitting denial events.
+DSH `openTask()` focuses the task row, `openCalendar()` dispatches `iui-day-plan-calendar`, and `requestNotification()` requests/delivers Web Notifications, emitting denial events.
 Host-side calendar execution and richer storage remain host responsibilities. The Playwright Day plan test asserts task rows are focusable and the keyboard test activates the primary action with Enter.
 
 Read [packages/dsh/README.md](packages/dsh/README.md) and [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md).
