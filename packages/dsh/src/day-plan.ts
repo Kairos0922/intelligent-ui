@@ -148,6 +148,9 @@ export function createDshDayPlanHost(options: { storage?: DayPlanStorage } = {})
     },
     openCalendar(range?: { start?: string; end?: string; reminderAt?: string }): void {
       notify("iui-day-plan-calendar-open", { range });
+      if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+        window.dispatchEvent(new CustomEvent("iui-day-plan-calendar", { detail: range }));
+      }
     },
     setReminder(taskId: string, reminderAt?: string): void {
       if (reminderAt) {
