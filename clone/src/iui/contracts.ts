@@ -443,6 +443,12 @@ export function isInstant(value: unknown): value is string {
   return typeof value === "string" && INSTANT_RE.test(value) && Number.isFinite(Date.parse(value));
 }
 
+const COMPENSATION_KINDS = new Set(["none", "reversible", "refund", "manual"]);
+
+export function isCompensationKind(value: unknown): value is ActionDescriptor["compensation"] {
+  return typeof value === "string" && COMPENSATION_KINDS.has(value);
+}
+
 export function isRiskLevel(value: unknown): value is RiskLevel {
   return value === "read" || value === "reversible" || value === "irreversible";
 }
@@ -645,7 +651,7 @@ export function validateCapabilityManifest(input: unknown): ManifestValidation {
       issues.push({ path: `${path}.idempotent`, message: "idempotent must be a boolean", code: "invalid_manifest" });
       continue;
     }
-    if (!["none", "reversible", "refund", "manual"].includes(String(raw.compensation))) {
+    if (!isCompensationKind(raw.compensation)) {
       issues.push({ path: `${path}.compensation`, message: "invalid compensation kind", code: "invalid_manifest" });
       continue;
     }
@@ -659,7 +665,7 @@ export function validateCapabilityManifest(input: unknown): ManifestValidation {
       risk: raw.risk,
       requiresConfirmation: raw.requiresConfirmation,
       idempotent: raw.idempotent,
-      compensation: raw.compensation as ActionDescriptor["compensation"],
+      compensation: raw.compensation,
       timeoutMs: raw.timeoutMs,
       argsSchema: isPlainObject(raw.argsSchema) ? (raw.argsSchema as JsonSchema) : undefined,
       resultSchema: isPlainObject(raw.resultSchema) ? (raw.resultSchema as JsonSchema) : undefined,

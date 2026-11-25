@@ -279,7 +279,7 @@ defineBlock(
             fill: color,
             class: "iui-chart-bar",
           });
-          bar.append(svg("title", {}, `${labels[index]}: ${fmtValue(value, format, currency, false, locale)}`));
+          bar.append(svg("title", {}, `${labels[index] ?? ""}: ${fmtValue(value, format, currency, false, locale)}`));
           root.append(bar);
         });
         return;
@@ -326,7 +326,7 @@ defineBlock(
           class: "iui-chart-point",
         });
         dot.append(
-          svg("title", {}, `${labels[index]}: ${fmtValue(point.value, format, currency, false, locale)}`),
+          svg("title", {}, `${labels[index] ?? ""}: ${fmtValue(point.value, format, currency, false, locale)}`),
         );
         root.append(dot);
       });

@@ -2,12 +2,18 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
 const packages = [
-  "clone",
-  "packages/adapter",
-  "packages/ai-sdk",
-  "packages/dsh",
-  "packages/mcp-apps",
-  "packages/react",
+  ...readdirSync(".", { withFileTypes: true })
+    .filter(
+      (d) =>
+        d.isDirectory() &&
+        !d.name.startsWith(".") &&
+        !d.name.startsWith("dist") &&
+        existsSync(resolve(d.name, "package.json")),
+    )
+    .map((d) => d.name),
+  ...readdirSync("packages", { withFileTypes: true })
+    .filter((d) => d.isDirectory() && existsSync(resolve("packages", d.name, "package.json")))
+    .map((d) => `packages/${d.name}`),
 ];
 
 const root = JSON.parse(readFileSync(resolve("package.json"), "utf8"));

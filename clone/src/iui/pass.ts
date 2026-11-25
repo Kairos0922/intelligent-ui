@@ -451,8 +451,10 @@ export function freshnessForPass(
   const now = options.now ?? Date.now();
   if (Date.parse(attestation.validUntil) <= now) return "expired";
   if (attestation.snapshotAt) {
-    const snapshotAge = now - Date.parse(attestation.snapshotAt);
-    if (Number.isFinite(snapshotAge) && snapshotAge > 24 * 60 * 60 * 1000) return "unknown";
+    const snapshotAt = Date.parse(attestation.snapshotAt);
+    if (Number.isNaN(snapshotAt)) return "unknown";
+    const snapshotAge = now - snapshotAt;
+    if (snapshotAge > 24 * 60 * 60 * 1000) return "unknown";
     return "stale";
   }
   // Offline without a sealed snapshot is unknown, not stale: there is no

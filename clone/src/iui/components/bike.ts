@@ -1,5 +1,5 @@
 import { h, svg, setText } from "../dom";
-import { defineBlock, Ctx } from "../registry";
+import { defineBlock, type Ctx } from "../registry";
 
 let bikeSeq = 0;
 
@@ -264,6 +264,7 @@ defineBlock(
     card.append(head, diagram, caption, kicker, stepTitle, findEl, bodyEl, checkRow, foot);
     el.append(card);
 
+    if (props.steps.length === 0) return;
     let i = Math.min(Math.max(props.start ?? 0, 0), props.steps.length - 1);
     const render = () => {
       const step = props.steps[i];

@@ -27,6 +27,7 @@ jobs:
       - run: npm run typecheck
       - run: node --test tests/*.test.mjs
       - run: npm run bench:selfcheck
+      - run: npm run verify:spike
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - run: npm run pack:all

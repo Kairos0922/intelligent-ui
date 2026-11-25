@@ -129,9 +129,9 @@ function isOpaqueQrPayload(payload: string): boolean {
 }
 
 function isTimeoutError(error: unknown): boolean {
-  return !!error && typeof error === "object" && "name" in error &&
-    ((error as { name?: unknown }).name === "TimeoutError" ||
-      (error as { name?: unknown }).name === "AbortError");
+  if (!error || typeof error !== "object" || !("name" in error)) return false;
+  const name: unknown = error.name;
+  return name === "TimeoutError" || name === "AbortError";
 }
 
 function instant(value: unknown, fallback: string): string {

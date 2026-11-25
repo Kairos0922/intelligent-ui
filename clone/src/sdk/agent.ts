@@ -147,17 +147,22 @@ function parseOpsPayload(payload: string, issues: ValidationIssue[]): unknown[] 
   const body = payload.trim();
   if (!body) return [];
 
+  let parsed = false;
+  let value: unknown = null;
   if (body.startsWith("[") || body.startsWith("{")) {
     try {
-      const value: unknown = JSON.parse(body);
+      value = JSON.parse(body);
+      parsed = true;
+    } catch {}
+    if (parsed && value !== null) {
       if (Array.isArray(value)) return value;
-      if (value && typeof value === "object" && Array.isArray((value as { ops?: unknown }).ops)) {
+      if (typeof value === "object" && Array.isArray((value as { ops?: unknown }).ops)) {
         return (value as { ops: unknown[] }).ops;
       }
-      if (value && typeof value === "object" && typeof (value as { t?: unknown }).t === "string") {
+      if (typeof value === "object" && typeof (value as { t?: unknown }).t === "string") {
         return [value];
       }
-    } catch {}
+    }
   }
 
   const out: unknown[] = [];
@@ -169,6 +174,9 @@ function parseOpsPayload(payload: string, issues: ValidationIssue[]): unknown[] 
     } catch {
       issues.push({ path: `line[${i + 1}]`, message: "invalid JSON" });
     }
+  }
+  if (!out.length && !parsed && (body.startsWith("[") || body.startsWith("{"))) {
+    issues.push({ path: "payload", message: "invalid JSON in answer body" });
   }
   return out;
 }
@@ -349,10 +357,11 @@ export function createIuiExtractor(
       try {
         emitOp(JSON.parse(t));
         return;
-      } catch {}
-      if (!t.startsWith("{")) {
-        emitIssue({ path: "op", message: `ignored non-JSON line: ${t.slice(0, 60)}` });
-        return;
+      } catch {
+        if (!t.startsWith("{")) {
+          emitIssue({ path: "op", message: `ignored non-JSON line: ${t.slice(0, 60)}` });
+          return;
+        }
       }
     }
 
@@ -671,7 +680,6 @@ ${options.extraRules ? `## Host rules\n\n${options.extraRules}\n` : ""}`;
 }
 
 export const IUI_SYSTEM_PROMPT = iuiSystemPrompt();
-export const IUI_TOOL_PROMPT = iuiSystemPrompt({ mode: "tool" });
 
 export interface ToolOptions extends PromptOptions {
   /** Tool name (default: render_iui). */
@@ -715,11 +723,6 @@ export function iuiTool(options: ToolOptions = {}) {
 /** Raw JSON Schema variant for providers with a different tool shape. */
 export function iuiParameters(options: PromptOptions = {}) {
   return buildParameters(selectPromptBlocks(options).map((b) => b.type), envelopeEnabled(options));
-}
-
-/** Serialize ops as the wire format. */
-export function encodeOps(ops: Op[]): string {
-  return ops.map((op) => JSON.stringify(op)).join("\n") + "\n";
 }
 
 export { ActionRuntime, ActionRuntimeError, createActionRuntime, errorFor } from "../iui/action-machine";

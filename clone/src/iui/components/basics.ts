@@ -1,10 +1,14 @@
 import { h, frag, setText, fmtInt, svg } from "../dom";
 import { renderInline } from "../md";
-import { defineBlock, Ctx } from "../registry";
+import { defineBlock, type Ctx } from "../registry";
 import { safeColor, sanitizeSvgIcon } from "../security";
 import { enlargeButton } from "./lightbox";
 
 let blockSeq = 0;
+
+function imgEl(im: { src: string; alt?: string }): HTMLImageElement {
+  return h("img", { src: im.src, alt: im.alt ?? "", loading: "lazy" });
+}
 
 function blockKey(el: HTMLElement): string {
   if (!el.dataset.blockId) el.dataset.blockId = `b${++blockSeq}`;
@@ -13,17 +17,13 @@ function blockKey(el: HTMLElement): string {
 
 defineBlock("collage", (el, props: { images: { src: string; alt?: string }[] }) => {
   const wrap = h("div", { class: "iui-hero-collage" });
-  props.images.slice(0, 3).forEach((im) =>
-    wrap.append(h("img", { src: im.src, alt: im.alt ?? "", loading: "lazy" })),
-  );
+  props.images.slice(0, 3).forEach((im) => wrap.append(imgEl(im)));
   el.append(wrap);
 });
 
 defineBlock("strip", (el, props: { images: { src: string; alt?: string }[] }) => {
   const wrap = h("div", { class: "iui-image-strip" });
-  props.images.slice(0, 3).forEach((im) =>
-    wrap.append(h("img", { src: im.src, alt: im.alt ?? "", loading: "lazy" })),
-  );
+  props.images.slice(0, 3).forEach((im) => wrap.append(imgEl(im)));
   el.append(wrap);
 });
 
@@ -121,9 +121,7 @@ defineBlock(
 
 defineBlock("rtHero", (el, props: { images: { src: string; alt?: string }[] }) => {
   const wrap = h("div", { class: "iui-rt-hero" });
-  props.images.slice(0, 3).forEach((im) =>
-    wrap.append(h("img", { src: im.src, alt: im.alt ?? "", loading: "lazy" })),
-  );
+  props.images.slice(0, 3).forEach((im) => wrap.append(imgEl(im)));
   el.append(wrap);
 });
 
@@ -487,6 +485,7 @@ defineBlock(
         btn.tabIndex = on ? 0 : -1;
       });
       const selected = buttons[index];
+      if (!selected) return;
       body.setAttribute("aria-labelledby", selected.id);
       const para = h("p");
       para.append(renderInline(typeof panels[name] === "string" ? panels[name] : ""));

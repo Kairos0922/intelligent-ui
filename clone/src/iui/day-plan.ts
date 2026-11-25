@@ -3,8 +3,18 @@ import { defineBlock, type Ctx } from "./registry";
 import { safeText } from "./security";
 import { isInstant, isValidTimeZone, type ContractIssue, isPlainObject } from "./contracts";
 
-export type DayPlanTaskStatus = "pending" | "done" | "overdue" | "cancelled";
-export type DayPlanRecurrence = "once" | "daily" | "weekdays";
+export const DAY_PLAN_TASK_STATUSES = ["pending", "done", "overdue", "cancelled"] as const;
+export type DayPlanTaskStatus = (typeof DAY_PLAN_TASK_STATUSES)[number];
+export const DAY_PLAN_RECURRENCES = ["once", "daily", "weekdays"] as const;
+export type DayPlanRecurrence = (typeof DAY_PLAN_RECURRENCES)[number];
+
+function isDayPlanTaskStatus(value: unknown): value is DayPlanTaskStatus {
+  return typeof value === "string" && (DAY_PLAN_TASK_STATUSES as readonly string[]).includes(value);
+}
+
+function isDayPlanRecurrence(value: unknown): value is DayPlanRecurrence {
+  return typeof value === "string" && (DAY_PLAN_RECURRENCES as readonly string[]).includes(value);
+}
 
 export interface DayPlanTask {
   id: string;
@@ -118,20 +128,20 @@ function dayZone(value: unknown, path: string, list: ContractIssue[]): string | 
 
 function dayStatus(value: unknown, path: string, list: ContractIssue[]): DayPlanTaskStatus | undefined {
   if (value === undefined || value === null) return undefined;
-  if (!["pending", "done", "overdue", "cancelled"].includes(value as never)) {
+  if (!isDayPlanTaskStatus(value)) {
     dayIssue(list, path, `${path} must be pending, done, overdue, or cancelled`, "invalid_day_plan");
     return "pending";
   }
-  return value as DayPlanTaskStatus;
+  return value;
 }
 
 function dayRecurrence(value: unknown, path: string, list: ContractIssue[]): DayPlanRecurrence | undefined {
   if (value === undefined || value === null) return undefined;
-  if (!["once", "daily", "weekdays"].includes(value as never)) {
+  if (!isDayPlanRecurrence(value)) {
     dayIssue(list, path, `${path} must be once, daily, or weekdays`, "invalid_day_plan");
     return "once";
   }
-  return value as DayPlanRecurrence;
+  return value;
 }
 
 export interface DayPlanTaskFilter {

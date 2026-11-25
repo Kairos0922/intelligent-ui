@@ -1,5 +1,5 @@
 import { h, svg, setText } from "../dom";
-import { defineBlock, Ctx } from "../registry";
+import { defineBlock, type Ctx } from "../registry";
 
 interface Place {
   id: string;
@@ -246,7 +246,10 @@ defineBlock(
         m.style.display = show ? "" : "none";
       }
       const visible = props.places.filter((p) => group === "all" || p.group === group);
-      if (selected && !visible.some((p) => p.id === selected!.id)) setSelected(visible[0] ?? null);
+      if (selected) {
+        const sel = selected;
+        if (!visible.some((p) => p.id === sel.id)) setSelected(visible[0] ?? null);
+      }
     };
     select.addEventListener("change", () => {
       applyFilter(select.value);

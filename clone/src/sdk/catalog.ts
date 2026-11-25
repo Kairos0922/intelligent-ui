@@ -994,10 +994,6 @@ export function registerBlockSpec(spec: BlockSpec): () => void {
   };
 }
 
-export function findBlock(type: string): BlockSpec | undefined {
-  return BLOCK_CATALOG.find((b) => b.type === type);
-}
-
 function typeLabel(spec: PropSpec, depth = 0): string {
   if (spec.enum) return spec.enum.map((v) => JSON.stringify(v)).join("|");
   switch (spec.type) {

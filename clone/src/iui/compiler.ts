@@ -4,8 +4,8 @@ import { h, append } from "./dom";
 import { createI18n, type I18n } from "./i18n";
 import { renderBlock, renderInline } from "./md";
 import type { PassFreshness, PassIntegrity } from "./pass";
-import { decode, Op } from "./protocol";
-import { mountBlock, BlockApi, Ctx } from "./registry";
+import { decode, type Op } from "./protocol";
+import { mountBlock, type BlockApi, type Ctx } from "./registry";
 
 interface ArtifactFreshness {
   credentialId: string;
