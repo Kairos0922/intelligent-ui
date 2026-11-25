@@ -7,7 +7,7 @@ This roadmap shows the public plan for Intelligent UI. The maintainers can chang
 Version 0.2.2 is a source release. It contains:
 
 - The host-neutral core runtime.
-- The IUI-1 protocol and 30 blocks.
+- The IUI-1 protocol and 33 blocks.
 - The adapter layer.
 - React, Vercel AI SDK, MCP Apps, and DeepSeek Harness adapters.
 - A 25-task structural benchmark.

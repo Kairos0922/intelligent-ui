@@ -356,7 +356,7 @@ The `createIuiExtractor()` `onIssue` callback does not stop the stream. Text out
 
 ## 8. Blocks
 
-The default catalog has 33 blocks: 26 general-purpose blocks, the travel `pass` profile, and the Day-plan `taskList`/`reminder` profiles.
+The default catalog has 33 blocks: 6 `media`, 3 `layout`, 9 `content`, 8 `interactive`, and 7 `domain` (including the travel `pass` profile and the Day-plan `taskList`/`reminder` profiles).
 
 | Type | Kind | Function |
 |---|---|---|
@@ -391,6 +391,8 @@ The default catalog has 33 blocks: 26 general-purpose blocks, the travel `pass` 
 | `bike` | domain | Annotated figure with an exploded view. |
 | `steps` | interactive | Step guide with progress and checks. |
 | `pass` | domain | Boarding pass with host-verified status, QR dialog, and refresh/verification actions. |
+| `taskList` | domain | Task list with status, edit, and complete-ops flows. |
+| `reminder` | domain | Day-plan reminder row for future tasks. |
 
 `BLOCK_CATALOG` contains the machine-readable schema for each block. Use `kind` to filter the catalog. The `domain` blocks are for travel, wardrobe, menu, and similar tasks.
 
@@ -700,8 +702,8 @@ The `exports` map supplies the type declarations for `.` and `./agent`. Keep the
 |---|---|
 | TypeScript build and type check | Pass |
 | Browser self-test | 30 of 30 pass |
-| Node tests | 72 of 72 pass |
-| Playwright tests | 3 of 3 pass |
+| Node tests | 90 of 90 pass |
+| Playwright tests | 5 of 5 pass |
 | MCP stdio integration | Pass |
 | MCP App HTML external URL scan | Pass |
 | Tarball audit | Pass |

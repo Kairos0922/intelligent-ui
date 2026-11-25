@@ -11,7 +11,7 @@ The name separates two responsibilities. The model supplies the intelligence. Th
 ## What it does
 
 - The core runtime compiles the IUI-1 JSON Lines stream into an answer.
-- The block catalog has 33 blocks: 26 general-purpose blocks, the travel `pass` profile, and the Day-plan `taskList`/`reminder` profiles.
+- The block catalog has 33 blocks: 6 `media`, 3 `layout`, 9 `content`, 8 `interactive`, and 7 `domain` (including the travel `pass` profile and the Day-plan `taskList`/`reminder` profiles).
 - The validator checks each op before it reaches the DOM.
 - The agent contract supplies a system prompt and the `render_iui` tool.
 - The adapter layer gives one action format and one lifecycle to all hosts.
@@ -225,8 +225,8 @@ The default action policy is `agent`. It sends prompts and meaningful block even
 
 | Check | Result |
 |---|---|
-| Unit tests | 78 of 78 pass |
-| Playwright host tests | 3 of 3 pass |
+| Unit tests | 90 of 90 pass |
+| Playwright host tests | 5 of 5 pass |
 | P0-1 pass-spike evidence | 41 of 41 checks pass with `npm run verify:spike` in CI |
 | SDK browser self-test | 30 of 30 pass |
 | Benchmark harness self-check | 25 of 25 tasks pass with the mock provider |
@@ -266,7 +266,7 @@ docs/              Style and release guides
 - [specs/DAY-PLAN-ARTIFACT-SPEC.md](specs/DAY-PLAN-ARTIFACT-SPEC.md) defines the Day plan artifact.
 
 The current Beachhead is **Day plan**, switched on 2026-11-20 when the real-issuer Stage 2 gate was not met. Travel/pass remains mock/fallback.
-- [SDK.md#blocks](SDK.md#blocks) lists the default blocks.
+- [SDK.md#8-blocks](SDK.md#8-blocks) lists the default blocks.
 - [docs/STE.md](docs/STE.md) gives the documentation rules.
 - [docs/RELEASE.md](docs/RELEASE.md) gives the release steps.
 - [CONTRIBUTING.md](CONTRIBUTING.md) gives the development steps.

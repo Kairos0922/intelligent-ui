@@ -14,7 +14,7 @@ Finish the selected Day plan Beachhead, record real-task validation gaps, and cl
 - Day plan core: `taskList`, `reminder`, payload validators, PII lifecycle, reconcile helpers.
 - Day plan DSH integration: `DayPlanHost`, storage, offline queue, `completeTask`, `setReminder`.
 - Production hardening: large-data `filterDayPlanTasks()`, a11y/focus/keyboard, acceptance A1–A12.
-- Validation: Node 87/87, Playwright 5/5, typecheck, check docs/audit, CI.
+- Validation: Node 90/90, Playwright 5/5, typecheck, check docs/audit, CI.
 
 ## Real-task validation gaps
 

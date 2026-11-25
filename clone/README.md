@@ -1,6 +1,6 @@
 # @intelligent-ui/core
 
-Host-neutral runtime for Intelligent UI. The package supplies the IUI-1 compiler, validation and repair, the agent prompt and tool contract, and the action envelope. The catalog has 33 blocks: 26 general-purpose blocks, the travel pass profile, and the Day-plan taskList/reminder profiles.
+Host-neutral runtime for Intelligent UI. The package supplies the IUI-1 compiler, validation and repair, the agent prompt and tool contract, and the action envelope. The catalog has 33 blocks: 6 media, 3 layout, 9 content, 8 interactive, and 7 domain, including travel pass and the Day-plan taskList/reminder.
 
 No code touches the DOM outside the mount container. The `@intelligent-ui/core/agent` entry point operates on a server.
 
@@ -55,7 +55,7 @@ The host keeps its chat shell, sidebar, and input box. The package controls only
 | `createIntelligentUI(options)` | `.` | Mount a streaming answer surface. |
 | `encodeOps(ops)` | `.` | Convert ops to IUI-1 NDJSON. |
 | `defineBlock(type, mount)` | `.` | Register a custom block. |
-| `BLOCK_CATALOG` | `.` | The 30 block specifications. |
+| `BLOCK_CATALOG` | `.` | The 33 block specifications. |
 | `iuiSystemPrompt(options)` | `./agent` | Build a system prompt section. |
 | `iuiTool(options)` | `./agent` | Build the `render_iui` tool definition. |
 | `parseAgentText(text)` | `./agent` | Extract `iui` fences from a complete answer. |
@@ -99,7 +99,7 @@ ui.registerBlock("weather", (el, props, ctx) => {
 
 The block registry is global to the page. Register a custom block one time on each page.
 
-Read [SDK.md](https://github.com/Kairos0922/intelligent-ui/blob/main/SDK.md#81-add-a-block) for the event and state rules.
+Read [SDK.md](https://github.com/Kairos0922/intelligent-ui/blob/main/SDK.md#82-add-a-block) for the event and state rules.
 
 ## Verification
 
@@ -122,4 +122,4 @@ The core source is in `clone/src/`. The build output is in `clone/dist-lib/`.
 
 ## License
 
-MIT. Read [LICENSE](LICENSE) and [NOTICE.md](https://github.com/Kairos0922/intelligent-ui/blob/main/NOTICE.md). The three demo blocks are local test fixtures. They are not in this package and are not covered by the MIT grant.
+MIT. Read [LICENSE](LICENSE) and [NOTICE.md](https://github.com/Kairos0922/intelligent-ui/blob/main/NOTICE.md). The catalog has 33 blocks. There are no demo blocks.

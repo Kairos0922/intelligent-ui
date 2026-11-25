@@ -242,7 +242,7 @@ The package does not import the `ai` package. It accepts the structural tool-par
 
 ## 7. DeepSeek Harness
 
-The DSH adapter is for the DSH web profile. It targets DSH `0.2.2-rc.1`. The peer range accepts `0.2.1-rc.2` and later. A hosted-provider web smoke passed with `deepseek-flash` using an explicit complete-ops second-turn recovery. Read [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md) for the caveats.
+The DSH adapter is for the DSH web profile. It targets DSH `0.2.2-rc.3` (peer range `>=0.2.2-rc.3 <0.3.0`). A hosted-provider web smoke passed with `deepseek-flash` using an explicit complete-ops second-turn recovery. Read [packages/dsh/SMOKE.md](packages/dsh/SMOKE.md) for the caveats.
 
 The package is not on npm. Use the self-contained DSH tarball from the GitHub release:
 
